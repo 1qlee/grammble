@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+.env
+.env.local
+.env.*.local
+.DS_Store
+dist
+build
+.cache
+.vercel
+.output
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+

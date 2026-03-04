@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+@source './src/**/*.{html,js,jsx,ts,tsx}';
+
+@variant dark (&:where([data-theme="dark"] *));
+@variant filled (&:not(:placeholder-shown));
+
+@layer base {
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    font: inherit;
+    /* Get rid of all font sizes and heights */
+  }
+
+  html {
+    color-scheme: light dark;
+    /* Default dark */
+    hanging-punctuation: first last;
+    /* Not supported in Chrome */
+  }
+
+  body {
+    min-height: 100vh;
+    color: var(--color-zinc-900);
+  }
+
+  /* Media responsive */
+  img,
+  picture,
+  svg,
+  video {
+    display: block;
+    max-width: 100%;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+
+  p {
+    max-width: 75ch;
+    text-wrap: pretty;
+    /* Prevents orphans on lines */
+  }
+
+  a:not(button) {
+    @apply transition-opacity duration-200 underline hover:opacity-80;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :has(:target) {
+      scroll-behavior: smooth;
+      scroll-padding-top: 3rem;
+    }
+  }
+
+  [data-theme="dark"] body {
+    color: var(--color-zinc-100);
+  }
+
+  .using-mouse * {
+    outline: none !important;
+  }
+
+  input,
+  button,
+  textarea {
+    outline-color: var(--color-orange-600);
+  }
+
+  [data-theme="dark"] input,
+  [data-theme="dark"] button,
+  [data-theme="dark"] textarea {
+    outline-color: var(--color-zinc-100);
+  }
+
+  [data-theme="dark"] body {
+    color: var(--color-zinc-100);
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  [data-theme="dark"] input:-webkit-autofill,
+  [data-theme="dark"] input:-webkit-autofill:hover,
+  [data-theme="dark"] input:-webkit-autofill:focus,
+  [data-theme="dark"] input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 1px 2px 0 var(--color-zinc-800) inset !important;
+    /* matches Input.tsx: "inset-shadow-sm inset-shadow-zinc-900" */
+    -webkit-text-fill-color: var(--color-zinc-100) !important;
+    /* Example: zinc-100 (light text) */
+    transition: background-color 5000s ease-in-out 0s;
+  }
+}
+
+@layer components {
+  .toggle-theme-color {
+    @apply dark:bg-zinc-900 bg-zinc-100 dark:text-zinc-100 text-zinc-900;
+  }
+
+  .bg-default {
+    @apply bg-white dark:bg-zinc-900 shadow-zinc-700/20 border border-zinc-900 dark:border-zinc-700;
+  }
+
+  .shadow-default {
+    @apply shadow-lg shadow-zinc-400/20 dark:shadow-zinc-800/40;
+  }
+
+  .card-wrapper {
+    @apply max-w-[400px] rounded-lg p-8 mx-auto;
+  }
+
+  /* Keyboard key button styles */
+  .keyboard-key {
+    @apply flex h-[64px] min-w-[16px] outline-none grow items-center justify-center rounded-lg text-xl transition-all duration-100 cursor-pointer select-none [&:not(:last-child)]:mr-1;
+    @apply border border-b-2;
+    @apply focus:shadow-[0_0_16px_4px_#fff] focus:border-b-zinc-900 dark:focus:shadow-[0_0_16px_4px_var(--color-zinc-700)] dark:focus:border-b-zinc-100;
+  }
+
+  .keyboard-key[data-state="active"] {
+    @apply border-b-zinc-400/25 border-t-zinc-200 border-zinc-100 dark:border-zinc-700 dark:border-t-zinc-800 dark:border-b-zinc-700/25;
+  }
+
+  .keyboard-key[data-state="inactive"] {
+    @apply border-b-zinc-400/75 border-t-zinc-300 border-zinc-200 dark:border-zinc-700 dark:border-t-zinc-500 dark:border-b-zinc-700/75;
+  }
+}

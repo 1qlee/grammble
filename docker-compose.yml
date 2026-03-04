@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: grammble-tanstack-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: wonkyu
+      POSTGRES_PASSWORD: GrammbleDB2025
+      POSTGRES_DB: grammble_dev
+    volumes:
+      # Persist PostgreSQL data to disk
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wonkyu"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: grammble-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      # Persist Redis data to disk
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local

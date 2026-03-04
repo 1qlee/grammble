@@ -1,0 +1,348 @@
+import * as v from "valibot";
+import Alert from "../ui/Alert";
+import AuthForm from "./AuthForm";
+import SocialSignin from "../ui/forms/SocialSignin";
+import { useAppForm } from "~/utils/form/form";
+import {
+  emailValidator,
+  passwordValidator,
+  SignupSchema,
+  usernameValidator,
+} from "./SignupForm.types";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { LoaderCircle } from "lucide-react";
+import { signUp } from "~/utils/auth/auth-client";
+import { useState } from "react";
+import { withMinimumDelay } from "~/utils/helpers";
+
+const DEFAULT_DEBOUNCE_MS = 300;
+
+export default function SignupForm() {
+  const [formError, setFormError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const form = useAppForm({
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+    },
+    validators: {
+      // Pass a schema or function to validate
+      onSubmit: SignupSchema,
+    },
+    onSubmit: async ({ value }) => {
+      // Clear any previous form-level errors when starting a new submission
+      setFormError(null);
+
+      // Execute submission with minimum delay to ensure isSubmitting stays true for at least 1000ms
+      const { data, error } = await withMinimumDelay(async () => {
+        try {
+          const result = await signUp.email({
+            email: value.email, // required
+            name: value.username, // required
+            password: value.password, // required
+            username: value.username,
+          });
+
+          return result;
+        } catch (err) {
+          return {
+            data: null,
+            error:
+              err instanceof Error
+                ? err
+                : new Error("An unexpected error occurred"),
+          };
+        }
+      }, 1000);
+
+      if (error) {
+        // Check if it's a known error code from the API
+        if ("code" in error) {
+          switch (error.code) {
+            case "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL":
+              form.setFieldMeta("email", (prev) => ({
+                ...prev,
+                errorMap: {
+                  onSubmit: [{ message: "Email already in use." }],
+                },
+              }));
+              break;
+            case "INAPPROPRIATE_USERNAME":
+              form.setFieldMeta("username", (prev) => ({
+                ...prev,
+                errorMap: {
+                  onSubmit: [{ message: "Username is inappropriate." }],
+                },
+              }));
+              break;
+            case "USERNAME_IS_ALREADY_TAKEN_PLEASE_TRY_ANOTHER":
+              form.setFieldMeta("username", (prev) => ({
+                ...prev,
+                errorMap: {
+                  onSubmit: [{ message: "Username is already taken." }],
+                },
+              }));
+              break;
+            case "MULTIPLE_VALIDATION_ERRORS":
+              if (error.message) {
+                const errors = error.message.split(". ");
+
+                errors.forEach((errorMsg) => {
+                  const [field, message] = errorMsg.split(": ");
+                  if (field && message) {
+                    form.setFieldMeta(field as keyof typeof value, (prev) => ({
+                      ...prev,
+                      errorMap: { onSubmit: [{ message }] },
+                    }));
+                  }
+                });
+              }
+              break;
+            default:
+              // Use error.message if available, otherwise fall back to generic message
+              setFormError(
+                error.message || "An error occurred. Please try again."
+              );
+              break;
+          }
+
+          if (
+            "remainingAttempts" in error &&
+            typeof error.remainingAttempts === "number"
+          ) {
+            if (error.remainingAttempts === 0) {
+              if (
+                "retryAfter" in error &&
+                typeof error.retryAfter === "number"
+              ) {
+                // Format retry message
+                const rateLimitRetryMsg =
+                  error.retryAfter <= 60
+                    ? `Too many attempts! Please try again in ${error.retryAfter} second${error.retryAfter !== 1 ? "s" : ""}.`
+                    : error.retryAfter <= 3600
+                      ? `Too many attempts! Please try again in ${Math.ceil(error.retryAfter / 60)} minute${Math.ceil(error.retryAfter / 60) !== 1 ? "s" : ""}.`
+                      : `Too many attempts! Please try again in ${Math.ceil(error.retryAfter / 3600)} hour${Math.ceil(error.retryAfter / 3600) !== 1 ? "s" : ""}.`;
+                setFormError(rateLimitRetryMsg);
+              } else {
+                setFormError(
+                  "Too many attempts! Please try again in 10 minutes."
+                );
+              }
+            } else {
+              const rateLimitRemainingMsg =
+                error.remainingAttempts <= 2 && error.remainingAttempts > 0
+                  ? `You have ${error.remainingAttempts} attempts left before being locked out temporarily.`
+                  : "";
+              setFormError(rateLimitRemainingMsg);
+            }
+          }
+        } else {
+          // Handle generic errors (network errors, etc.)
+          setFormError(error.message || "An error occurred. Please try again.");
+        }
+      } else if (data) {
+        // Clear form error on successful submission
+        navigate({ to: "/dashboard" });
+      }
+    },
+  });
+
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    form.handleSubmit();
+  };
+
+  const handleFieldChange = async (options: {
+    value: string;
+    field: "username" | "email" | "password";
+    validator: v.BaseSchema<string, string, any>;
+  }) => {
+    const { value, field, validator } = options;
+
+    if (value.length === 0) {
+      return undefined;
+    }
+    const result = v.safeParse(validator, value);
+    if (!result.success) {
+      // Return all error messages
+      return (
+        result.issues.map((issue) => issue.message).join(" ") ||
+        `Invalid ${field}.`
+      );
+    }
+    // Return undefined if validation passes
+    return undefined;
+  };
+
+  return (
+    <AuthForm onSubmit={handleFormSubmit}>
+      {formError && (
+        <Alert type="error" className="mb-4">
+          {formError}
+        </Alert>
+      )}
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold mb-2">Sign up</h1>
+        <p>
+          Create an account to save your stats and access other premium
+          features. <Link to="/signin">Sign in instead</Link>.
+        </p>
+      </div>
+      {/* Components are bound to `form` and `field` to ensure extreme type safety */}
+      {/* Use `form.AppField` to render a component bound to a single field */}
+      <form.AppField
+        name="username"
+        validators={{
+          onChangeAsyncDebounceMs: DEFAULT_DEBOUNCE_MS,
+          onChangeAsync: async ({ value }) => {
+            return handleFieldChange({
+              value,
+              field: "username",
+              validator: usernameValidator,
+            });
+          },
+        }}
+        children={(field) => {
+          const hasError = field.state.meta.errors.length > 0;
+
+          return (
+            <field.Field className="mb-2">
+              <field.Label htmlFor={field.name}>Username</field.Label>
+              <field.Input
+                id={field.name}
+                name={field.name}
+                value={field.state.value}
+                type="text"
+                autoComplete="off"
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="Min. 3 characters"
+                status={hasError ? "error" : "default"}
+              />
+              {hasError && (
+                <span className="text-sm text-red-500">
+                  {field.state.meta.errors
+                    .map((error) =>
+                      typeof error === "string" ? error : error?.message
+                    )
+                    .join(" ")}
+                </span>
+              )}
+            </field.Field>
+          );
+        }}
+      />
+      <form.AppField
+        name="email"
+        validators={{
+          onChangeAsyncDebounceMs: DEFAULT_DEBOUNCE_MS,
+          onChangeAsync: async ({ value }) => {
+            return handleFieldChange({
+              value,
+              field: "email",
+              validator: emailValidator,
+            });
+          },
+        }}
+        children={(field) => {
+          const hasError = field.state.meta.errors.length > 0;
+
+          return (
+            <field.Field className="mb-2">
+              <field.Label htmlFor={field.name}>Email</field.Label>
+              <field.Input
+                id={field.name}
+                name={field.name}
+                value={field.state.value}
+                type="text"
+                autoComplete="off"
+                onBlur={field.handleBlur}
+                onChange={async (e) => field.handleChange(e.target.value)}
+                placeholder="player@grammble.com"
+                status={hasError ? "error" : "default"}
+              />
+              {hasError && (
+                <span className="text-sm text-red-500">
+                  {field.state.meta.errors
+                    .map((error) =>
+                      typeof error === "string" ? error : error?.message
+                    )
+                    .join(" ")}
+                </span>
+              )}
+            </field.Field>
+          );
+        }}
+      />
+      {/* The "name" property will throw a TypeScript error if typo'd  */}
+      <form.AppField
+        name="password"
+        validators={{
+          onChangeAsyncDebounceMs: DEFAULT_DEBOUNCE_MS,
+          onChangeAsync: async ({ value }) => {
+            return handleFieldChange({
+              value,
+              field: "password",
+              validator: passwordValidator,
+            });
+          },
+        }}
+        children={(field) => {
+          const hasError = field.state.meta.errors.length > 0;
+
+          return (
+            <field.Field className="mb-2">
+              <field.Label htmlFor={field.name}>Password</field.Label>
+              <field.Input
+                id={field.name}
+                name={field.name}
+                value={field.state.value}
+                type="password"
+                autoComplete="new-password"
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="Min. 5 characters"
+                status={hasError ? "error" : "default"}
+              />
+              {hasError && (
+                <span className="text-sm text-red-500">
+                  {field.state.meta.errors
+                    .map((error) =>
+                      typeof error === "string" ? error : error?.message
+                    )
+                    .join(" ")}
+                </span>
+              )}
+            </field.Field>
+          );
+        }}
+      />
+
+      <form.Subscribe
+        selector={(state) => [state.canSubmit, state.isSubmitting]}
+        children={([canSubmit, isSubmitting]) => (
+          <form.Button
+            type="submit"
+            className="mt-4 w-full"
+            aria-disabled={!canSubmit}
+          >
+            {isSubmitting ? (
+              <LoaderCircle className="animate-spin" />
+            ) : (
+              "Sign up"
+            )}
+          </form.Button>
+        )}
+      />
+
+      <SocialSignin />
+      <div className="mt-4 text-center">
+        <p className="text-xs">
+          By signing up, you agree to our Terms of Service and Privacy Policy.
+        </p>
+      </div>
+    </AuthForm>
+  );
+}
