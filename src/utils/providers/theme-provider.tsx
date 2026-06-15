@@ -11,10 +11,16 @@ export function ThemeProvider({ children, theme }: Props) {
   const router = useRouter();
 
   function setTheme(val: Theme) {
-    // Update DOM immediately for instant UI feedback (client-only; document exists here)
-    if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-theme", val);
+    if (typeof document === "undefined") return;
+
+    const apply = () => document.documentElement.setAttribute("data-theme", val);
+
+    if ("startViewTransition" in document) {
+      document.startViewTransition(apply);
+    } else {
+      apply();
     }
+
     setThemeServerFn({ data: val }).then(() => router.invalidate());
   }
 

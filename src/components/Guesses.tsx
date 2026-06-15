@@ -1,72 +1,129 @@
-import { useGame } from "../context/GameProvider";
-import clsx from "clsx";
-import { animate, createScope, spring, type Scope } from "animejs";
-import { useEffect, useRef } from "react";
-import { Transition } from "@headlessui/react";
+import { useRef } from "react";
+import { useGameStore } from "~/stores/game-store";
+import {
+  MAX_GUESSES,
+  WORD_LENGTH,
+  type GameMode,
+} from "~/utils/game/constants";
+import {
+  MAX_TILE_SIZE,
+  ROW_PADDING,
+  TILE_GAP,
+} from "~/utils/game/board.constants";
+import type { LetterFeedback } from "~/utils/game/types";
+import Scoreboard from "./Scoreboard";
+import { GuessRow } from "./guesses/GuessRow";
+import { useTilePopAnimation } from "./guesses/useTilePopAnimation";
+import { SkeletonScoreboard } from "./guesses/SkeletonScoreboard";
+import { SkeletonRow } from "./guesses/SkeletonRow";
 
-export default function Guesses() {
-  const { state } = useGame();
-  const { guesses, currentGuessIndex } = state;
-  const scope = useRef<Scope>(null);
+interface GuessesProps {
+  gram: string;
+  puzzleNumber: number;
+  difficulty: "easy" | "med" | "hard";
+  mode: GameMode;
+  isPremium: boolean;
+  cols?: number;
+  isLoading?: boolean;
+  initialGuesses?: string[];
+  initialFeedback?: LetterFeedback[][];
+}
+
+export default function Guesses({
+  gram,
+  puzzleNumber,
+  difficulty,
+  mode,
+  isPremium,
+  cols = WORD_LENGTH,
+  isLoading = false,
+  initialGuesses,
+  initialFeedback,
+}: GuessesProps) {
+  const storeGuesses = useGameStore((s) => s.guesses);
+  const storeFeedback = useGameStore((s) => s.feedback);
+  const storeCurrentGuessIndex = useGameStore((s) => s.currentGuessIndex);
+
+  // Before the store is seeded on the client (SSR + first render), fall back
+  // to props derived from route context so the board renders the real state.
+  const hasStoreData = storeGuesses.length > 0;
+  const guesses = hasStoreData ? storeGuesses : (initialGuesses ?? []);
+  const feedback = hasStoreData ? storeFeedback : (initialFeedback ?? []);
+  const currentGuessIndex = hasStoreData
+    ? storeCurrentGuessIndex
+    : (initialGuesses?.length ?? 0);
   const root = useRef<HTMLDivElement>(null);
-  const rows = 6;
-  const cols = 6;
 
-  useEffect(() => {
-    scope.current = createScope({ root }).add(self => {
-      animate('.tile', {
-        scale: [
-          { to: 1.1, ease: 'inOut(3)', duration: 200 },
-          { to: 1, ease: spring({ bounce: .7 }) }
-        ],
-      })
-    })
+  useTilePopAnimation(root);
 
-    return () => scope.current?.revert()
-  }, [])
+  // Cards fill the per-mode width owned by `.board-scope`. The guess card uses
+  // the active `--cols`/`--tile-size`; the scoreboard card overrides them to the
+  // 6-letter values (`.scoreboard-scope`) so it stays a fixed size in every mode.
+  const cardWidth = `calc(var(--cols, ${cols}) * var(--tile-size, ${MAX_TILE_SIZE}px) + (var(--cols, ${cols}) - 1) * var(--tile-gap, ${TILE_GAP}px) + ${ROW_PADDING * 4}px)`;
 
   return (
-    <div ref={root} className="flex flex-col gap-1 py-8">
-      {Array.from({ length: rows }, (_, rowIndex) => {
-        const guess = guesses[rowIndex] ?? "";
-        const isCurrentRow = rowIndex === currentGuessIndex;
-        // For current row, show all characters typed (no limit) + at least 6 empty tiles
-        // For other rows, show exactly 6 columns
-        const numCols = isCurrentRow ? Math.max(cols, guess.length) : cols;
-
-        return (
-          <div key={rowIndex} className="grid gap-1 mb-1 mx-auto" style={{ gridTemplateColumns: `repeat(${numCols}, 52px)` }}>
-            {Array.from({ length: numCols }, (_, colIndex) => {
-              const char = guess[colIndex] ?? "";
-              const hasChar = char !== "";
-
-              return (
-                <div
-                  key={colIndex}
-                  className={clsx(
-                    "tile flex h-[52px] w-[52px] outline-none grow items-center justify-center rounded-lg text-xl transition-all duration-100 cursor-pointer select-none [&:not(:last-child)]:mr-1 perspective-normal",
-                    "border border-b-zinc-400/75 border-t-zinc-300 border-zinc-200 dark:border-zinc-700 dark:border-t-zinc-700 dark:border-b-zinc-700/75",
-                    "focus:shadow-[0_0_16px_4px_#fff] focus:border-b-zinc-900 dark:focus:shadow-[0_0_16px_4px_var(--color-zinc-700)] dark:focus:border-b-zinc-100",
-                    hasChar ? "bg-zinc-200 dark:bg-zinc-700/40" : "bg-transparent"
-                  )}
-                >
-                  <Transition show={hasChar}>
-                    <span className={clsx(
-                      "transition duration-200 flex items-center justify-center h-full w-full rounded-lg -translate-y-[2px] translate-z-0 transform-3d",
-                      // Entering styles
-                      'data-enter:duration-100 ease-in data-enter:data-closed:-translate-y-2 data-enter:data-closed:translate-z-8',
-                      // Leaving styles
-                      'data-leave:duration-50 data-leave:data-closed:opacity-50 data-leave:data-closed:-translate-y-1 data-leave:data-closed:translate-z-8',
-                      "bg-white dark:bg-zinc-700",
-                      "shadow-[0_4px_8px_rgba(0,0,0,0.1),0_4px_0px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_8px_var(--color-zinc-800),0_2px_0px_var(--color-zinc-900)]",
-                    )}>{char}</span>
-                  </Transition>
-                </div>
-              );
-            })}
+    <div className="mx-auto w-full flex grow justify-center items-center">
+      <div className="w-full flex flex-col items-center">
+        {/* Stack the scoreboard and guess cards with the same gap that
+            separates two guess rows (each row contributes ROW_PADDING). */}
+        <div
+          className="w-full flex flex-col items-center"
+          style={{ gap: `${ROW_PADDING * 2}px` }}
+        >
+          <div
+            className="scoreboard-scope bg-default shadow-lg rounded-lg p-1"
+            style={{ width: cardWidth }}
+          >
+            {isLoading ? (
+              <SkeletonScoreboard />
+            ) : (
+              <Scoreboard
+                gram={gram}
+                puzzleNumber={puzzleNumber}
+                difficulty={difficulty}
+                mode={mode}
+                isPremium={isPremium}
+              />
+            )}
           </div>
-        );
-      })}
+          <div
+            ref={root}
+            className="flex flex-col bg-default justify-center shadow-lg rounded-lg p-1"
+            style={{ width: cardWidth }}
+          >
+            {Array.from({ length: MAX_GUESSES }, (_, rowIndex) =>
+              isLoading ? (
+                <SkeletonRow
+                  key={rowIndex}
+                  cols={cols}
+                  isFirstRow={rowIndex === 0}
+                  isLastRow={rowIndex === MAX_GUESSES - 1}
+                />
+              ) : (
+                <GuessRow
+                  key={rowIndex}
+                  guess={guesses[rowIndex] ?? ""}
+                  feedback={feedback[rowIndex]}
+                  gram={gram}
+                  cols={cols}
+                  isCurrentRow={rowIndex === currentGuessIndex}
+                  isFirstRow={rowIndex === 0}
+                  isLastRow={rowIndex === MAX_GUESSES - 1}
+                />
+              ),
+            )}
+          </div>
+        </div>
+        {isLoading && (
+          <div
+            className="mt-4 self-center text-xs uppercase tracking-wider text-accent"
+            role="status"
+            aria-live="polite"
+          >
+            Loading the board...
+          </div>
+        )}
+      </div>
     </div>
   );
 }

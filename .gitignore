@@ -3,10 +3,15 @@ package-lock.json
 yarn.lock
 
 .env
+dev.db
+.vscode
+.claude/
 .DS_Store
 .cache
 .vercel
+.tanstack
 .output
+/prisma-generated
 /build/
 /api/
 /server/build
@@ -16,3 +21,7 @@ yarn.lock
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Lifetime invite batches (contain PII + live tokens)
+prisma/lifetime-recipients.json
+prisma/lifetime-invites-log.csv

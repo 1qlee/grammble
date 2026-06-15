@@ -1,9 +1,22 @@
 @import "tailwindcss";
 
-@source './src/**/*.{html,js,jsx,ts,tsx}';
+@source "./src/**/*.{html,js,jsx,ts,tsx}";
 
 @variant dark (&:where([data-theme="dark"] *));
 @variant filled (&:not(:placeholder-shown));
+
+@theme inline {
+  --text-xxs: max(8px, calc(var(--font-base) * 0.625));
+  --text-xs: max(8px, calc(var(--font-base) * 0.75));
+  --text-sm: max(8px, calc(var(--font-base) * 0.875));
+  --text-base: var(--font-base);
+  --text-lg: calc(var(--font-base) * 1.125);
+  --text-xl: calc(var(--font-base) * 1.25);
+  --text-2xl: calc(var(--font-base) * 1.5);
+  --text-3xl: calc(var(--font-base) * 1.875);
+  --text-4xl: calc(var(--font-base) * 2.25);
+  --text-5xl: calc(var(--font-base) * 3);
+}
 
 @layer base {
 
@@ -27,9 +40,71 @@
     /* Not supported in Chrome */
   }
 
+  :root {
+    --cols: 6;
+    --tile-gap: 2px;
+    /* Largest tile edge; mirrors MAX_TILE_SIZE in board.constants.ts. */
+    --tile-size-max: 56px;
+    /* 6-letter (default) tile size. .board-scope overrides --tile-size per mode;
+       the Scoreboard pins back to this so it keeps its 6-letter size in every
+       mode. Tiles fill the viewport width (so every mode reaches the max size on
+       large screens) before deferring to the height budget, and only shrink once
+       the row can't fit. Chrome budget = card padding (8px) + row padding (8px) +
+       inter-tile gaps. Floor mirrors MIN_TILE_SIZE in board.constants.ts. */
+    --tile-size-6: clamp(22px,
+        min(
+          calc((95vw - 16px - (6 - 1) * var(--tile-gap)) / 6),
+          calc((100svh - 240px) / 10)),
+        var(--tile-size-max));
+    --tile-size: var(--tile-size-6);
+    --tile-font-size: max(10px, calc(var(--tile-size) * 0.46));
+    --keys-font-size: max(8px, calc(var(--tile-font-size) * 0.9));
+    --font-base: clamp(8px, calc(var(--tile-font-size) * 0.9), 16px);
+  }
+
+  /* `--cols` is overridden per game mode on the board wrapper (GameModeView).
+     var() substitution resolves in the scope where a custom property is
+     declared, so `--tile-size` must be re-declared here to pick up the
+     wrapper's `--cols` instead of the :root default of 6.
+
+     At full tile size 7/8-letter boards are wider than the root column
+     (max-w-[360px] in __root.tsx); the board escapes it and recenters on the
+     viewport. Percentage margins resolve against that column, which is itself
+     viewport-centered, so `50% - width/2` lands the board on the screen center. */
+  .board-scope {
+    --board-width: calc(var(--cols) * var(--tile-size-max) + (var(--cols) - 1) * var(--tile-gap) + 16px);
+    width: min(95vw, var(--board-width));
+    margin-left: calc(50% - min(95vw, var(--board-width)) / 2);
+    --tile-size: clamp(22px,
+        min(
+          calc((95vw - 16px - (var(--cols) - 1) * var(--tile-gap)) / var(--cols)),
+          calc((100svh - 240px) / 10)),
+        var(--tile-size-max));
+    /* Re-derive the font vars from the scoped --tile-size; otherwise they keep
+       the :root values computed against --cols: 6 and look oversized once 7/8
+       tiles shrink. A lower 8px floor (vs 10px) lets the smaller 7/8 tiles on
+       tiny screens scale their text down; 6-col tiles never reach the floor. */
+    --tile-font-size: max(8px, calc(var(--tile-size) * 0.46));
+    --keys-font-size: max(8px, calc(var(--tile-font-size) * 0.9));
+    --font-base: clamp(8px, calc(var(--tile-font-size) * 0.9), 16px);
+  }
+
+  /* The Scoreboard scales off --tile-size but should keep its 6-letter size in
+     every mode, so it pins --cols/--tile-size back to the 6-letter values
+     rather than inheriting the board's shrunk ones (see .board-scope). --cols
+     also drives the card-width calc in Guesses.tsx. */
+  .scoreboard-scope {
+    --cols: 6;
+    --tile-size: var(--tile-size-6);
+  }
+
   body {
     min-height: 100vh;
     color: var(--color-zinc-900);
+  }
+
+  [data-theme="dark"] body {
+    color: var(--color-zinc-100);
   }
 
   /* Media responsive */
@@ -57,7 +132,7 @@
   }
 
   a:not(button) {
-    @apply transition-opacity duration-200 underline hover:opacity-80;
+    @apply underline;
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -67,35 +142,32 @@
     }
   }
 
-  [data-theme="dark"] body {
-    color: var(--color-zinc-100);
+  :focus-visible,
+  input:focus,
+  textarea:focus,
+  button:focus {
+    outline: 2px solid var(--color-zinc-900);
+    outline-offset: 2px;
+  }
+
+  [data-theme="dark"] :focus-visible,
+  [data-theme="dark"] input:focus,
+  [data-theme="dark"] textarea:focus,
+  [data-theme="dark"] button:focus {
+    outline-color: var(--color-zinc-100);
   }
 
   .using-mouse * {
     outline: none !important;
   }
 
-  input,
-  button,
-  textarea {
-    outline-color: var(--color-orange-600);
-  }
-
-  [data-theme="dark"] input,
-  [data-theme="dark"] button,
-  [data-theme="dark"] textarea {
-    outline-color: var(--color-zinc-100);
-  }
-
-  [data-theme="dark"] body {
-    color: var(--color-zinc-100);
-  }
-
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--color-white) inset !important;
+    -webkit-text-fill-color: var(--color-zinc-900) !important;
+    caret-color: var(--color-zinc-900);
     transition: background-color 5000s ease-in-out 0s;
   }
 
@@ -103,43 +175,380 @@
   [data-theme="dark"] input:-webkit-autofill:hover,
   [data-theme="dark"] input:-webkit-autofill:focus,
   [data-theme="dark"] input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 1px 2px 0 var(--color-zinc-800) inset !important;
-    /* matches Input.tsx: "inset-shadow-sm inset-shadow-zinc-900" */
+    -webkit-box-shadow: 0 0 0 1000px var(--color-zinc-800) inset !important;
     -webkit-text-fill-color: var(--color-zinc-100) !important;
-    /* Example: zinc-100 (light text) */
+    caret-color: var(--color-white);
     transition: background-color 5000s ease-in-out 0s;
   }
 }
 
 @layer components {
-  .toggle-theme-color {
-    @apply dark:bg-zinc-900 bg-zinc-100 dark:text-zinc-100 text-zinc-900;
-  }
-
-  .bg-default {
-    @apply bg-white dark:bg-zinc-900 shadow-zinc-700/20 border border-zinc-900 dark:border-zinc-700;
-  }
-
-  .shadow-default {
-    @apply shadow-lg shadow-zinc-400/20 dark:shadow-zinc-800/40;
-  }
-
   .card-wrapper {
-    @apply max-w-[400px] rounded-lg p-8 mx-auto;
+    @apply mx-auto max-w-[400px] rounded-lg p-8;
+  }
+
+  /* Input status styles */
+  .input-default {
+    @apply w-full rounded-lg border border-zinc-200 bg-gradient-to-b from-zinc-100/80 to-white inset-shadow-sm transition-all duration-200;
+    @apply dark:border-zinc-700/50 dark:from-zinc-900/80 dark:to-zinc-800;
+  }
+
+  .input-default:focus,
+  .input-default:not(:placeholder-shown) {
+    @apply from-white dark:from-zinc-800;
+  }
+
+  .input-error {
+    @apply rounded-lg border border-red-200 bg-gradient-to-b from-red-100/80 to-red-50 inset-shadow-sm focus:from-red-50 focus:dark:from-red-900;
+    @apply dark:border-red-900 dark:from-red-950/80 dark:to-red-900 dark:text-red-100;
+  }
+
+  /* Button base styles */
+  .btn {
+    @apply flex cursor-pointer items-center justify-center border border-zinc-100 bg-linear-to-b from-white to-zinc-50 whitespace-nowrap transition-all duration-200 select-none dark:border-zinc-800 pb-[1px] dark:from-zinc-700 dark:to-zinc-900;
+    border-radius: 16px / 24px;
+    box-shadow:
+      inset 0 -2px 2px var(--color-zinc-300);
+
+    [data-theme="dark"] & {
+      box-shadow:
+        inset 0 -2px 2px var(--color-zinc-950);
+    }
+  }
+
+  .btn:active {
+    @apply translate-y-[1px];
+    box-shadow: none !important;
+  }
+
+  .btn-gold {
+    @apply relative overflow-hidden border-yellow-200 dark:border-yellow-800 bg-linear-to-b from-yellow-100 to-yellow-300 font-semibold text-zinc-900;
+    box-shadow:
+      inset 0 -2px 2px var(--color-yellow-400) !important;
+
+    [data-theme="dark"] & {
+      box-shadow:
+        inset 0 -2px 2px var(--color-yellow-600) !important;
+    }
+  }
+
+  /* Generic toggle (reused by ThemeToggle and interval switches) */
+  .switch-track {
+    @apply inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full data-disabled:cursor-not-allowed data-disabled:opacity-50;
+    @apply border border-zinc-200/50 border-t-zinc-300/80 bg-zinc-100 shadow-[inset_0px_2px_8px_#ddd];
+    @apply dark:border-zinc-700/80 dark:border-t-zinc-500/50 dark:bg-zinc-800 dark:shadow-[inset_0px_2px_8px_#111];
+  }
+
+  .switch-thumb {
+    @apply inline-block h-4 w-4 translate-x-[4px] rounded-full border border-zinc-300 bg-white transition-all duration-200 ease-in-out group-data-checked:translate-x-[20px] group-data-checked:border-green-600 group-data-checked:bg-green-500 dark:border-zinc-800 dark:bg-zinc-700;
   }
 
   /* Keyboard key button styles */
   .keyboard-key {
-    @apply flex h-[64px] min-w-[16px] outline-none grow items-center justify-center rounded-lg text-xl transition-all duration-100 cursor-pointer select-none [&:not(:last-child)]:mr-1;
-    @apply border border-b-2;
-    @apply focus:shadow-[0_0_16px_4px_#fff] focus:border-b-zinc-900 dark:focus:shadow-[0_0_16px_4px_var(--color-zinc-700)] dark:focus:border-b-zinc-100;
+    @apply flex min-w-[16px] grow cursor-pointer items-center justify-center rounded-lg transition-all duration-100 outline-none select-none [&:not(:last-child)]:mr-1;
+    height: calc(var(--tile-size, 52px) * 1);
+    font-size: var(--keys-font-size);
+    @apply border border-zinc-300;
+  }
+
+  .keyboard-key:focus>.keyboard-key-char {
+    @apply ring-2 ring-zinc-900 dark:ring-zinc-100;
+  }
+
+  .keyboard-key-char {
+    @apply flex h-full w-full -translate-y-[4px] items-center justify-center rounded-lg transition-all duration-100 ease-in-out;
+    @apply bg-white dark:bg-zinc-900;
+    box-shadow:
+      0 4px 8px var(--color-zinc-100),
+      0 4px 0px var(--color-zinc-300);
+
+    [data-theme="dark"] & {
+      box-shadow:
+        0 4px 8px var(--color-zinc-950),
+        0 4px 0px var(--color-zinc-950);
+    }
+  }
+
+  .keyboard-key-char[data-active] {
+    @apply translate-y-0 shadow-none;
+  }
+
+  .keyboard-key-correct {
+    @apply bg-green-200 text-green-900 dark:bg-green-700 dark:text-green-100;
+    box-shadow:
+      0 4px 8px rgba(0, 0, 0, 0.1),
+      0 4px 0px var(--color-green-300);
+
+    [data-theme="dark"] & {
+      box-shadow:
+        0 4px 8px var(--color-zinc-800),
+        0 4px 0px var(--color-green-900);
+    }
+  }
+
+  .keyboard-key-misplaced {
+    @apply bg-yellow-200 text-yellow-900 dark:bg-yellow-700 dark:text-yellow-100;
+    box-shadow:
+      0 4px 8px rgba(0, 0, 0, 0.1),
+      0 4px 0px var(--color-yellow-300);
+
+    [data-theme="dark"] & {
+      box-shadow:
+        0 4px 8px var(--color-zinc-800),
+        0 4px 0px var(--color-yellow-900);
+    }
+  }
+
+  .keyboard-key-absent {
+    @apply bg-zinc-200 text-zinc-700 dark:bg-zinc-600 dark:text-zinc-200;
+    box-shadow:
+      0 4px 8px rgba(0, 0, 0, 0.1),
+      0 4px 0px var(--color-zinc-300);
+
+    [data-theme="dark"] & {
+      box-shadow:
+        0 4px 8px var(--color-zinc-800),
+        0 4px 0px var(--color-zinc-800);
+    }
   }
 
   .keyboard-key[data-state="active"] {
-    @apply border-b-zinc-400/25 border-t-zinc-200 border-zinc-100 dark:border-zinc-700 dark:border-t-zinc-800 dark:border-b-zinc-700/25;
+    @apply border-zinc-100 border-t-zinc-200 border-b-zinc-400/25 dark:border-zinc-600 dark:border-t-zinc-800 dark:border-b-zinc-700/25;
   }
 
   .keyboard-key[data-state="inactive"] {
-    @apply border-b-zinc-400/75 border-t-zinc-300 border-zinc-200 dark:border-zinc-700 dark:border-t-zinc-500 dark:border-b-zinc-700/75;
+    @apply border-zinc-200 border-t-zinc-300 border-b-zinc-300/75 dark:border-zinc-900 dark:border-t-zinc-500 dark:border-b-zinc-700/75;
   }
+
+  .row {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 6), var(--tile-size, 52px));
+    gap: var(--tile-gap, 2px);
+  }
+
+  /* Guess grid tile styles */
+  .tile {
+    @apply relative flex cursor-pointer border border-solid bg-white outline-none select-none border-transparent dark:bg-zinc-900;
+    width: var(--tile-size, 52px);
+    height: var(--tile-size, 52px);
+    font-size: var(--tile-font-size, 1.25rem);
+    border-radius: calc(var(--tile-size, 52px) * 0.308) / calc(var(--tile-size, 52px) * 0.231);
+  }
+
+  .ants-svg {
+    @apply pointer-events-none absolute inset-0 h-full w-full text-zinc-900 dark:text-zinc-100;
+    overflow: visible;
+  }
+
+  .ants-svg rect {
+    animation: ants 1.2s linear infinite;
+  }
+
+  @keyframes ants {
+    to {
+      stroke-dashoffset: -44;
+    }
+  }
+
+  .tile-blank {
+    @apply bg-zinc-100;
+    box-shadow: inset 0 1px 2px 1px var(--color-zinc-300);
+
+    [data-theme="dark"] & {
+      @apply bg-zinc-700;
+      box-shadow: inset 0 1px 2px 1px var(--color-zinc-950);
+    }
+  }
+
+  .tile-skeleton {
+    background: linear-gradient(90deg,
+        var(--color-zinc-200) 0%,
+        var(--color-zinc-100) 50%,
+        var(--color-zinc-200) 100%);
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.4s ease-in-out infinite;
+    box-shadow: inset 0 1px 1px 1px var(--color-zinc-300);
+
+    [data-theme="dark"] & {
+      background: linear-gradient(90deg,
+          var(--color-zinc-800) 0%,
+          var(--color-zinc-700) 50%,
+          var(--color-zinc-800) 100%);
+      background-size: 200% 100%;
+      box-shadow: inset 0 1px 2px 1px var(--color-zinc-950);
+    }
+  }
+
+  .tile-wide {
+    @apply absolute flex cursor-pointer outline-none select-none border border-transparent;
+    width: calc(var(--tile-size, 52px) * 2 + var(--tile-gap, 2px));
+    height: var(--tile-size, 52px);
+    top: 4px;
+    left: 0;
+    background: transparent;
+    font-size: var(--tile-font-size, 1.25rem);
+    border-radius: calc(var(--tile-size, 52px) * 0.308) / calc(var(--tile-size, 52px) * 0.231);
+  }
+
+  .tile-char {
+    @apply grid h-full w-full place-items-center bg-linear-to-b from-white to-zinc-50 text-zinc-900 shadow-[inset_0_-2px_2px_var(--color-zinc-400)] border border-zinc-200 dark:border-zinc-800 dark:from-zinc-800 dark:to-zinc-900 dark:text-zinc-100 dark:shadow-[inset_0_-2px_2px_var(--color-zinc-950)];
+    border-radius: calc(var(--tile-size, 52px) * 0.308) / calc(var(--tile-size, 52px) * 0.231);
+    transform-origin: center;
+    will-change: transform, opacity;
+  }
+
+  .tile-char-wide {
+    @apply grid h-full w-full place-items-center bg-linear-to-b from-zinc-50 to-white text-zinc-900 shadow-[inset_0_-2px_2px_var(--color-zinc-400)] border border-zinc-300 border-t border-t-zinc-200 dark:border-zinc-800 dark:from-zinc-800 dark:to-zinc-900 dark:text-zinc-100 dark:shadow-[inset_0_-2px_2px_var(--color-zinc-950)];
+    @apply ease-out data-closed:opacity-0;
+    border-radius: calc(var(--tile-size, 52px) * 0.308) / calc(var(--tile-size, 52px) * 0.231);
+    grid-template-columns: var(--tile-size, 52px) var(--tile-size, 52px);
+    gap: var(--tile-gap, 2px);
+  }
+
+  .tile-correct {
+    @apply bg-linear-to-b from-green-100 to-green-300 border-green-200 text-green-900 shadow-[inset_0_-2px_2px_var(--color-green-500)];
+    @apply dark:from-green-600 dark:to-green-700 dark:border-green-800 dark:text-green-100 dark:shadow-[inset_0_-2px_2px_var(--color-green-950)];
+  }
+
+  .tile-misplaced {
+    @apply bg-linear-to-b from-yellow-100 to-yellow-300 border-yellow-200 text-yellow-900 shadow-[inset_0_-2px_2px_var(--color-yellow-500)];
+    @apply dark:from-yellow-600 dark:to-yellow-700 dark:border-yellow-800 dark:text-yellow-100 dark:shadow-[inset_0_-2px_2px_var(--color-yellow-950)];
+  }
+
+  .tile-absent {
+    @apply bg-linear-to-b from-zinc-100 to-zinc-300 border-zinc-200 text-zinc-900 shadow-[inset_0_-2px_2px_var(--color-zinc-400)];
+    @apply dark:from-zinc-500 dark:to-zinc-600 dark:border-zinc-700 dark:text-zinc-100 dark:shadow-[inset_0_-2px_2px_var(--color-zinc-900)];
+  }
+}
+
+.skeleton-shimmer {
+  display: inline-block;
+  background: linear-gradient(90deg,
+      var(--color-zinc-200) 0%,
+      var(--color-zinc-100) 50%,
+      var(--color-zinc-200) 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
+}
+
+:root[data-theme="dark"] .skeleton-shimmer {
+  background: linear-gradient(90deg,
+      var(--color-zinc-800) 0%,
+      var(--color-zinc-700) 50%,
+      var(--color-zinc-800) 100%);
+  background-size: 200% 100%;
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--color-zinc-300);
+  border-radius: 9999px;
+}
+
+[data-theme="dark"] .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--color-zinc-600);
+}
+
+.premium-title-gradient {
+  background-image: linear-gradient(90deg,
+      #000000 0%,
+      rgba(248, 230, 113, 0.51) 100%);
+
+  [data-theme="dark"] & {
+    background-image: linear-gradient(90deg,
+        #facc15 0%,
+        rgba(248, 230, 113, 0.51) 100%);
+  }
+}
+
+.price-gold {
+  [data-theme="dark"] & {
+    text-shadow:
+      0 0 10px rgba(248, 113, 113, 0.5),
+      0 0 20px rgba(251, 146, 60, 0.45),
+      0 0 30px rgba(250, 204, 21, 0.45),
+      0 0 40px rgba(74, 222, 128, 0.35),
+      0 0 50px rgba(96, 165, 250, 0.35),
+      0 0 60px rgba(167, 139, 250, 0.35);
+  }
+}
+
+@layer utilities {
+  .toggle-theme-color {
+    @apply bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100;
+  }
+
+  .inset-shadow-default {
+    @apply shadow-[inset_0px_2px_8px_#ddd] dark:shadow-[inset_0px_2px_8px_#000];
+  }
+
+  .text-accent {
+    @apply text-zinc-600 dark:text-zinc-400;
+  }
+
+  .bg-default {
+    @apply bg-white dark:bg-zinc-900;
+  }
+
+  .bg-accent {
+    @apply bg-zinc-100 dark:bg-zinc-800;
+  }
+
+  .bg-default-shadow {
+    @apply bg-white shadow-lg shadow-zinc-400/20 dark:bg-zinc-900 dark:shadow-black/40;
+  }
+
+  .bg-default-interactive {
+    @apply border border-zinc-900 bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-800;
+  }
+
+  .bg-default-gradient {
+    @apply bg-gradient-to-br from-white to-zinc-200 dark:from-zinc-700 dark:to-zinc-900;
+  }
+
+  .gradient-default {
+    @apply border border-zinc-200 bg-gradient-to-br from-white via-zinc-200 to-zinc-200 dark:border-zinc-800 dark:from-zinc-600 dark:via-zinc-900 dark:to-zinc-900;
+  }
+
+  .bg-locked-stripes {
+    background-image: repeating-linear-gradient(-45deg,
+        var(--color-zinc-200) 0,
+        var(--color-zinc-200) 6px,
+        transparent 6px,
+        transparent 12px);
+
+    [data-theme="dark"] & {
+      background-image: repeating-linear-gradient(-45deg,
+          var(--color-zinc-600) 0,
+          var(--color-zinc-600) 6px,
+          transparent 6px,
+          transparent 12px);
+    }
+  }
+
 }

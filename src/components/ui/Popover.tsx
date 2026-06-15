@@ -17,7 +17,7 @@ export default function Popover({ children, button, size }: PopoverProps) {
       <HeadlessPopoverButton className="" as={Button} size={size}>
         {button}
       </HeadlessPopoverButton>
-      <HeadlessPopoverPanel className="w-[300px] bg-default shadow-default p-2 rounded-lg absolute top-[calc(100%+16px)] right-[-16px] flex flex-col gap-2">
+      <HeadlessPopoverPanel className="w-[300px] bg-default-shadow p-2 rounded-lg absolute top-[calc(100%+16px)] right-[-16px] flex flex-col gap-2">
         {children}
       </HeadlessPopoverPanel>
     </HeadlessPopover>

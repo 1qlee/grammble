@@ -61,6 +61,9 @@ export default function SigninForm() {
             case "USERNAME_TOO_SHORT":
               setFormError("Invalid username or password.");
               break;
+            case "TOO_MANY_REQUESTS":
+              setFormError("Too many attempts. Please try again later.");
+              break;
             default:
               setFormError("An unexpected error occurred.");
               break;
@@ -105,7 +108,7 @@ export default function SigninForm() {
                 name={field.name}
                 value={field.state.value}
                 type="text"
-                autoComplete="off"
+                autoComplete="username"
                 onBlur={field.handleBlur}
                 onChange={(e) => {
                   setFormError(null);
@@ -139,7 +142,7 @@ export default function SigninForm() {
                 name={field.name}
                 value={field.state.value}
                 type="password"
-                autoComplete="new-password"
+                autoComplete="current-password"
                 onBlur={field.handleBlur}
                 onChange={(e) => {
                   setFormError(null);

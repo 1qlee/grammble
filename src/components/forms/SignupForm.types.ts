@@ -18,7 +18,7 @@ export const emailValidator = v.pipe(
 
 export const passwordValidator = v.pipe(
   v.string(),
-  v.minLength(5, "Password must be at least 5 characters.")
+  v.minLength(8, "Password must be at least 8 characters.")
 );
 
 export const SignupSchema = v.object({

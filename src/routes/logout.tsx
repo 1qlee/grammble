@@ -1,18 +1,13 @@
-import { redirect, createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
+import { createFileRoute } from "@tanstack/react-router";
 import { signOut } from "~/utils/auth/auth-client";
-
-// const logoutFn = createServerFn().handler(async () => {
-//   const session = await useAppSession()
-
-//   session.clear()
-
-//   throw redirect({
-//     href: '/',
-//   })
-// })
 
 export const Route = createFileRoute("/logout")({
   preload: false,
-  loader: () => signOut(),
+  loader: async () => {
+    await signOut();
+    const { clearAnonymousStorage } = await import(
+      "~/utils/storage/clear-anonymous-storage"
+    );
+    clearAnonymousStorage();
+  },
 });

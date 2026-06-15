@@ -10,33 +10,23 @@ import appCss from "~/styles/app.css?url";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary.js";
 import { Nav } from "~/components/Nav";
 import { NotFound } from "~/components/NotFound.js";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { getUser } from "~/utils/auth/auth-server";
 import { seo } from "~/utils/seo.js";
-import { getThemeServerFn } from "~/utils/theme";
-import { GameProvider } from "~/context/GameProvider";
-// Import query-client to ensure React Query defaults are configured
-import "~/utils/query-client";
+import { getInitialAppDataServerFn } from "~/utils/trpc/server-caller";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "~/utils/query-client";
 
 import type { User } from "~/prisma-generated/browser";
 import { ThemeProvider } from "~/utils/providers/theme-provider";
+import { useAnonymousSessionSync } from "~/hooks/useAnonymousSessionSync";
+import Toast from "~/components/ui/Toast";
 
 export const Route = createRootRoute({
   beforeLoad: async () => {
-    // Fetch user in beforeLoad so it's available in context for child routes
-    const user = await getUser();
+    const { user, theme, dailies } = await getInitialAppDataServerFn();
     return {
-      user: user as User | undefined,
-    };
-  },
-  loader: async ({ context }) => {
-    const theme = await getThemeServerFn();
-    // User is already in context from beforeLoad
-    const user = context.user;
-
-    return {
+      user: (user ?? undefined) as User | undefined,
       theme,
-      user,
+      dailies,
     };
   },
   head: () => ({
@@ -84,6 +74,20 @@ export const Route = createRootRoute({
 })();
 `,
       },
+      {
+        children: `
+(function() {
+  document.addEventListener('mousedown', function() {
+    document.documentElement.classList.add('using-mouse');
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+      document.documentElement.classList.remove('using-mouse');
+    }
+  });
+})();
+`,
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -128,7 +132,15 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  const { theme, user } = Route.useLoaderData();
+  const { theme, user } = Route.useRouteContext();
+  // Guard against interaction until the app has hydrated.
+  const [isHydrated, setIsHydrated] = React.useState(false);
+
+  useAnonymousSessionSync(user?.id);
+
+  React.useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   return (
     <html data-theme={theme} suppressHydrationWarning>
@@ -136,18 +148,25 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <ThemeProvider theme={theme}>
-          <div className="toggle-theme-color w-full min-h-screen pt-4">
-            <div className="max-w-[800px] mx-auto">
-              <GameProvider>
-                <Nav user={user} />
-                {children}
-              </GameProvider>
-            </div>
-          </div>
-        </ThemeProvider>
-        <TanStackRouterDevtools position="bottom-right" />
-        {/* renders JS bundles and scripts needed for client-side hydration and routing. */}
+        <div inert={!isHydrated}>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider theme={theme}>
+              <Toast />
+              <div className="toggle-theme-color w-full min-h-screen py-4">
+                <div className="max-w-[360px] mx-auto">
+                  <div
+                    className={`transition-opacity duration-500 ${
+                      isHydrated ? "opacity-100" : "opacity-0"
+                    }`}
+                  >
+                    <Nav user={user} />
+                  </div>
+                  {children}
+                </div>
+              </div>
+            </ThemeProvider>
+          </QueryClientProvider>
+        </div>
         <Scripts />
       </body>
     </html>

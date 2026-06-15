@@ -3,7 +3,7 @@ import { signIn } from "~/utils/auth/auth-client";
 
 export default function GoogleSigninButton() {
   return (
-    <AuthButton onClick={() => signIn.social({ provider: "google" })}>
+    <AuthButton aria-label="Sign in with Google" onClick={() => signIn.social({ provider: "google" })}>
       <svg
         version="1.1"
         xmlns="http://www.w3.org/2000/svg"

@@ -1,0 +1,1567 @@
+{
+  "AB": {
+    "score": 42,
+    "count": 368,
+    "difficulty": "MEDIUM"
+  },
+  "BA": {
+    "score": 61,
+    "count": 578,
+    "difficulty": "EASY"
+  },
+  "AC": {
+    "score": 80,
+    "count": 529,
+    "difficulty": "EASY"
+  },
+  "CU": {
+    "score": 27,
+    "count": 341,
+    "difficulty": "MEDIUM"
+  },
+  "US": {
+    "score": 109,
+    "count": 686,
+    "difficulty": "EASY"
+  },
+  "DU": {
+    "score": 18,
+    "count": 250,
+    "difficulty": "MEDIUM"
+  },
+  "UC": {
+    "score": 15,
+    "count": 225,
+    "difficulty": "HARD"
+  },
+  "CT": {
+    "score": 19,
+    "count": 158,
+    "difficulty": "MEDIUM"
+  },
+  "JE": {
+    "score": 9,
+    "count": 103,
+    "difficulty": "HARD"
+  },
+  "EC": {
+    "score": 36,
+    "count": 321,
+    "difficulty": "MEDIUM"
+  },
+  "BL": {
+    "score": 26,
+    "count": 322,
+    "difficulty": "MEDIUM"
+  },
+  "LA": {
+    "score": 171,
+    "count": 1047,
+    "difficulty": "EASY"
+  },
+  "AZ": {
+    "score": 17,
+    "count": 191,
+    "difficulty": "MEDIUM"
+  },
+  "ZE": {
+    "score": 24,
+    "count": 262,
+    "difficulty": "MEDIUM"
+  },
+  "BO": {
+    "score": 57,
+    "count": 555,
+    "difficulty": "EASY"
+  },
+  "OA": {
+    "score": 33,
+    "count": 258,
+    "difficulty": "MEDIUM"
+  },
+  "AR": {
+    "score": 252,
+    "count": 1536,
+    "difficulty": "EASY"
+  },
+  "RD": {
+    "score": 21,
+    "count": 241,
+    "difficulty": "MEDIUM"
+  },
+  "OU": {
+    "score": 71,
+    "count": 612,
+    "difficulty": "EASY"
+  },
+  "UN": {
+    "score": 91,
+    "count": 748,
+    "difficulty": "EASY"
+  },
+  "ND": {
+    "score": 37,
+    "count": 426,
+    "difficulty": "MEDIUM"
+  },
+  "BR": {
+    "score": 12,
+    "count": 310,
+    "difficulty": "HARD"
+  },
+  "RO": {
+    "score": 126,
+    "count": 932,
+    "difficulty": "EASY"
+  },
+  "AD": {
+    "score": 95,
+    "count": 546,
+    "difficulty": "EASY"
+  },
+  "RU": {
+    "score": 46,
+    "count": 437,
+    "difficulty": "EASY"
+  },
+  "UP": {
+    "score": 58,
+    "count": 304,
+    "difficulty": "EASY"
+  },
+  "PT": {
+    "score": 21,
+    "count": 119,
+    "difficulty": "MEDIUM"
+  },
+  "BS": {
+    "score": 14,
+    "count": 159,
+    "difficulty": "HARD"
+  },
+  "SE": {
+    "score": 140,
+    "count": 1115,
+    "difficulty": "EASY"
+  },
+  "EN": {
+    "score": 209,
+    "count": 1127,
+    "difficulty": "EASY"
+  },
+  "NT": {
+    "score": 48,
+    "count": 549,
+    "difficulty": "EASY"
+  },
+  "SO": {
+    "score": 32,
+    "count": 397,
+    "difficulty": "MEDIUM"
+  },
+  "OR": {
+    "score": 157,
+    "count": 978,
+    "difficulty": "EASY"
+  },
+  "RB": {
+    "score": 10,
+    "count": 121,
+    "difficulty": "HARD"
+  },
+  "SU": {
+    "score": 16,
+    "count": 257,
+    "difficulty": "HARD"
+  },
+  "UR": {
+    "score": 108,
+    "count": 762,
+    "difficulty": "EASY"
+  },
+  "BU": {
+    "score": 21,
+    "count": 375,
+    "difficulty": "MEDIUM"
+  },
+  "ER": {
+    "score": 323,
+    "count": 2719,
+    "difficulty": "EASY"
+  },
+  "CE": {
+    "score": 89,
+    "count": 516,
+    "difficulty": "EASY"
+  },
+  "ED": {
+    "score": 218,
+    "count": 2294,
+    "difficulty": "EASY"
+  },
+  "DE": {
+    "score": 128,
+    "count": 1013,
+    "difficulty": "EASY"
+  },
+  "EP": {
+    "score": 41,
+    "count": 277,
+    "difficulty": "MEDIUM"
+  },
+  "ES": {
+    "score": 252,
+    "count": 2178,
+    "difficulty": "EASY"
+  },
+  "SS": {
+    "score": 26,
+    "count": 333,
+    "difficulty": "MEDIUM"
+  },
+  "CO": {
+    "score": 67,
+    "count": 773,
+    "difficulty": "EASY"
+  },
+  "OS": {
+    "score": 126,
+    "count": 780,
+    "difficulty": "EASY"
+  },
+  "ST": {
+    "score": 155,
+    "count": 1063,
+    "difficulty": "EASY"
+  },
+  "CR": {
+    "score": 17,
+    "count": 314,
+    "difficulty": "MEDIUM"
+  },
+  "UE": {
+    "score": 28,
+    "count": 262,
+    "difficulty": "MEDIUM"
+  },
+  "CI": {
+    "score": 24,
+    "count": 201,
+    "difficulty": "MEDIUM"
+  },
+  "ID": {
+    "score": 95,
+    "count": 556,
+    "difficulty": "EASY"
+  },
+  "DI": {
+    "score": 52,
+    "count": 528,
+    "difficulty": "EASY"
+  },
+  "IC": {
+    "score": 117,
+    "count": 709,
+    "difficulty": "EASY"
+  },
+  "QU": {
+    "score": 22,
+    "count": 242,
+    "difficulty": "MEDIUM"
+  },
+  "UI": {
+    "score": 10,
+    "count": 174,
+    "difficulty": "HARD"
+  },
+  "IT": {
+    "score": 92,
+    "count": 693,
+    "difficulty": "EASY"
+  },
+  "TI": {
+    "score": 84,
+    "count": 570,
+    "difficulty": "EASY"
+  },
+  "IO": {
+    "score": 33,
+    "count": 207,
+    "difficulty": "MEDIUM"
+  },
+  "ON": {
+    "score": 159,
+    "count": 1038,
+    "difficulty": "EASY"
+  },
+  "IV": {
+    "score": 13,
+    "count": 189,
+    "difficulty": "HARD"
+  },
+  "VE": {
+    "score": 114,
+    "count": 731,
+    "difficulty": "EASY"
+  },
+  "TU": {
+    "score": 26,
+    "count": 283,
+    "difficulty": "MEDIUM"
+  },
+  "UA": {
+    "score": 11,
+    "count": 143,
+    "difficulty": "HARD"
+  },
+  "AL": {
+    "score": 251,
+    "count": 1309,
+    "difficulty": "EASY"
+  },
+  "TY": {
+    "score": 44,
+    "count": 302,
+    "difficulty": "MEDIUM"
+  },
+  "UM": {
+    "score": 84,
+    "count": 504,
+    "difficulty": "EASY"
+  },
+  "ME": {
+    "score": 127,
+    "count": 808,
+    "difficulty": "EASY"
+  },
+  "DD": {
+    "score": 8,
+    "count": 170,
+    "difficulty": "HARD"
+  },
+  "DH": {
+    "score": 5,
+    "count": 37,
+    "difficulty": "HARD"
+  },
+  "HE": {
+    "score": 115,
+    "count": 755,
+    "difficulty": "EASY"
+  },
+  "RE": {
+    "score": 279,
+    "count": 1620,
+    "difficulty": "EASY"
+  },
+  "JO": {
+    "score": 8,
+    "count": 126,
+    "difficulty": "HARD"
+  },
+  "OI": {
+    "score": 40,
+    "count": 290,
+    "difficulty": "MEDIUM"
+  },
+  "IN": {
+    "score": 346,
+    "count": 1949,
+    "difficulty": "EASY"
+  },
+  "JU": {
+    "score": 5,
+    "count": 109,
+    "difficulty": "HARD"
+  },
+  "MI": {
+    "score": 68,
+    "count": 569,
+    "difficulty": "EASY"
+  },
+  "IR": {
+    "score": 73,
+    "count": 525,
+    "difficulty": "EASY"
+  },
+  "DR": {
+    "score": 10,
+    "count": 211,
+    "difficulty": "HARD"
+  },
+  "RI": {
+    "score": 137,
+    "count": 1038,
+    "difficulty": "EASY"
+  },
+  "IF": {
+    "score": 18,
+    "count": 197,
+    "difficulty": "MEDIUM"
+  },
+  "FT": {
+    "score": 11,
+    "count": 128,
+    "difficulty": "HARD"
+  },
+  "RT": {
+    "score": 24,
+    "count": 300,
+    "difficulty": "MEDIUM"
+  },
+  "VI": {
+    "score": 27,
+    "count": 321,
+    "difficulty": "MEDIUM"
+  },
+  "IS": {
+    "score": 134,
+    "count": 841,
+    "difficulty": "EASY"
+  },
+  "AE": {
+    "score": 33,
+    "count": 184,
+    "difficulty": "MEDIUM"
+  },
+  "IA": {
+    "score": 52,
+    "count": 381,
+    "difficulty": "EASY"
+  },
+  "ET": {
+    "score": 125,
+    "count": 757,
+    "difficulty": "EASY"
+  },
+  "TH": {
+    "score": 74,
+    "count": 508,
+    "difficulty": "EASY"
+  },
+  "AF": {
+    "score": 18,
+    "count": 176,
+    "difficulty": "MEDIUM"
+  },
+  "FF": {
+    "score": 23,
+    "count": 268,
+    "difficulty": "MEDIUM"
+  },
+  "FA": {
+    "score": 14,
+    "count": 293,
+    "difficulty": "HARD"
+  },
+  "AI": {
+    "score": 66,
+    "count": 509,
+    "difficulty": "EASY"
+  },
+  "FE": {
+    "score": 26,
+    "count": 344,
+    "difficulty": "MEDIUM"
+  },
+  "FI": {
+    "score": 15,
+    "count": 286,
+    "difficulty": "HARD"
+  },
+  "RM": {
+    "score": 16,
+    "count": 185,
+    "difficulty": "HARD"
+  },
+  "FO": {
+    "score": 10,
+    "count": 243,
+    "difficulty": "HARD"
+  },
+  "FL": {
+    "score": 12,
+    "count": 283,
+    "difficulty": "HARD"
+  },
+  "AM": {
+    "score": 107,
+    "count": 699,
+    "difficulty": "EASY"
+  },
+  "LO": {
+    "score": 119,
+    "count": 844,
+    "difficulty": "EASY"
+  },
+  "AT": {
+    "score": 125,
+    "count": 840,
+    "difficulty": "EASY"
+  },
+  "FR": {
+    "score": 7,
+    "count": 158,
+    "difficulty": "HARD"
+  },
+  "RA": {
+    "score": 191,
+    "count": 1226,
+    "difficulty": "EASY"
+  },
+  "AG": {
+    "score": 69,
+    "count": 453,
+    "difficulty": "EASY"
+  },
+  "GE": {
+    "score": 99,
+    "count": 703,
+    "difficulty": "EASY"
+  },
+  "EI": {
+    "score": 32,
+    "count": 255,
+    "difficulty": "MEDIUM"
+  },
+  "SM": {
+    "score": 26,
+    "count": 161,
+    "difficulty": "MEDIUM"
+  },
+  "NC": {
+    "score": 13,
+    "count": 237,
+    "difficulty": "HARD"
+  },
+  "CY": {
+    "score": 12,
+    "count": 89,
+    "difficulty": "HARD"
+  },
+  "DA": {
+    "score": 39,
+    "count": 363,
+    "difficulty": "MEDIUM"
+  },
+  "GH": {
+    "score": 25,
+    "count": 173,
+    "difficulty": "MEDIUM"
+  },
+  "HA": {
+    "score": 81,
+    "count": 718,
+    "difficulty": "EASY"
+  },
+  "AS": {
+    "score": 209,
+    "count": 1149,
+    "difficulty": "EASY"
+  },
+  "GR": {
+    "score": 15,
+    "count": 280,
+    "difficulty": "HARD"
+  },
+  "EE": {
+    "score": 85,
+    "count": 708,
+    "difficulty": "EASY"
+  },
+  "WA": {
+    "score": 44,
+    "count": 448,
+    "difficulty": "MEDIUM"
+  },
+  "AY": {
+    "score": 41,
+    "count": 295,
+    "difficulty": "MEDIUM"
+  },
+  "BE": {
+    "score": 71,
+    "count": 632,
+    "difficulty": "EASY"
+  },
+  "BI": {
+    "score": 43,
+    "count": 395,
+    "difficulty": "MEDIUM"
+  },
+  "NO": {
+    "score": 67,
+    "count": 423,
+    "difficulty": "EASY"
+  },
+  "OV": {
+    "score": 16,
+    "count": 155,
+    "difficulty": "HARD"
+  },
+  "LI": {
+    "score": 130,
+    "count": 838,
+    "difficulty": "EASY"
+  },
+  "IG": {
+    "score": 33,
+    "count": 308,
+    "difficulty": "MEDIUM"
+  },
+  "HT": {
+    "score": 7,
+    "count": 76,
+    "difficulty": "HARD"
+  },
+  "LK": {
+    "score": 8,
+    "count": 106,
+    "difficulty": "HARD"
+  },
+  "KA": {
+    "score": 34,
+    "count": 225,
+    "difficulty": "MEDIUM"
+  },
+  "LL": {
+    "score": 47,
+    "count": 592,
+    "difficulty": "EASY"
+  },
+  "LE": {
+    "score": 302,
+    "count": 1625,
+    "difficulty": "EASY"
+  },
+  "EG": {
+    "score": 27,
+    "count": 204,
+    "difficulty": "MEDIUM"
+  },
+  "LU": {
+    "score": 35,
+    "count": 436,
+    "difficulty": "MEDIUM"
+  },
+  "UD": {
+    "score": 23,
+    "count": 226,
+    "difficulty": "MEDIUM"
+  },
+  "LM": {
+    "score": 10,
+    "count": 93,
+    "difficulty": "HARD"
+  },
+  "MO": {
+    "score": 50,
+    "count": 506,
+    "difficulty": "EASY"
+  },
+  "LP": {
+    "score": 6,
+    "count": 72,
+    "difficulty": "HARD"
+  },
+  "PA": {
+    "score": 64,
+    "count": 609,
+    "difficulty": "EASY"
+  },
+  "CA": {
+    "score": 84,
+    "count": 729,
+    "difficulty": "EASY"
+  },
+  "PI": {
+    "score": 60,
+    "count": 530,
+    "difficulty": "EASY"
+  },
+  "NE": {
+    "score": 155,
+    "count": 940,
+    "difficulty": "EASY"
+  },
+  "NI": {
+    "score": 74,
+    "count": 500,
+    "difficulty": "EASY"
+  },
+  "MB": {
+    "score": 21,
+    "count": 251,
+    "difficulty": "MEDIUM"
+  },
+  "SH": {
+    "score": 91,
+    "count": 690,
+    "difficulty": "EASY"
+  },
+  "DS": {
+    "score": 18,
+    "count": 398,
+    "difficulty": "MEDIUM"
+  },
+  "OE": {
+    "score": 20,
+    "count": 176,
+    "difficulty": "MEDIUM"
+  },
+  "EB": {
+    "score": 18,
+    "count": 170,
+    "difficulty": "MEDIUM"
+  },
+  "MU": {
+    "score": 18,
+    "count": 271,
+    "difficulty": "MEDIUM"
+  },
+  "UL": {
+    "score": 75,
+    "count": 498,
+    "difficulty": "EASY"
+  },
+  "AN": {
+    "score": 239,
+    "count": 1323,
+    "difficulty": "EASY"
+  },
+  "NA": {
+    "score": 105,
+    "count": 542,
+    "difficulty": "EASY"
+  },
+  "OG": {
+    "score": 37,
+    "count": 270,
+    "difficulty": "MEDIUM"
+  },
+  "CH": {
+    "score": 137,
+    "count": 804,
+    "difficulty": "EASY"
+  },
+  "HO": {
+    "score": 70,
+    "count": 636,
+    "difficulty": "EASY"
+  },
+  "EM": {
+    "score": 54,
+    "count": 338,
+    "difficulty": "EASY"
+  },
+  "NG": {
+    "score": 57,
+    "count": 860,
+    "difficulty": "EASY"
+  },
+  "GI": {
+    "score": 25,
+    "count": 291,
+    "difficulty": "MEDIUM"
+  },
+  "GL": {
+    "score": 25,
+    "count": 287,
+    "difficulty": "MEDIUM"
+  },
+  "IM": {
+    "score": 55,
+    "count": 400,
+    "difficulty": "EASY"
+  },
+  "MA": {
+    "score": 112,
+    "count": 803,
+    "difficulty": "EASY"
+  },
+  "NN": {
+    "score": 10,
+    "count": 213,
+    "difficulty": "HARD"
+  },
+  "NU": {
+    "score": 20,
+    "count": 185,
+    "difficulty": "MEDIUM"
+  },
+  "NS": {
+    "score": 54,
+    "count": 691,
+    "difficulty": "EASY"
+  },
+  "WE": {
+    "score": 35,
+    "count": 364,
+    "difficulty": "MEDIUM"
+  },
+  "TL": {
+    "score": 7,
+    "count": 110,
+    "difficulty": "HARD"
+  },
+  "NY": {
+    "score": 24,
+    "count": 165,
+    "difficulty": "MEDIUM"
+  },
+  "OW": {
+    "score": 62,
+    "count": 442,
+    "difficulty": "EASY"
+  },
+  "YO": {
+    "score": 17,
+    "count": 147,
+    "difficulty": "MEDIUM"
+  },
+  "AO": {
+    "score": 5,
+    "count": 37,
+    "difficulty": "HARD"
+  },
+  "AP": {
+    "score": 71,
+    "count": 446,
+    "difficulty": "EASY"
+  },
+  "HY": {
+    "score": 29,
+    "count": 181,
+    "difficulty": "MEDIUM"
+  },
+  "IE": {
+    "score": 59,
+    "count": 716,
+    "difficulty": "EASY"
+  },
+  "PL": {
+    "score": 22,
+    "count": 251,
+    "difficulty": "MEDIUM"
+  },
+  "OM": {
+    "score": 56,
+    "count": 402,
+    "difficulty": "EASY"
+  },
+  "PP": {
+    "score": 10,
+    "count": 201,
+    "difficulty": "HARD"
+  },
+  "PE": {
+    "score": 124,
+    "count": 874,
+    "difficulty": "EASY"
+  },
+  "EA": {
+    "score": 94,
+    "count": 781,
+    "difficulty": "EASY"
+  },
+  "RC": {
+    "score": 8,
+    "count": 97,
+    "difficulty": "HARD"
+  },
+  "EO": {
+    "score": 13,
+    "count": 96,
+    "difficulty": "HARD"
+  },
+  "OL": {
+    "score": 92,
+    "count": 686,
+    "difficulty": "EASY"
+  },
+  "RG": {
+    "score": 9,
+    "count": 160,
+    "difficulty": "HARD"
+  },
+  "GY": {
+    "score": 15,
+    "count": 135,
+    "difficulty": "HARD"
+  },
+  "YL": {
+    "score": 19,
+    "count": 146,
+    "difficulty": "MEDIUM"
+  },
+  "FU": {
+    "score": 10,
+    "count": 206,
+    "difficulty": "HARD"
+  },
+  "RY": {
+    "score": 42,
+    "count": 287,
+    "difficulty": "MEDIUM"
+  },
+  "MP": {
+    "score": 23,
+    "count": 317,
+    "difficulty": "MEDIUM"
+  },
+  "RR": {
+    "score": 11,
+    "count": 217,
+    "difficulty": "HARD"
+  },
+  "TE": {
+    "score": 219,
+    "count": 1374,
+    "difficulty": "EASY"
+  },
+  "SC": {
+    "score": 17,
+    "count": 285,
+    "difficulty": "MEDIUM"
+  },
+  "SL": {
+    "score": 14,
+    "count": 225,
+    "difficulty": "HARD"
+  },
+  "SP": {
+    "score": 19,
+    "count": 365,
+    "difficulty": "MEDIUM"
+  },
+  "SA": {
+    "score": 52,
+    "count": 516,
+    "difficulty": "EASY"
+  },
+  "IL": {
+    "score": 110,
+    "count": 810,
+    "difficulty": "EASY"
+  },
+  "SI": {
+    "score": 33,
+    "count": 437,
+    "difficulty": "MEDIUM"
+  },
+  "GN": {
+    "score": 15,
+    "count": 85,
+    "difficulty": "HARD"
+  },
+  "RN": {
+    "score": 17,
+    "count": 214,
+    "difficulty": "MEDIUM"
+  },
+  "TR": {
+    "score": 34,
+    "count": 436,
+    "difficulty": "MEDIUM"
+  },
+  "UT": {
+    "score": 62,
+    "count": 484,
+    "difficulty": "EASY"
+  },
+  "SY": {
+    "score": 23,
+    "count": 161,
+    "difficulty": "MEDIUM"
+  },
+  "TO": {
+    "score": 112,
+    "count": 708,
+    "difficulty": "EASY"
+  },
+  "OP": {
+    "score": 61,
+    "count": 397,
+    "difficulty": "EASY"
+  },
+  "TT": {
+    "score": 13,
+    "count": 311,
+    "difficulty": "HARD"
+  },
+  "TA": {
+    "score": 129,
+    "count": 777,
+    "difficulty": "EASY"
+  },
+  "CK": {
+    "score": 27,
+    "count": 479,
+    "difficulty": "MEDIUM"
+  },
+  "AU": {
+    "score": 33,
+    "count": 335,
+    "difficulty": "MEDIUM"
+  },
+  "UB": {
+    "score": 15,
+    "count": 210,
+    "difficulty": "HARD"
+  },
+  "AV": {
+    "score": 24,
+    "count": 302,
+    "difficulty": "MEDIUM"
+  },
+  "VA": {
+    "score": 29,
+    "count": 242,
+    "difficulty": "MEDIUM"
+  },
+  "RS": {
+    "score": 43,
+    "count": 759,
+    "difficulty": "MEDIUM"
+  },
+  "AW": {
+    "score": 45,
+    "count": 297,
+    "difficulty": "EASY"
+  },
+  "AK": {
+    "score": 37,
+    "count": 289,
+    "difficulty": "MEDIUM"
+  },
+  "KE": {
+    "score": 104,
+    "count": 776,
+    "difficulty": "EASY"
+  },
+  "HI": {
+    "score": 49,
+    "count": 442,
+    "difficulty": "EASY"
+  },
+  "WN": {
+    "score": 12,
+    "count": 102,
+    "difficulty": "HARD"
+  },
+  "WO": {
+    "score": 11,
+    "count": 166,
+    "difficulty": "HARD"
+  },
+  "OK": {
+    "score": 28,
+    "count": 206,
+    "difficulty": "MEDIUM"
+  },
+  "BB": {
+    "score": 8,
+    "count": 175,
+    "difficulty": "HARD"
+  },
+  "OO": {
+    "score": 76,
+    "count": 668,
+    "difficulty": "EASY"
+  },
+  "KU": {
+    "score": 10,
+    "count": 78,
+    "difficulty": "HARD"
+  },
+  "DG": {
+    "score": 7,
+    "count": 115,
+    "difficulty": "HARD"
+  },
+  "GG": {
+    "score": 9,
+    "count": 204,
+    "difficulty": "HARD"
+  },
+  "OT": {
+    "score": 78,
+    "count": 562,
+    "difficulty": "EASY"
+  },
+  "LS": {
+    "score": 26,
+    "count": 531,
+    "difficulty": "MEDIUM"
+  },
+  "NK": {
+    "score": 22,
+    "count": 315,
+    "difficulty": "MEDIUM"
+  },
+  "EL": {
+    "score": 155,
+    "count": 893,
+    "difficulty": "EASY"
+  },
+  "LY": {
+    "score": 70,
+    "count": 538,
+    "difficulty": "EASY"
+  },
+  "RK": {
+    "score": 12,
+    "count": 178,
+    "difficulty": "HARD"
+  },
+  "RL": {
+    "score": 11,
+    "count": 156,
+    "difficulty": "HARD"
+  },
+  "EY": {
+    "score": 44,
+    "count": 281,
+    "difficulty": "MEDIUM"
+  },
+  "LT": {
+    "score": 18,
+    "count": 221,
+    "difficulty": "MEDIUM"
+  },
+  "SK": {
+    "score": 27,
+    "count": 230,
+    "difficulty": "MEDIUM"
+  },
+  "ZA": {
+    "score": 18,
+    "count": 110,
+    "difficulty": "MEDIUM"
+  },
+  "AA": {
+    "score": 5,
+    "count": 36,
+    "difficulty": "HARD"
+  },
+  "KO": {
+    "score": 16,
+    "count": 125,
+    "difficulty": "HARD"
+  },
+  "UG": {
+    "score": 27,
+    "count": 250,
+    "difficulty": "MEDIUM"
+  },
+  "DL": {
+    "score": 8,
+    "count": 120,
+    "difficulty": "HARD"
+  },
+  "EF": {
+    "score": 17,
+    "count": 172,
+    "difficulty": "MEDIUM"
+  },
+  "GA": {
+    "score": 51,
+    "count": 501,
+    "difficulty": "EASY"
+  },
+  "GO": {
+    "score": 49,
+    "count": 357,
+    "difficulty": "EASY"
+  },
+  "EH": {
+    "score": 5,
+    "count": 48,
+    "difficulty": "HARD"
+  },
+  "LD": {
+    "score": 18,
+    "count": 177,
+    "difficulty": "MEDIUM"
+  },
+  "EW": {
+    "score": 24,
+    "count": 222,
+    "difficulty": "MEDIUM"
+  },
+  "PS": {
+    "score": 53,
+    "count": 372,
+    "difficulty": "EASY"
+  },
+  "MY": {
+    "score": 24,
+    "count": 148,
+    "difficulty": "MEDIUM"
+  },
+  "IK": {
+    "score": 20,
+    "count": 149,
+    "difficulty": "MEDIUM"
+  },
+  "KI": {
+    "score": 49,
+    "count": 323,
+    "difficulty": "EASY"
+  },
+  "OC": {
+    "score": 30,
+    "count": 259,
+    "difficulty": "MEDIUM"
+  },
+  "KY": {
+    "score": 25,
+    "count": 179,
+    "difficulty": "MEDIUM"
+  },
+  "OD": {
+    "score": 52,
+    "count": 352,
+    "difficulty": "EASY"
+  },
+  "DY": {
+    "score": 25,
+    "count": 158,
+    "difficulty": "MEDIUM"
+  },
+  "TC": {
+    "score": 6,
+    "count": 80,
+    "difficulty": "HARD"
+  },
+  "OB": {
+    "score": 28,
+    "count": 248,
+    "difficulty": "MEDIUM"
+  },
+  "OH": {
+    "score": 5,
+    "count": 52,
+    "difficulty": "HARD"
+  },
+  "OZ": {
+    "score": 9,
+    "count": 77,
+    "difficulty": "HARD"
+  },
+  "WL": {
+    "score": 7,
+    "count": 76,
+    "difficulty": "HARD"
+  },
+  "WY": {
+    "score": 6,
+    "count": 37,
+    "difficulty": "HARD"
+  },
+  "YE": {
+    "score": 37,
+    "count": 237,
+    "difficulty": "MEDIUM"
+  },
+  "OX": {
+    "score": 16,
+    "count": 100,
+    "difficulty": "HARD"
+  },
+  "OY": {
+    "score": 19,
+    "count": 126,
+    "difficulty": "MEDIUM"
+  },
+  "YI": {
+    "score": 8,
+    "count": 79,
+    "difficulty": "HARD"
+  },
+  "EZ": {
+    "score": 5,
+    "count": 49,
+    "difficulty": "HARD"
+  },
+  "ZY": {
+    "score": 8,
+    "count": 59,
+    "difficulty": "HARD"
+  },
+  "WS": {
+    "score": 12,
+    "count": 151,
+    "difficulty": "HARD"
+  },
+  "KL": {
+    "score": 6,
+    "count": 70,
+    "difficulty": "HARD"
+  },
+  "UF": {
+    "score": 6,
+    "count": 104,
+    "difficulty": "HARD"
+  },
+  "MM": {
+    "score": 8,
+    "count": 148,
+    "difficulty": "HARD"
+  },
+  "ZZ": {
+    "score": 5,
+    "count": 76,
+    "difficulty": "HARD"
+  },
+  "BY": {
+    "score": 20,
+    "count": 118,
+    "difficulty": "MEDIUM"
+  },
+  "YP": {
+    "score": 6,
+    "count": 74,
+    "difficulty": "HARD"
+  },
+  "PU": {
+    "score": 19,
+    "count": 271,
+    "difficulty": "MEDIUM"
+  },
+  "DO": {
+    "score": 59,
+    "count": 483,
+    "difficulty": "EASY"
+  },
+  "PY": {
+    "score": 15,
+    "count": 146,
+    "difficulty": "HARD"
+  },
+  "RP": {
+    "score": 7,
+    "count": 82,
+    "difficulty": "HARD"
+  },
+  "IP": {
+    "score": 20,
+    "count": 260,
+    "difficulty": "MEDIUM"
+  },
+  "IX": {
+    "score": 12,
+    "count": 89,
+    "difficulty": "HARD"
+  },
+  "EK": {
+    "score": 13,
+    "count": 96,
+    "difficulty": "HARD"
+  },
+  "HR": {
+    "score": 5,
+    "count": 90,
+    "difficulty": "HARD"
+  },
+  "HU": {
+    "score": 22,
+    "count": 239,
+    "difficulty": "MEDIUM"
+  },
+  "PH": {
+    "score": 31,
+    "count": 189,
+    "difficulty": "MEDIUM"
+  },
+  "CL": {
+    "score": 12,
+    "count": 236,
+    "difficulty": "HARD"
+  },
+  "EV": {
+    "score": 16,
+    "count": 165,
+    "difficulty": "HARD"
+  },
+  "AX": {
+    "score": 24,
+    "count": 138,
+    "difficulty": "MEDIUM"
+  },
+  "MS": {
+    "score": 14,
+    "count": 262,
+    "difficulty": "HARD"
+  },
+  "FY": {
+    "score": 7,
+    "count": 76,
+    "difficulty": "HARD"
+  },
+  "OF": {
+    "score": 21,
+    "count": 138,
+    "difficulty": "MEDIUM"
+  },
+  "EX": {
+    "score": 31,
+    "count": 199,
+    "difficulty": "MEDIUM"
+  },
+  "VO": {
+    "score": 17,
+    "count": 160,
+    "difficulty": "MEDIUM"
+  },
+  "PO": {
+    "score": 40,
+    "count": 468,
+    "difficulty": "MEDIUM"
+  },
+  "TS": {
+    "score": 45,
+    "count": 813,
+    "difficulty": "EASY"
+  },
+  "YM": {
+    "score": 7,
+    "count": 71,
+    "difficulty": "HARD"
+  },
+  "YS": {
+    "score": 22,
+    "count": 200,
+    "difficulty": "MEDIUM"
+  },
+  "UX": {
+    "score": 5,
+    "count": 32,
+    "difficulty": "HARD"
+  },
+  "XE": {
+    "score": 17,
+    "count": 136,
+    "difficulty": "MEDIUM"
+  },
+  "GU": {
+    "score": 17,
+    "count": 243,
+    "difficulty": "MEDIUM"
+  },
+  "ZI": {
+    "score": 10,
+    "count": 104,
+    "difficulty": "HARD"
+  },
+  "IB": {
+    "score": 11,
+    "count": 154,
+    "difficulty": "HARD"
+  },
+  "XI": {
+    "score": 8,
+    "count": 118,
+    "difficulty": "HARD"
+  },
+  "NL": {
+    "score": 5,
+    "count": 52,
+    "difficulty": "HARD"
+  },
+  "PR": {
+    "score": 13,
+    "count": 289,
+    "difficulty": "HARD"
+  },
+  "EU": {
+    "score": 13,
+    "count": 112,
+    "difficulty": "HARD"
+  },
+  "XT": {
+    "score": 5,
+    "count": 43,
+    "difficulty": "HARD"
+  },
+  "IZ": {
+    "score": 9,
+    "count": 101,
+    "difficulty": "HARD"
+  },
+  "KS": {
+    "score": 14,
+    "count": 386,
+    "difficulty": "HARD"
+  },
+  "XY": {
+    "score": 6,
+    "count": 44,
+    "difficulty": "HARD"
+  },
+  "TZ": {
+    "score": 6,
+    "count": 50,
+    "difficulty": "HARD"
+  },
+  "JA": {
+    "score": 8,
+    "count": 142,
+    "difficulty": "HARD"
+  },
+  "AH": {
+    "score": 28,
+    "count": 158,
+    "difficulty": "MEDIUM"
+  },
+  "JI": {
+    "score": 10,
+    "count": 106,
+    "difficulty": "HARD"
+  },
+  "GS": {
+    "score": 13,
+    "count": 218,
+    "difficulty": "HARD"
+  },
+  "YR": {
+    "score": 5,
+    "count": 81,
+    "difficulty": "HARD"
+  },
+  "YT": {
+    "score": 5,
+    "count": 53,
+    "difficulty": "HARD"
+  },
+  "FS": {
+    "score": 8,
+    "count": 139,
+    "difficulty": "HARD"
+  },
+  "WI": {
+    "score": 25,
+    "count": 354,
+    "difficulty": "MEDIUM"
+  },
+  "YA": {
+    "score": 22,
+    "count": 169,
+    "difficulty": "MEDIUM"
+  },
+  "UK": {
+    "score": 12,
+    "count": 83,
+    "difficulty": "HARD"
+  },
+  "SN": {
+    "score": 5,
+    "count": 133,
+    "difficulty": "HARD"
+  },
+  "ZO": {
+    "score": 16,
+    "count": 115,
+    "difficulty": "HARD"
+  }
+}

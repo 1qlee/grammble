@@ -8,6 +8,14 @@ import Input from "~/components/ui/forms/Input";
 import Button from "~/components/buttons/Button";
 import Field from "~/components/ui/forms/Field";
 import Label from "~/components/ui/forms/Label";
+import { useState } from "react";
+
+const resendVerificationEmailFn = createServerFn({ method: "POST" })
+  .inputValidator(v.object({ email: v.pipe(v.string(), v.email()) }))
+  .handler(async ({ data }) => {
+    const { sendVerificationEmail } = await import("~/utils/email/email");
+    return await sendVerificationEmail(data.email);
+  });
 
 // Define search params schema
 const verifyTokenSchema = v.object({
@@ -18,7 +26,7 @@ const verifyTokenSchema = v.object({
 const verifyEmailFn = createServerFn({ method: "POST" })
   .inputValidator(verifyTokenSchema)
   .handler(async ({ data }) => {
-    const { prismaClient } = await import("~/utils/prisma");
+    const { prismaClient } = await import("~/utils/db/prisma");
     const token = data.token;
 
     // Validate token is provided
@@ -100,14 +108,10 @@ const verifyEmailFn = createServerFn({ method: "POST" })
       },
     });
 
-    // Update the verification token after successful verification
-    await prismaClient.verification.update({
+    // Delete the verification token -- it's been consumed
+    await prismaClient.verification.delete({
       where: {
         id: verification.id,
-      },
-      data: {
-        used: true,
-        updatedAt: new Date(),
       },
     });
 
@@ -140,57 +144,90 @@ export const Route = createFileRoute("/verify-email")({
 
 function VerifyEmailComp() {
   const result = Route.useLoaderData();
+  const [resendEmail, setResendEmail] = useState("");
+  const [resendState, setResendState] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+
+  const handleResend = async () => {
+    if (!resendEmail || resendState === "loading") return;
+    setResendState("loading");
+    setResendMessage(null);
+    try {
+      await resendVerificationEmailFn({ data: { email: resendEmail } });
+      setResendState("success");
+      setResendMessage("Verification email sent. Please check your inbox.");
+    } catch {
+      setResendState("error");
+      setResendMessage("Failed to send verification email. Please try again.");
+    }
+  };
 
   return (
-    <div className="max-w-[400px] mt-8 mx-auto px-4">
-      <div className="card-wrapper">
-        {result.success ? (
-          <>
-            <Alert type="success" className="mb-6">
-              <Badge>Email Verified!</Badge>
-              <p className="text-lg">{result.message}</p>
-            </Alert>
-            <div className="mt-6 space-y-4">
-              <Link
-                to="/dashboard"
-                className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-              >
-                Go to Dashboard
+    <div className="card-wrapper bg-default-shadow">
+      {result.success ? (
+        <>
+          <Alert type="success" className="mb-6">
+            <Badge>Email Verified!</Badge>
+            <p className="text-lg">{result.message}</p>
+          </Alert>
+          <div className="mt-6 space-y-4">
+            <Link
+              to="/dashboard"
+              className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Go to Dashboard
+            </Link>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              <Link to="/" className="text-blue-600 hover:underline">
+                Return to home
               </Link>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                <Link to="/" className="text-blue-600 hover:underline">
-                  Return to home
-                </Link>
-              </div>
             </div>
-          </>
-        ) : (
-          <>
-            <Alert type="error" className="mb-6">
-              <p>{result.message}</p>
-            </Alert>
-            <div className="mt-6 space-y-4">
-              <p className="dark:text-gray-100">
-                If you need to verify your email again, you can request a new
-                verification email by entering your email address below.
-              </p>
-              <div className="flex gap-2 w-full items-end">
-                <Field>
-                  <Label>Email</Label>
-                  <Input type="email" placeholder="Enter your email" />
-                </Field>
-                <Button type="submit">Send</Button>
-              </div>
-              <Link to="/signin">Sign In</Link>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                <Link to="/" className="text-blue-600 hover:underline">
-                  Return to home
-                </Link>
-              </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <Alert type="error" className="mb-6">
+            <p>{result.message}</p>
+          </Alert>
+          <div className="mt-6 space-y-4">
+            <p className="dark:text-gray-100">
+              Request a new verification email below.
+            </p>
+            {resendMessage && (
+              <Alert type={resendState === "success" ? "success" : "error"}>
+                <p>{resendMessage}</p>
+              </Alert>
+            )}
+            <div className="flex gap-2 w-full items-end">
+              <Field>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={resendEmail}
+                  onChange={(e) => setResendEmail(e.target.value)}
+                  disabled={resendState === "loading" || resendState === "success"}
+                />
+              </Field>
+              <Button
+                type="button"
+                onClick={handleResend}
+                aria-disabled={resendState === "loading" || resendState === "success"}
+              >
+                {resendState === "loading" ? "Sending..." : "Send"}
+              </Button>
             </div>
-          </>
-        )}
-      </div>
+            <Link to="/signin">Sign In</Link>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              <Link to="/" className="text-blue-600 hover:underline">
+                Return to home
+              </Link>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

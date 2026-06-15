@@ -1,14 +1,14 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { prismaClient } from "../prisma";
+import { prismaClient } from "../db/prisma";
 import { username } from "better-auth/plugins";
 import { generateUsername } from "./auth-utils";
-import { redis } from "../redis";
+import { redis } from "../db/redis";
 
 export const auth = betterAuth({
   // Rate limiting configuration
   rateLimit: {
-    enabled: process.env.NODE_ENV === "production",
+    enabled: true,
     // Default rate limit: 20 requests per minute (for general auth endpoints)
     window: 60, // 1 minute in seconds
     max: 20, // Maximum requests within the window
@@ -69,12 +69,10 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    minPasswordLength: 5,
+    minPasswordLength: 8,
   },
   session: {
-    // Session expiration time in seconds (default is 7 days = 604800 seconds)
-    // Setting to 30 days (30 * 24 * 60 * 60 = 2592000 seconds)
-    expiresIn: 60 * 60 * 24 * 30, // 30 days
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
     // How often to refresh the session (in seconds)
     // Default is 1440 * 60 = 86400 seconds (1 day)
     // Refresh the session when it's within this time of expiring

@@ -10,18 +10,27 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
+import { Route as SixRouteImport } from './routes/six'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
+import { Route as SevenRouteImport } from './routes/seven'
 import { Route as LogoutRouteImport } from './routes/logout'
+import { Route as EightRouteImport } from './routes/eight'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc/$'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
   path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SixRoute = SixRouteImport.update({
+  id: '/six',
+  path: '/six',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -34,9 +43,19 @@ const SigninRoute = SigninRouteImport.update({
   path: '/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SevenRoute = SevenRouteImport.update({
+  id: '/seven',
+  path: '/seven',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LogoutRoute = LogoutRouteImport.update({
   id: '/logout',
   path: '/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EightRoute = EightRouteImport.update({
+  id: '/eight',
+  path: '/eight',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedRoute = AuthedRouteImport.update({
@@ -58,6 +77,11 @@ const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   path: '/api/trpc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe/webhook',
+  path: '/api/stripe/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -66,78 +90,106 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/eight': typeof EightRoute
   '/logout': typeof LogoutRoute
+  '/seven': typeof SevenRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/six': typeof SixRoute
   '/verify-email': typeof VerifyEmailRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/eight': typeof EightRoute
   '/logout': typeof LogoutRoute
+  '/seven': typeof SevenRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/six': typeof SixRoute
   '/verify-email': typeof VerifyEmailRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteWithChildren
+  '/eight': typeof EightRoute
   '/logout': typeof LogoutRoute
+  '/seven': typeof SevenRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/six': typeof SixRoute
   '/verify-email': typeof VerifyEmailRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/eight'
     | '/logout'
+    | '/seven'
     | '/signin'
     | '/signup'
+    | '/six'
     | '/verify-email'
     | '/dashboard'
     | '/api/auth/$'
+    | '/api/stripe/webhook'
     | '/api/trpc/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/eight'
     | '/logout'
+    | '/seven'
     | '/signin'
     | '/signup'
+    | '/six'
     | '/verify-email'
     | '/dashboard'
     | '/api/auth/$'
+    | '/api/stripe/webhook'
     | '/api/trpc/$'
   id:
     | '__root__'
     | '/'
     | '/_authed'
+    | '/eight'
     | '/logout'
+    | '/seven'
     | '/signin'
     | '/signup'
+    | '/six'
     | '/verify-email'
     | '/_authed/dashboard'
     | '/api/auth/$'
+    | '/api/stripe/webhook'
     | '/api/trpc/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRoute: typeof AuthedRouteWithChildren
+  EightRoute: typeof EightRoute
   LogoutRoute: typeof LogoutRoute
+  SevenRoute: typeof SevenRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
+  SixRoute: typeof SixRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
 }
 
@@ -148,6 +200,13 @@ declare module '@tanstack/react-router' {
       path: '/verify-email'
       fullPath: '/verify-email'
       preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/six': {
+      id: '/six'
+      path: '/six'
+      fullPath: '/six'
+      preLoaderRoute: typeof SixRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -164,11 +223,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SigninRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/seven': {
+      id: '/seven'
+      path: '/seven'
+      fullPath: '/seven'
+      preLoaderRoute: typeof SevenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/logout': {
       id: '/logout'
       path: '/logout'
       fullPath: '/logout'
       preLoaderRoute: typeof LogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eight': {
+      id: '/eight'
+      path: '/eight'
+      fullPath: '/eight'
+      preLoaderRoute: typeof EightRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed': {
@@ -199,6 +272,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTrpcSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/stripe/webhook': {
+      id: '/api/stripe/webhook'
+      path: '/api/stripe/webhook'
+      fullPath: '/api/stripe/webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -223,11 +303,15 @@ const AuthedRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRoute: AuthedRouteWithChildren,
+  EightRoute: EightRoute,
   LogoutRoute: LogoutRoute,
+  SevenRoute: SevenRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
+  SixRoute: SixRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
 }
 export const routeTree = rootRouteImport

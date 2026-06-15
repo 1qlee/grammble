@@ -3,7 +3,7 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../src/prisma-generated"
+  output   = "../prisma-generated"
 }
 
 datasource db {
@@ -21,9 +21,18 @@ model User {
   sessions      Session[]
   accounts      Account[]
   settings      Settings?
+  gameSessions  GameSession[]
 
-  username        String?
-  displayUsername String?
+  username         String?
+  displayUsername  String?
+
+  isPremium        Boolean    @default(false)
+  premiumGranted   Boolean    @default(false)
+  premiumExpiresAt DateTime?
+  subscription     Subscription?
+  referralCodes    PromoCode[]       @relation("referralCodes")
+  redemptions      PromoRedemption[]
+  stats            UserStats[]
 
   @@map("user")
   @@unique([username])
@@ -79,9 +88,43 @@ model Verification {
   @@map("verification")
 }
 
+enum GameStatus {
+  IN_PROGRESS
+  WON
+  LOST
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  PAUSED
+}
+
+enum PromoCodeType {
+  DISCOUNT
+  LIFETIME_FREE
+  FREE_TRIAL
+}
+
 enum Theme {
   light
   dark
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum GameMode {
+  SIX
+  SEVEN
+  EIGHT
 }
 
 model Settings {
@@ -93,4 +136,142 @@ model Settings {
   updatedAt DateTime @updatedAt
 
   @@map("settings")
+}
+
+model Gram {
+  id             String   @id @default(uuid())
+  letters        String   @unique
+  guessWordCount Int
+  score          Int
+  difficulty     Difficulty
+  timesUsed      Int      @default(0)
+  lastUsedDate   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  puzzles        Puzzle[]
+
+  @@map("gram")
+}
+
+model Puzzle {
+  id           String        @id @default(uuid())
+  date         String
+  number       Int
+  mode         GameMode
+  gramId       String
+  gram         Gram          @relation(fields: [gramId], references: [id])
+  word         String
+  createdAt    DateTime      @default(now())
+  gameSessions GameSession[]
+
+  @@unique([date, mode])
+  @@unique([number, mode])
+  @@index([gramId])
+  @@index([date])
+  @@map("puzzle")
+}
+
+model GameSession {
+  id          String     @id @default(uuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  puzzleId    String
+  puzzle      Puzzle     @relation(fields: [puzzleId], references: [id])
+  guesses     String[]
+  feedback    Json[]
+  status      GameStatus @default(IN_PROGRESS)
+  score       Int?
+  completedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([userId, puzzleId])
+  @@index([userId])
+  @@map("game_session")
+}
+
+model UserStats {
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mode             GameMode
+  played           Int      @default(0)
+  wins             Int      @default(0)
+  losses           Int      @default(0)
+  currentStreak    Int      @default(0)
+  maxStreak        Int      @default(0)
+  distribution     Int[]    @default([0, 0, 0, 0, 0, 0])
+  lastPuzzleNumber Int?
+  totalScore       Int      @default(0)
+  bestScore        Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@id([userId, mode])
+  @@map("user_stats")
+}
+
+model Invite {
+  id         String    @id @default(uuid())
+  token      String    @unique @default(uuid())
+  email      String?   @unique
+  sentAt     DateTime?
+  consumed   Boolean   @default(false)
+  consumedBy String?
+  createdAt  DateTime  @default(now())
+
+  @@index([token])
+  @@map("invite")
+}
+
+model Subscription {
+  id                   String             @id @default(uuid())
+  userId               String             @unique
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeCustomerId     String             @unique
+  stripeSubscriptionId String?            @unique
+  stripePriceId        String?
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@index([userId])
+  @@index([stripeCustomerId])
+  @@map("subscription")
+}
+
+model PromoCode {
+  id                 String        @id @default(uuid())
+  code               String        @unique
+  type               PromoCodeType
+  stripeCouponId     String?
+  creatorId          String?
+  creator            User?         @relation("referralCodes", fields: [creatorId], references: [id], onDelete: Cascade)
+  maxRedemptions     Int?
+  currentRedemptions Int           @default(0)
+  expiresAt          DateTime?
+  active             Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  redemptions PromoRedemption[]
+
+  @@index([code])
+  @@index([creatorId])
+  @@map("promo_code")
+}
+
+model PromoRedemption {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promoCodeId String
+  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id])
+  redeemedAt  DateTime  @default(now())
+
+  @@unique([userId, promoCodeId])
+  @@index([userId])
+  @@map("promo_redemption")
 }
