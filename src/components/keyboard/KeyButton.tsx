@@ -31,6 +31,7 @@ export function KeyButton({
       data-key-name={keyName}
       data-key-index={keyIndex}
       data-state={active ? "active" : "inactive"}
+      onMouseDown={(e) => e.preventDefault()}
       onFocus={() => setFocusedKeyIndex(keyIndex)}
       onBlur={() => setFocusedKeyIndex(null)}
       className="keyboard-key"

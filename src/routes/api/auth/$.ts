@@ -62,16 +62,45 @@ function customizeRateLimitResponse(
   );
 }
 
+const MAX_REQUEST_BYTES = 100 * 1024;
+
 async function validateRequestSize(
   request: Request
 ): Promise<Response | null> {
-  const contentLength = request.headers.get("content-length");
+  const tooLarge = jsonResponse(
+    { code: "REQUEST_TOO_LARGE", message: "Request too large" },
+    413
+  );
 
-  if (contentLength && parseInt(contentLength) > 100 * 1024) {
-    return jsonResponse(
-      { code: "REQUEST_TOO_LARGE", message: "Request too large" },
-      413
-    );
+  // Fast path: reject when the declared length is over the cap.
+  const contentLength = request.headers.get("content-length");
+  if (contentLength && parseInt(contentLength) > MAX_REQUEST_BYTES) {
+    return tooLarge;
+  }
+
+  // Content-Length is client-controlled and can be omitted (or the body sent
+  // chunked) to skip the check above, so also measure the actual bytes. A clone
+  // is read so the original body stays intact for the auth handler, and the
+  // read aborts as soon as the cap is exceeded, keeping buffered memory bounded.
+  const body = request.clone().body;
+  if (!body) return null;
+
+  const reader = body.getReader();
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX_REQUEST_BYTES) {
+        await reader.cancel();
+        return tooLarge;
+      }
+    }
+  } catch (error) {
+    // A malformed/aborted body isn't oversized per se; let the auth handler
+    // deal with it. Log so the failure is visible.
+    console.warn("[Auth] Failed to measure request body size:", error);
   }
 
   return null;
@@ -296,20 +325,27 @@ export const Route = createFileRoute("/api/auth/$")({
 
                   if (!invite || invite.consumed) return;
 
-                  await prismaClient.$transaction([
-                    prismaClient.user.update({
+                  // Atomically claim the invite before granting premium. The
+                  // updateMany guard on `consumed: false` means only one of two
+                  // concurrent signups presenting the same token wins the claim
+                  // (count === 1); the loser is a no-op, preventing a single
+                  // invite from granting lifetime premium more than once.
+                  await prismaClient.$transaction(async (tx) => {
+                    const claim = await tx.invite.updateMany({
+                      where: { id: invite.id, consumed: false },
+                      data: { consumed: true, consumedBy: user.id },
+                    });
+                    if (claim.count === 0) return;
+
+                    await tx.user.update({
                       where: { id: user.id },
                       data: { isPremium: true, premiumGranted: true },
-                    }),
-                    prismaClient.invite.update({
-                      where: { id: invite.id },
-                      data: { consumed: true, consumedBy: user.id },
-                    }),
-                  ]);
+                    });
 
-                  console.log(
-                    `Invite token consumed: user ${user.id} granted lifetime premium`
-                  );
+                    console.log(
+                      `Invite token consumed: user ${user.id} granted lifetime premium`
+                    );
+                  });
                 })
                 .catch((error) => {
                   console.error(

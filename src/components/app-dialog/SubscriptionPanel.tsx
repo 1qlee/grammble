@@ -28,13 +28,12 @@ type Props = {
 }
 
 export default function PremiumUpsellPanel({ user, billing, prices, onClose, upsellWordLength }: Props) {
-  const [interval, setInterval] = useState<'monthly' | 'annual'>('annual')
-  const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [loadingInterval, setLoadingInterval] = useState<'monthly' | 'annual' | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleCheckout = async () => {
-    setCheckoutLoading(true)
+  const handleCheckout = async (interval: 'monthly' | 'annual') => {
+    setLoadingInterval(interval)
     setError(null)
     try {
       const res = await fetch('/api/trpc/billing.createCheckout', {
@@ -49,11 +48,11 @@ export default function PremiumUpsellPanel({ user, billing, prices, onClose, ups
       } else {
         const msg = data?.error?.json?.message || 'Failed to create checkout session.'
         setError(msg)
-        setCheckoutLoading(false)
+        setLoadingInterval(null)
       }
     } catch {
       setError('Something went wrong. Please try again.')
-      setCheckoutLoading(false)
+      setLoadingInterval(null)
     }
   }
 
@@ -131,17 +130,19 @@ export default function PremiumUpsellPanel({ user, billing, prices, onClose, ups
   const annualPerMonth = prices ? formatPrice(prices.annual.amount / 12, prices.annual.currency) : null
   const annualTotal = prices ? formatPrice(prices.annual.amount, prices.annual.currency, 2) : null
   const monthlyPrice = prices ? formatPrice(prices.monthly.amount, prices.monthly.currency) : null
+  const savePercent = prices
+    ? Math.round((1 - prices.annual.amount / (prices.monthly.amount * 12)) * 100)
+    : null
 
   return (
     <div className="space-y-3 rounded-lg">
       <PlanHighlightCard
-        interval={interval}
-        onIntervalChange={setInterval}
         annualPerMonth={annualPerMonth}
         annualTotal={annualTotal}
         monthlyPrice={monthlyPrice}
+        savePercent={savePercent}
         user={user}
-        checkoutLoading={checkoutLoading}
+        loadingInterval={loadingInterval}
         onCheckout={handleCheckout}
         onClose={onClose}
         upsellWordLength={upsellWordLength}

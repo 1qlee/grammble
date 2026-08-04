@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useState } from "react";
 import { useGameStore } from "~/stores/game-store";
 import {
   MAX_GUESSES,
@@ -13,48 +13,69 @@ import {
 import type { LetterFeedback } from "~/utils/game/types";
 import Scoreboard from "./Scoreboard";
 import { GuessRow } from "./guesses/GuessRow";
-import { useTilePopAnimation } from "./guesses/useTilePopAnimation";
-import { SkeletonScoreboard } from "./guesses/SkeletonScoreboard";
-import { SkeletonRow } from "./guesses/SkeletonRow";
 
 interface GuessesProps {
   gram: string;
+  date: string;
   puzzleNumber: number;
   difficulty: "easy" | "med" | "hard";
   mode: GameMode;
   isPremium: boolean;
   cols?: number;
-  isLoading?: boolean;
   initialGuesses?: string[];
   initialFeedback?: LetterFeedback[][];
+  // Plays the drop-in entrance (and defers the tile reveal cascade) once true.
+  animateIn?: boolean;
 }
 
 export default function Guesses({
   gram,
+  date,
   puzzleNumber,
   difficulty,
   mode,
   isPremium,
   cols = WORD_LENGTH,
-  isLoading = false,
   initialGuesses,
   initialFeedback,
+  animateIn = false,
 }: GuessesProps) {
   const storeGuesses = useGameStore((s) => s.guesses);
   const storeFeedback = useGameStore((s) => s.feedback);
   const storeCurrentGuessIndex = useGameStore((s) => s.currentGuessIndex);
+  const storeDate = useGameStore((s) => s.date);
+  const storeMode = useGameStore((s) => s.mode);
 
-  // Before the store is seeded on the client (SSR + first render), fall back
-  // to props derived from route context so the board renders the real state.
-  const hasStoreData = storeGuesses.length > 0;
+  // The store lags a remount by one render: switching games remounts this board
+  // (keyed by identity) while the store still holds the PREVIOUS game until
+  // GameBoard's layout effect re-seeds it. Trusting it then paints the old
+  // game's letters, and re-seeding to this game runs CHAR_OUT exits on the tiles
+  // that are empty here, leaving stale tiles lingering on top. Only treat the
+  // store as authoritative once its identity matches this game; otherwise fall
+  // back to the route-provided state, which is already correct on first render.
+  const storeMatchesGame = storeDate === date && storeMode === mode;
+  const hasStoreData = storeMatchesGame && storeGuesses.length > 0;
   const guesses = hasStoreData ? storeGuesses : (initialGuesses ?? []);
   const feedback = hasStoreData ? storeFeedback : (initialFeedback ?? []);
   const currentGuessIndex = hasStoreData
     ? storeCurrentGuessIndex
     : (initialGuesses?.length ?? 0);
-  const root = useRef<HTMLDivElement>(null);
 
-  useTilePopAnimation(root);
+  // Rows already submitted at mount reveal (pop in) on load. Captured once so
+  // later submissions (rows >= this count) keep their own submit/char animations
+  // instead of replaying the reveal. Prefer the route's game state over the
+  // store: on a mode switch this board is remounted (keyed by game identity)
+  // while the store still holds the previous game for one render, so the store
+  // count would be stale until GameBoard re-seeds it. Use `currentGuessIndex`,
+  // not `guesses.length`: the in-progress (unsubmitted) guess lives at
+  // `guesses[currentGuessIndex]`, so the length would count the active row as
+  // submitted and (on a back/forward remount, where the store already matches)
+  // wrongly play the reveal on it, unmasking its transparent parked gram well.
+  const [revealCount] = useState(
+    () =>
+      initialGuesses?.length ??
+      (storeMatchesGame ? storeCurrentGuessIndex : 0),
+  );
 
   // Cards fill the per-mode width owned by `.board-scope`. The guess card uses
   // the active `--cols`/`--tile-size`; the scoreboard card overrides them to the
@@ -67,62 +88,44 @@ export default function Guesses({
         {/* Stack the scoreboard and guess cards with the same gap that
             separates two guess rows (each row contributes ROW_PADDING). */}
         <div
-          className="w-full flex flex-col items-center"
+          className={`w-full flex flex-col items-center${
+            animateIn ? " board-enter" : ""
+          }`}
           style={{ gap: `${ROW_PADDING * 2}px` }}
         >
           <div
             className="scoreboard-scope bg-default shadow-lg rounded-lg p-1"
             style={{ width: cardWidth }}
           >
-            {isLoading ? (
-              <SkeletonScoreboard />
-            ) : (
-              <Scoreboard
-                gram={gram}
-                puzzleNumber={puzzleNumber}
-                difficulty={difficulty}
-                mode={mode}
-                isPremium={isPremium}
-              />
-            )}
+            <Scoreboard
+              gram={gram}
+              date={date}
+              puzzleNumber={puzzleNumber}
+              difficulty={difficulty}
+              mode={mode}
+              isPremium={isPremium}
+            />
           </div>
           <div
-            ref={root}
             className="flex flex-col bg-default justify-center shadow-lg rounded-lg p-1"
             style={{ width: cardWidth }}
           >
-            {Array.from({ length: MAX_GUESSES }, (_, rowIndex) =>
-              isLoading ? (
-                <SkeletonRow
-                  key={rowIndex}
-                  cols={cols}
-                  isFirstRow={rowIndex === 0}
-                  isLastRow={rowIndex === MAX_GUESSES - 1}
-                />
-              ) : (
-                <GuessRow
-                  key={rowIndex}
-                  guess={guesses[rowIndex] ?? ""}
-                  feedback={feedback[rowIndex]}
-                  gram={gram}
-                  cols={cols}
-                  isCurrentRow={rowIndex === currentGuessIndex}
-                  isFirstRow={rowIndex === 0}
-                  isLastRow={rowIndex === MAX_GUESSES - 1}
-                />
-              ),
-            )}
+            {Array.from({ length: MAX_GUESSES }, (_, rowIndex) => (
+              <GuessRow
+                key={rowIndex}
+                guess={guesses[rowIndex] ?? ""}
+                feedback={feedback[rowIndex]}
+                gram={gram}
+                cols={cols}
+                isCurrentRow={rowIndex === currentGuessIndex}
+                isFirstRow={rowIndex === 0}
+                isLastRow={rowIndex === MAX_GUESSES - 1}
+                revealRow={rowIndex < revealCount ? rowIndex : undefined}
+                animateIn={animateIn}
+              />
+            ))}
           </div>
         </div>
-        {isLoading && (
-          <div
-            className="mt-4 self-center text-xs uppercase tracking-wider text-accent"
-            role="status"
-            aria-live="polite"
-          >
-            Loading the board...
-          </div>
-        )}
       </div>
     </div>
   );

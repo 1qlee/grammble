@@ -1,70 +1,26 @@
-import { useState, useRef, useEffect } from "react";
-import { animate } from "animejs";
-import { Link, useNavigate, useMatchRoute, useRouter } from "@tanstack/react-router";
-import type { User } from "~/prisma-generated/browser";
-import Dialog from "./ui/Dialog";
-import { useGameStore } from "~/stores/game-store";
+import { useNavigate, useMatchRoute, useRouter, Link } from "@tanstack/react-router";
+import { Settings, ChartColumnBig, User, LogOut, House, Crown } from "lucide-react";
+import type { User as UserType } from "~/prisma-generated/browser";
 import AppDialog from "./AppDialog";
 import { useAppDialogStore } from "~/hooks/useAppDialog";
+import { useEndGameDialogStore } from "~/hooks/useEndGameDialog";
+import { useGameStore } from "~/stores/game-store";
 import Button from "./buttons/Button";
 
-function Shimmer() {
-  const shimmerRef = useRef<HTMLSpanElement>(null)
+const ICON_SIZE = 19.2;
 
-  useEffect(() => {
-    if (!shimmerRef.current) return
-    const anim = animate(shimmerRef.current, {
-      translateX: ['-100%', '200%'],
-      duration: 600,
-      ease: 'inOut(2)',
-      loop: true,
-      loopDelay: 2400,
-    })
-    return () => { anim.cancel() }
-  }, [])
-
-  return (
-    <span
-      ref={shimmerRef}
-      aria-hidden="true"
-      className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[20deg]"
-    />
-  )
-}
-
-function GoldPillButton({ onClick, user }: { onClick?: () => void; user: User | undefined }) {
-  if (!user) {
-    return (
-      <Link to="/signup" className="block no-underline text-inherit">
-        <Button size="sm" variant="gold">
-          <Shimmer />
-          Sign up
-        </Button>
-      </Link>
-    )
-  }
-
-  return (
-    <Button size="sm" variant="gold" onClick={onClick}>
-      <Shimmer />
-      Subscribe
-    </Button>
-  )
-}
-
-export function Nav({ user }: { user: User | undefined }) {
+export function Nav({ user }: { user: UserType | undefined }) {
   const navigate = useNavigate();
   const router = useRouter();
   const matchRoute = useMatchRoute();
   const showPlay = matchRoute({ to: "/signin" }) || matchRoute({ to: "/signup" });
-  const pauseGame = useGameStore((s) => s.pauseGame);
-  const resumeGame = useGameStore((s) => s.resumeGame);
-
+  const isHome = matchRoute({ to: "/" });
   const appDialogOpen = useAppDialogStore((s) => s.isOpen);
   const appDialogTab = useAppDialogStore((s) => s.tab);
   const openAppDialog = useAppDialogStore((s) => s.open);
   const closeAppDialog = useAppDialogStore((s) => s.close);
-  const [archiveOpen, setArchiveOpen] = useState(false);
+  const openEndGameDialog = useEndGameDialogStore((s) => s.setIsOpen);
+  const isModeCompleted = useGameStore((s) => s.status !== "IN_PROGRESS");
 
   const handleSignOut = async () => {
     const { signOut } = await import("~/utils/auth/auth-client");
@@ -84,40 +40,41 @@ export function Nav({ user }: { user: User | undefined }) {
 
   return (
     <nav className="w-min mx-auto">
-      <div className="flex items-center rounded-full bg-default-shadow justify-center gap-[calc(var(--font-base)*0.5)] mb-[calc(var(--font-base)*0.5)] h-[calc(var(--font-base)*2.25)] px-[calc(var(--font-base)*0.5)] text-sm">
+      <div className="flex items-center justify-center gap-2 mb-2">
         {showPlay && (
-          <Link to="/" className="block no-underline text-inherit">
-            <Button size="sm">Play</Button>
+          <Link to="/" className="block no-underline text-inherit" aria-label="Play">
+            <Button size="icon">
+              <House size={ICON_SIZE} />
+            </Button>
           </Link>
         )}
-        <Button
-          size="sm"
-          onClick={() => openAppDialog("settings")}
-        >
-          Settings
+        <Button size="icon" aria-label="Settings" onClick={() => openAppDialog("settings")}>
+          <Settings size={ICON_SIZE} />
         </Button>
-        {user?.isPremium && (
-          <>
-            <Button size="sm" onClick={() => setArchiveOpen(true)}>Archive</Button>
-            <Dialog
-              title="Archive"
-              isOpen={archiveOpen}
-              setIsOpen={setArchiveOpen}
-              onOpen={() => pauseGame()}
-              onClose={() => resumeGame()}
-            >
-            </Dialog>
-          </>
+        {isModeCompleted && !isHome && (
+          <Button size="icon" aria-label="Results" onClick={() => openEndGameDialog(true)}>
+            <ChartColumnBig size={ICON_SIZE} />
+          </Button>
         )}
-
         {!user?.isPremium && (
-          <GoldPillButton user={user} onClick={() => openAppDialog("subscription")} />
+          <Button
+            size="icon"
+            variant="gold"
+            aria-label="Subscribe"
+            onClick={() => openAppDialog("subscription")}
+          >
+            <Crown size={ICON_SIZE} fill="currentColor" />
+          </Button>
         )}
         {user ? (
-          <Button size="sm" onClick={handleSignOut}>Sign Out</Button>
+          <Button size="icon" aria-label="Sign out" onClick={handleSignOut}>
+            <LogOut size={ICON_SIZE} />
+          </Button>
         ) : (
-          <Link to="/signin" className="block no-underline text-inherit">
-            <Button size="sm">Sign In</Button>
+          <Link to="/signin" className="block no-underline text-inherit" aria-label="Sign in">
+            <Button size="icon">
+              <User size={ICON_SIZE} fill="currentColor" />
+            </Button>
           </Link>
         )}
       </div>

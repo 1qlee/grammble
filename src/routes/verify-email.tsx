@@ -3,19 +3,13 @@ import Alert from "~/components/ui/Alert";
 import { Link } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { sendVerificationEmailFn } from "~/utils/email/email";
 import Badge from "~/components/ui/Badge";
 import Input from "~/components/ui/forms/Input";
 import Button from "~/components/buttons/Button";
 import Field from "~/components/ui/forms/Field";
 import Label from "~/components/ui/forms/Label";
 import { useState } from "react";
-
-const resendVerificationEmailFn = createServerFn({ method: "POST" })
-  .inputValidator(v.object({ email: v.pipe(v.string(), v.email()) }))
-  .handler(async ({ data }) => {
-    const { sendVerificationEmail } = await import("~/utils/email/email");
-    return await sendVerificationEmail(data.email);
-  });
 
 // Define search params schema
 const verifyTokenSchema = v.object({
@@ -155,7 +149,7 @@ function VerifyEmailComp() {
     setResendState("loading");
     setResendMessage(null);
     try {
-      await resendVerificationEmailFn({ data: { email: resendEmail } });
+      await sendVerificationEmailFn({ data: { email: resendEmail } });
       setResendState("success");
       setResendMessage("Verification email sent. Please check your inbox.");
     } catch {

@@ -1,18 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 import { MainMenu } from "~/components/MainMenu";
+import { ensureDailyForMode } from "~/components/game/loadDailyModeRoute";
 
 export const Route = createFileRoute("/")({
+  loader: ({ context }) => ensureDailyForMode("SIX", context),
   component: Home,
 });
 
 function Home() {
-  const { user, dailies } = Route.useRouteContext();
+  const { user } = Route.useRouteContext();
+  const six = Route.useLoaderData();
   const navigate = useNavigate();
   // SSR renders the menu immediately; flip after mount so the Play button
   // leaves its loading state only once the app has hydrated and can navigate.
   const [isHydrated, setIsHydrated] = React.useState(false);
-  const six = dailies.SIX;
 
   React.useEffect(() => {
     setIsHydrated(true);

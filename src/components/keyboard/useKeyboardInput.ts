@@ -130,7 +130,7 @@ export default function useKeyboardInput(
         }
         dispatchKey(key, false);
       }, 60);
-    }, 200);
+    }, 500);
   };
 
   const removeSelectedKey = (key: string) => {
@@ -152,6 +152,7 @@ export default function useKeyboardInput(
     }
 
     if (handleEditingKey(normalizedKey)) {
+      addSelectedKey(normalizedKey);
       return;
     }
 
@@ -203,6 +204,7 @@ export default function useKeyboardInput(
     }
 
     if (handleEditingKey(normalizedKey)) {
+      parseKey({ key: normalizedKey, remove: false });
       return;
     }
 

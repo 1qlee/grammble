@@ -25,3 +25,6 @@ dev.db
 # Lifetime invite batches (contain PII + live tokens)
 prisma/lifetime-recipients.json
 prisma/lifetime-invites-log.csv
+
+# Local mkcert dev certificates
+certs/

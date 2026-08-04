@@ -96,6 +96,38 @@ export const Route = createFileRoute("/api/stripe/webhook")({
                 where: { id: userId },
                 data: { isPremium: true },
               });
+
+              // Record a discount-code redemption if one was applied at
+              // checkout. Recording here (rather than at checkout creation)
+              // means only completed purchases count against maxRedemptions,
+              // so abandoned checkouts never consume a slot. The unique
+              // [userId, promoCodeId] constraint makes this idempotent across
+              // Stripe's webhook retries.
+              const promoCodeId = session.metadata?.promoCodeId;
+              if (promoCodeId) {
+                try {
+                  await prismaClient.$transaction(async (tx) => {
+                    const existing = await tx.promoRedemption.findUnique({
+                      where: {
+                        userId_promoCodeId: { userId, promoCodeId },
+                      },
+                    });
+                    if (existing) return;
+                    await tx.promoRedemption.create({
+                      data: { userId, promoCodeId },
+                    });
+                    await tx.promoCode.update({
+                      where: { id: promoCodeId },
+                      data: { currentRedemptions: { increment: 1 } },
+                    });
+                  });
+                } catch (err) {
+                  console.error(
+                    "[Stripe Webhook] Failed to record promo redemption:",
+                    err
+                  );
+                }
+              }
               break;
             }
 

@@ -22,6 +22,15 @@ export function computeFeedback(
   const feedback: LetterFeedback[] = new Array(g.length);
   const used = new Array(h.length).fill(false);
 
+  // A leading/offset blank column: the guess is a shorter word slid across the
+  // board, so this slot holds no letter and earns no feedback. Marking it up
+  // front keeps the array column-indexed (feedback[i] is always board column i)
+  // and lets the green/yellow passes skip it via the `!= null` guards below. The
+  // gram is always a contiguous run of real letters, so a space never splits it.
+  for (let i = 0; i < g.length; i++) {
+    if (g[i] === " ") feedback[i] = "blank";
+  }
+
   const guessOccurrences = findAllOccurrences(g, gr);
   const hiddenOccurrences = findAllOccurrences(h, gr);
 

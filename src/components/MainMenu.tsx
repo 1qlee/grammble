@@ -23,45 +23,6 @@ function formatDate(date: string): string {
   return `${MONTHS[Number(month) - 1]} ${Number(day)}, ${year}`;
 }
 
-type LogoTile = "empty" | "correct" | "misplaced" | "absent";
-
-// 3x3 brand mark mirroring the favicon: a scattering of game-feedback tiles.
-const LOGO_TILES: LogoTile[] = [
-  "correct",
-  "misplaced",
-  "empty",
-  "correct",
-  "correct",
-  "misplaced",
-  "correct",
-  "correct",
-  "correct",
-];
-
-const LOGO_TILE_CLASS: Record<LogoTile, string> = {
-  empty: "tile-char",
-  correct: "tile-char tile-correct",
-  misplaced: "tile-char tile-misplaced",
-  absent: "tile-char tile-absent",
-};
-
-function GrammbleMark() {
-  return (
-    <div className="rounded-lg bg-default p-2 shadow-lg">
-      <div
-        className="grid grid-cols-3 gap-1"
-        style={{ ["--tile-size" as string]: "18px" }}
-      >
-        {LOGO_TILES.map((tile, i) => (
-          <div key={i} className="h-[16px] w-[16px]">
-            <div className={LOGO_TILE_CLASS[tile]} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 interface MainMenuProps {
   puzzleNumber: number;
   date: string;
@@ -82,7 +43,6 @@ export function MainMenu({
   return (
     <div className="flex min-h-[calc(100svh-84px)] flex-col items-center justify-center gap-10 text-center">
       <div className="flex flex-col items-center gap-7">
-        <GrammbleMark />
         <div className="flex flex-col items-center gap-3">
           <h1 className="text-5xl font-bold tracking-tighter text-zinc-900 dark:text-zinc-100">
             grammble
@@ -111,20 +71,7 @@ export function MainMenu({
           )}
         </Button>
 
-        {isPremium && (
-          <div className="flex w-44 gap-1 rounded-lg bg-default-shadow p-1">
-            {GAME_MODES.map((mode) => (
-              <Link
-                key={mode}
-                to={MODE_ROUTE_BY_MODE[mode]}
-                preload="intent"
-                className="flex-1 rounded-md px-2 py-1.5 text-center text-sm font-semibold text-zinc-600 no-underline transition-colors hover:bg-default hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
-              >
-                {WORD_LENGTH_BY_MODE[mode]}
-              </Link>
-            ))}
-          </div>
-        )}
+
       </div>
 
       <div className="flex flex-col items-center gap-1">

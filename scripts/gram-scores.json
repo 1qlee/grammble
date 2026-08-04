@@ -1,1567 +1,3860 @@
 {
   "AB": {
-    "score": 42,
-    "count": 368,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 22,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 33,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 40,
+      "difficulty": "MEDIUM"
+    }
   },
   "BA": {
-    "score": 61,
-    "count": 578,
-    "difficulty": "EASY"
+    "6": {
+      "count": 54,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 50,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 43,
+      "difficulty": "MEDIUM"
+    }
   },
   "AC": {
-    "score": 80,
-    "count": 529,
-    "difficulty": "EASY"
+    "6": {
+      "count": 63,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 70,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 93,
+      "difficulty": "EASY"
+    }
   },
   "CU": {
-    "score": 27,
-    "count": 341,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 20,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 28,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 37,
+      "difficulty": "MEDIUM"
+    }
   },
   "US": {
-    "score": 109,
-    "count": 686,
-    "difficulty": "EASY"
+    "6": {
+      "count": 68,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 65,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 51,
+      "difficulty": "EASY"
+    }
   },
   "DU": {
-    "score": 18,
-    "count": 250,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 17,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 21,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 15,
+      "difficulty": "HARD"
+    }
   },
   "UC": {
-    "score": 15,
-    "count": 225,
-    "difficulty": "HARD"
+    "6": {
+      "count": 15,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 25,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 15,
+      "difficulty": "HARD"
+    }
   },
   "CT": {
-    "score": 19,
-    "count": 158,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 49,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 73,
+      "difficulty": "EASY"
+    }
   },
   "JE": {
-    "score": 9,
-    "count": 103,
-    "difficulty": "HARD"
+    "6": {
+      "count": 11,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 9,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 9,
+      "difficulty": "HARD"
+    }
   },
   "EC": {
-    "score": 36,
-    "count": 321,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 40,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 48,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 72,
+      "difficulty": "EASY"
+    }
   },
   "BL": {
-    "score": 26,
-    "count": 322,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 28,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 41,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 51,
+      "difficulty": "EASY"
+    }
   },
   "LA": {
-    "score": 171,
-    "count": 1047,
-    "difficulty": "EASY"
+    "6": {
+      "count": 83,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 118,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 101,
+      "difficulty": "EASY"
+    }
   },
   "AZ": {
-    "score": 17,
-    "count": 191,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
   },
   "ZE": {
-    "score": 24,
-    "count": 262,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 9,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 8,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 10,
+      "difficulty": "HARD"
+    }
   },
   "BO": {
-    "score": 57,
-    "count": 555,
-    "difficulty": "EASY"
+    "6": {
+      "count": 47,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 38,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 27,
+      "difficulty": "MEDIUM"
+    }
   },
   "OA": {
-    "score": 33,
-    "count": 258,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 13,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 26,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 16,
+      "difficulty": "HARD"
+    }
   },
   "AR": {
-    "score": 252,
-    "count": 1536,
-    "difficulty": "EASY"
+    "6": {
+      "count": 198,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 223,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 177,
+      "difficulty": "EASY"
+    }
   },
   "RD": {
-    "score": 21,
-    "count": 241,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 38,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 45,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 58,
+      "difficulty": "EASY"
+    }
   },
   "OU": {
-    "score": 71,
-    "count": 612,
-    "difficulty": "EASY"
+    "6": {
+      "count": 56,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 89,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 86,
+      "difficulty": "EASY"
+    }
   },
   "UN": {
-    "score": 91,
-    "count": 748,
-    "difficulty": "EASY"
+    "6": {
+      "count": 67,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 71,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 59,
+      "difficulty": "EASY"
+    }
   },
   "ND": {
-    "score": 37,
-    "count": 426,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 84,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 95,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 97,
+      "difficulty": "EASY"
+    }
   },
   "BR": {
-    "score": 12,
-    "count": 310,
-    "difficulty": "HARD"
+    "6": {
+      "count": 30,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 42,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    }
   },
   "RO": {
-    "score": 126,
-    "count": 932,
-    "difficulty": "EASY"
+    "6": {
+      "count": 93,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 107,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 106,
+      "difficulty": "EASY"
+    }
   },
   "AD": {
-    "score": 95,
-    "count": 546,
-    "difficulty": "EASY"
+    "6": {
+      "count": 53,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 58,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 65,
+      "difficulty": "EASY"
+    }
   },
   "RU": {
-    "score": 46,
-    "count": 437,
-    "difficulty": "EASY"
+    "6": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 32,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 22,
+      "difficulty": "MEDIUM"
+    }
   },
   "UP": {
-    "score": 58,
-    "count": 304,
-    "difficulty": "EASY"
+    "6": {
+      "count": 23,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 22,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 21,
+      "difficulty": "MEDIUM"
+    }
   },
   "PT": {
-    "score": 21,
-    "count": 119,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 10,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 27,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 21,
+      "difficulty": "MEDIUM"
+    }
   },
   "BS": {
-    "score": 14,
-    "count": 159,
-    "difficulty": "HARD"
+    "6": {
+      "count": 5,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 8,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 9,
+      "difficulty": "HARD"
+    }
   },
   "SE": {
-    "score": 140,
-    "count": 1115,
-    "difficulty": "EASY"
+    "6": {
+      "count": 127,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 133,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 104,
+      "difficulty": "EASY"
+    }
   },
   "EN": {
-    "score": 209,
-    "count": 1127,
-    "difficulty": "EASY"
+    "6": {
+      "count": 184,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 170,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 182,
+      "difficulty": "EASY"
+    }
   },
   "NT": {
-    "score": 48,
-    "count": 549,
-    "difficulty": "EASY"
+    "6": {
+      "count": 71,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 123,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 134,
+      "difficulty": "EASY"
+    }
   },
   "SO": {
-    "score": 32,
-    "count": 397,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 48,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 47,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 49,
+      "difficulty": "MEDIUM"
+    }
   },
   "OR": {
-    "score": 157,
-    "count": 978,
-    "difficulty": "EASY"
+    "6": {
+      "count": 132,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 125,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 181,
+      "difficulty": "EASY"
+    }
   },
   "RB": {
-    "score": 10,
-    "count": 121,
-    "difficulty": "HARD"
+    "6": {
+      "count": 14,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 9,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 7,
+      "difficulty": "HARD"
+    }
   },
   "SU": {
-    "score": 16,
-    "count": 257,
-    "difficulty": "HARD"
+    "6": {
+      "count": 49,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 52,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 51,
+      "difficulty": "EASY"
+    }
   },
   "UR": {
-    "score": 108,
-    "count": 762,
-    "difficulty": "EASY"
+    "6": {
+      "count": 86,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 104,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 78,
+      "difficulty": "EASY"
+    }
   },
   "BU": {
-    "score": 21,
-    "count": 375,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 28,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 22,
+      "difficulty": "MEDIUM"
+    }
   },
   "ER": {
-    "score": 323,
-    "count": 2719,
-    "difficulty": "EASY"
+    "6": {
+      "count": 355,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 322,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 283,
+      "difficulty": "EASY"
+    }
+  },
+  "CC": {
+    "6": {
+      "count": 7,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 7,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 13,
+      "difficulty": "HARD"
+    }
   },
   "CE": {
-    "score": 89,
-    "count": 516,
-    "difficulty": "EASY"
-  },
-  "ED": {
-    "score": 218,
-    "count": 2294,
-    "difficulty": "EASY"
-  },
-  "DE": {
-    "score": 128,
-    "count": 1013,
-    "difficulty": "EASY"
+    "6": {
+      "count": 74,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 72,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 82,
+      "difficulty": "EASY"
+    }
   },
   "EP": {
-    "score": 41,
-    "count": 277,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 24,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 20,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 30,
+      "difficulty": "MEDIUM"
+    }
   },
   "ES": {
-    "score": 252,
-    "count": 2178,
-    "difficulty": "EASY"
+    "6": {
+      "count": 83,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 138,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 163,
+      "difficulty": "EASY"
+    }
   },
   "SS": {
-    "score": 26,
-    "count": 333,
-    "difficulty": "MEDIUM"
-  },
-  "CO": {
-    "score": 67,
-    "count": 773,
-    "difficulty": "EASY"
-  },
-  "OS": {
-    "score": 126,
-    "count": 780,
-    "difficulty": "EASY"
-  },
-  "ST": {
-    "score": 155,
-    "count": 1063,
-    "difficulty": "EASY"
+    "6": {
+      "count": 38,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 73,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 74,
+      "difficulty": "EASY"
+    }
   },
   "CR": {
-    "score": 17,
-    "count": 314,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 27,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 28,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 45,
+      "difficulty": "MEDIUM"
+    }
   },
   "UE": {
-    "score": 28,
-    "count": 262,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 30,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 24,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 16,
+      "difficulty": "HARD"
+    }
   },
   "CI": {
-    "score": 24,
-    "count": 201,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 21,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 51,
+      "difficulty": "EASY"
+    }
   },
   "ID": {
-    "score": 95,
-    "count": 556,
-    "difficulty": "EASY"
+    "6": {
+      "count": 47,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 42,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 49,
+      "difficulty": "MEDIUM"
+    }
   },
   "DI": {
-    "score": 52,
-    "count": 528,
-    "difficulty": "EASY"
+    "6": {
+      "count": 54,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 97,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 126,
+      "difficulty": "EASY"
+    }
   },
   "IC": {
-    "score": 117,
-    "count": 709,
-    "difficulty": "EASY"
+    "6": {
+      "count": 80,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 118,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 127,
+      "difficulty": "EASY"
+    }
   },
   "QU": {
-    "score": 22,
-    "count": 242,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 18,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 21,
+      "difficulty": "MEDIUM"
+    }
   },
   "UI": {
-    "score": 10,
-    "count": 174,
-    "difficulty": "HARD"
+    "6": {
+      "count": 12,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 37,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 19,
+      "difficulty": "HARD"
+    }
   },
   "IT": {
-    "score": 92,
-    "count": 693,
-    "difficulty": "EASY"
+    "6": {
+      "count": 67,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 99,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 124,
+      "difficulty": "EASY"
+    }
+  },
+  "OS": {
+    "6": {
+      "count": 41,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 39,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 37,
+      "difficulty": "MEDIUM"
+    }
   },
   "TI": {
-    "score": 84,
-    "count": 570,
-    "difficulty": "EASY"
+    "6": {
+      "count": 71,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 138,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 232,
+      "difficulty": "EASY"
+    }
   },
   "IO": {
-    "score": 33,
-    "count": 207,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 26,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 54,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 77,
+      "difficulty": "EASY"
+    }
   },
   "ON": {
-    "score": 159,
-    "count": 1038,
-    "difficulty": "EASY"
+    "6": {
+      "count": 154,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 168,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 175,
+      "difficulty": "EASY"
+    }
   },
   "IV": {
-    "score": 13,
-    "count": 189,
-    "difficulty": "HARD"
+    "6": {
+      "count": 25,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 28,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 52,
+      "difficulty": "EASY"
+    }
   },
   "VE": {
-    "score": 114,
-    "count": 731,
-    "difficulty": "EASY"
+    "6": {
+      "count": 81,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 80,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 125,
+      "difficulty": "EASY"
+    }
   },
   "TU": {
-    "score": 26,
-    "count": 283,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 30,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 46,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 37,
+      "difficulty": "MEDIUM"
+    }
   },
   "UA": {
-    "score": 11,
-    "count": 143,
-    "difficulty": "HARD"
+    "6": {
+      "count": 16,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 22,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 32,
+      "difficulty": "MEDIUM"
+    }
   },
   "AL": {
-    "score": 251,
-    "count": 1309,
-    "difficulty": "EASY"
+    "6": {
+      "count": 141,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 169,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 165,
+      "difficulty": "EASY"
+    }
   },
   "TY": {
-    "score": 44,
-    "count": 302,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 40,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 41,
+      "difficulty": "MEDIUM"
+    }
   },
   "UM": {
-    "score": 84,
-    "count": 504,
-    "difficulty": "EASY"
+    "6": {
+      "count": 40,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 28,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 29,
+      "difficulty": "MEDIUM"
+    }
   },
   "ME": {
-    "score": 127,
-    "count": 808,
-    "difficulty": "EASY"
+    "6": {
+      "count": 77,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 78,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 95,
+      "difficulty": "EASY"
+    }
   },
   "DD": {
-    "score": 8,
-    "count": 170,
-    "difficulty": "HARD"
-  },
-  "DH": {
-    "score": 5,
-    "count": 37,
-    "difficulty": "HARD"
+    "6": {
+      "count": 19,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 14,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 10,
+      "difficulty": "HARD"
+    }
   },
   "HE": {
-    "score": 115,
-    "count": 755,
-    "difficulty": "EASY"
+    "6": {
+      "count": 76,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 100,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 86,
+      "difficulty": "EASY"
+    }
   },
   "RE": {
-    "score": 279,
-    "count": 1620,
-    "difficulty": "EASY"
-  },
-  "JO": {
-    "score": 8,
-    "count": 126,
-    "difficulty": "HARD"
-  },
-  "OI": {
-    "score": 40,
-    "count": 290,
-    "difficulty": "MEDIUM"
-  },
-  "IN": {
-    "score": 346,
-    "count": 1949,
-    "difficulty": "EASY"
+    "6": {
+      "count": 223,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 262,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 302,
+      "difficulty": "EASY"
+    }
   },
   "JU": {
-    "score": 5,
-    "count": 109,
-    "difficulty": "HARD"
+    "6": {
+      "count": 13,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 10,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 8,
+      "difficulty": "HARD"
+    }
+  },
+  "ST": {
+    "6": {
+      "count": 147,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 206,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 181,
+      "difficulty": "EASY"
+    }
   },
   "MI": {
-    "score": 68,
-    "count": 569,
-    "difficulty": "EASY"
+    "6": {
+      "count": 45,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 78,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 87,
+      "difficulty": "EASY"
+    }
   },
   "IR": {
-    "score": 73,
-    "count": 525,
-    "difficulty": "EASY"
+    "6": {
+      "count": 45,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 45,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 40,
+      "difficulty": "MEDIUM"
+    }
   },
   "DR": {
-    "score": 10,
-    "count": 211,
-    "difficulty": "HARD"
+    "6": {
+      "count": 13,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 25,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 24,
+      "difficulty": "MEDIUM"
+    }
   },
   "RI": {
-    "score": 137,
-    "count": 1038,
-    "difficulty": "EASY"
+    "6": {
+      "count": 118,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 150,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 168,
+      "difficulty": "EASY"
+    }
   },
   "IF": {
-    "score": 18,
-    "count": 197,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 10,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 20,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 23,
+      "difficulty": "MEDIUM"
+    }
   },
   "FT": {
-    "score": 11,
-    "count": 128,
-    "difficulty": "HARD"
+    "6": {
+      "count": 6,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 11,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 9,
+      "difficulty": "HARD"
+    }
   },
-  "RT": {
-    "score": 24,
-    "count": 300,
-    "difficulty": "MEDIUM"
+  "OI": {
+    "6": {
+      "count": 15,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 20,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 12,
+      "difficulty": "HARD"
+    }
   },
   "VI": {
-    "score": 27,
-    "count": 321,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 55,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 53,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 55,
+      "difficulty": "EASY"
+    }
   },
   "IS": {
-    "score": 134,
-    "count": 841,
-    "difficulty": "EASY"
+    "6": {
+      "count": 83,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 123,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 125,
+      "difficulty": "EASY"
+    }
   },
   "AE": {
-    "score": 33,
-    "count": 184,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
   },
   "IA": {
-    "score": 52,
-    "count": 381,
-    "difficulty": "EASY"
-  },
-  "ET": {
-    "score": 125,
-    "count": 757,
-    "difficulty": "EASY"
-  },
-  "TH": {
-    "score": 74,
-    "count": 508,
-    "difficulty": "EASY"
+    "6": {
+      "count": 48,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 57,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 81,
+      "difficulty": "EASY"
+    }
   },
   "AF": {
-    "score": 18,
-    "count": 176,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 14,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 8,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 13,
+      "difficulty": "HARD"
+    }
   },
   "FF": {
-    "score": 23,
-    "count": 268,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 19,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 23,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 23,
+      "difficulty": "MEDIUM"
+    }
   },
   "FA": {
-    "score": 14,
-    "count": 293,
-    "difficulty": "HARD"
+    "6": {
+      "count": 28,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 33,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 19,
+      "difficulty": "HARD"
+    }
   },
   "AI": {
-    "score": 66,
-    "count": 509,
-    "difficulty": "EASY"
+    "6": {
+      "count": 55,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 68,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 50,
+      "difficulty": "MEDIUM"
+    }
   },
   "FE": {
-    "score": 26,
-    "count": 344,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 30,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 26,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 35,
+      "difficulty": "MEDIUM"
+    }
   },
   "FI": {
-    "score": 15,
-    "count": 286,
-    "difficulty": "HARD"
+    "6": {
+      "count": 31,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 36,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 39,
+      "difficulty": "MEDIUM"
+    }
   },
   "RM": {
-    "score": 16,
-    "count": 185,
-    "difficulty": "HARD"
-  },
-  "FO": {
-    "score": 10,
-    "count": 243,
-    "difficulty": "HARD"
+    "6": {
+      "count": 25,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 30,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 24,
+      "difficulty": "MEDIUM"
+    }
   },
   "FL": {
-    "score": 12,
-    "count": 283,
-    "difficulty": "HARD"
+    "6": {
+      "count": 14,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 18,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 20,
+      "difficulty": "HARD"
+    }
   },
   "AM": {
-    "score": 107,
-    "count": 699,
-    "difficulty": "EASY"
+    "6": {
+      "count": 58,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 67,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 51,
+      "difficulty": "EASY"
+    }
   },
   "LO": {
-    "score": 119,
-    "count": 844,
-    "difficulty": "EASY"
+    "6": {
+      "count": 77,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 65,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 73,
+      "difficulty": "EASY"
+    }
   },
   "AT": {
-    "score": 125,
-    "count": 840,
-    "difficulty": "EASY"
+    "6": {
+      "count": 92,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 115,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 160,
+      "difficulty": "EASY"
+    }
   },
   "FR": {
-    "score": 7,
-    "count": 158,
-    "difficulty": "HARD"
+    "6": {
+      "count": 21,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 21,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 19,
+      "difficulty": "HARD"
+    }
   },
   "RA": {
-    "score": 191,
-    "count": 1226,
-    "difficulty": "EASY"
+    "6": {
+      "count": 110,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 153,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 142,
+      "difficulty": "EASY"
+    }
   },
   "AG": {
-    "score": 69,
-    "count": 453,
-    "difficulty": "EASY"
+    "6": {
+      "count": 33,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 61,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 38,
+      "difficulty": "MEDIUM"
+    }
   },
   "GE": {
-    "score": 99,
-    "count": 703,
-    "difficulty": "EASY"
+    "6": {
+      "count": 90,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 92,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 49,
+      "difficulty": "MEDIUM"
+    }
   },
   "EI": {
-    "score": 32,
-    "count": 255,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 19,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 26,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 17,
+      "difficulty": "HARD"
+    }
   },
   "SM": {
-    "score": 26,
-    "count": 161,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 11,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 19,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 17,
+      "difficulty": "HARD"
+    }
   },
   "NC": {
-    "score": 13,
-    "count": 237,
-    "difficulty": "HARD"
+    "6": {
+      "count": 30,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 46,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 68,
+      "difficulty": "EASY"
+    }
   },
   "CY": {
-    "score": 12,
-    "count": 89,
-    "difficulty": "HARD"
+    "6": {
+      "count": 6,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 14,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 11,
+      "difficulty": "HARD"
+    }
   },
   "DA": {
-    "score": 39,
-    "count": 363,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 42,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 29,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    }
   },
   "GH": {
-    "score": 25,
-    "count": 173,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 26,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 32,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 31,
+      "difficulty": "MEDIUM"
+    }
   },
   "HA": {
-    "score": 81,
-    "count": 718,
-    "difficulty": "EASY"
+    "6": {
+      "count": 70,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 95,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 66,
+      "difficulty": "EASY"
+    }
   },
   "AS": {
-    "score": 209,
-    "count": 1149,
-    "difficulty": "EASY"
-  },
-  "GR": {
-    "score": 15,
-    "count": 280,
-    "difficulty": "HARD"
-  },
-  "EE": {
-    "score": 85,
-    "count": 708,
-    "difficulty": "EASY"
-  },
-  "WA": {
-    "score": 44,
-    "count": 448,
-    "difficulty": "MEDIUM"
-  },
-  "AY": {
-    "score": 41,
-    "count": 295,
-    "difficulty": "MEDIUM"
-  },
-  "BE": {
-    "score": 71,
-    "count": 632,
-    "difficulty": "EASY"
-  },
-  "BI": {
-    "score": 43,
-    "count": 395,
-    "difficulty": "MEDIUM"
-  },
-  "NO": {
-    "score": 67,
-    "count": 423,
-    "difficulty": "EASY"
-  },
-  "OV": {
-    "score": 16,
-    "count": 155,
-    "difficulty": "HARD"
-  },
-  "LI": {
-    "score": 130,
-    "count": 838,
-    "difficulty": "EASY"
-  },
-  "IG": {
-    "score": 33,
-    "count": 308,
-    "difficulty": "MEDIUM"
-  },
-  "HT": {
-    "score": 7,
-    "count": 76,
-    "difficulty": "HARD"
-  },
-  "LK": {
-    "score": 8,
-    "count": 106,
-    "difficulty": "HARD"
-  },
-  "KA": {
-    "score": 34,
-    "count": 225,
-    "difficulty": "MEDIUM"
-  },
-  "LL": {
-    "score": 47,
-    "count": 592,
-    "difficulty": "EASY"
-  },
-  "LE": {
-    "score": 302,
-    "count": 1625,
-    "difficulty": "EASY"
-  },
-  "EG": {
-    "score": 27,
-    "count": 204,
-    "difficulty": "MEDIUM"
-  },
-  "LU": {
-    "score": 35,
-    "count": 436,
-    "difficulty": "MEDIUM"
-  },
-  "UD": {
-    "score": 23,
-    "count": 226,
-    "difficulty": "MEDIUM"
-  },
-  "LM": {
-    "score": 10,
-    "count": 93,
-    "difficulty": "HARD"
-  },
-  "MO": {
-    "score": 50,
-    "count": 506,
-    "difficulty": "EASY"
-  },
-  "LP": {
-    "score": 6,
-    "count": 72,
-    "difficulty": "HARD"
-  },
-  "PA": {
-    "score": 64,
-    "count": 609,
-    "difficulty": "EASY"
-  },
-  "CA": {
-    "score": 84,
-    "count": 729,
-    "difficulty": "EASY"
-  },
-  "PI": {
-    "score": 60,
-    "count": 530,
-    "difficulty": "EASY"
-  },
-  "NE": {
-    "score": 155,
-    "count": 940,
-    "difficulty": "EASY"
-  },
-  "NI": {
-    "score": 74,
-    "count": 500,
-    "difficulty": "EASY"
-  },
-  "MB": {
-    "score": 21,
-    "count": 251,
-    "difficulty": "MEDIUM"
-  },
-  "SH": {
-    "score": 91,
-    "count": 690,
-    "difficulty": "EASY"
-  },
-  "DS": {
-    "score": 18,
-    "count": 398,
-    "difficulty": "MEDIUM"
-  },
-  "OE": {
-    "score": 20,
-    "count": 176,
-    "difficulty": "MEDIUM"
-  },
-  "EB": {
-    "score": 18,
-    "count": 170,
-    "difficulty": "MEDIUM"
-  },
-  "MU": {
-    "score": 18,
-    "count": 271,
-    "difficulty": "MEDIUM"
-  },
-  "UL": {
-    "score": 75,
-    "count": 498,
-    "difficulty": "EASY"
-  },
-  "AN": {
-    "score": 239,
-    "count": 1323,
-    "difficulty": "EASY"
-  },
-  "NA": {
-    "score": 105,
-    "count": 542,
-    "difficulty": "EASY"
-  },
-  "OG": {
-    "score": 37,
-    "count": 270,
-    "difficulty": "MEDIUM"
-  },
-  "CH": {
-    "score": 137,
-    "count": 804,
-    "difficulty": "EASY"
-  },
-  "HO": {
-    "score": 70,
-    "count": 636,
-    "difficulty": "EASY"
-  },
-  "EM": {
-    "score": 54,
-    "count": 338,
-    "difficulty": "EASY"
-  },
-  "NG": {
-    "score": 57,
-    "count": 860,
-    "difficulty": "EASY"
-  },
-  "GI": {
-    "score": 25,
-    "count": 291,
-    "difficulty": "MEDIUM"
-  },
-  "GL": {
-    "score": 25,
-    "count": 287,
-    "difficulty": "MEDIUM"
-  },
-  "IM": {
-    "score": 55,
-    "count": 400,
-    "difficulty": "EASY"
-  },
-  "MA": {
-    "score": 112,
-    "count": 803,
-    "difficulty": "EASY"
-  },
-  "NN": {
-    "score": 10,
-    "count": 213,
-    "difficulty": "HARD"
-  },
-  "NU": {
-    "score": 20,
-    "count": 185,
-    "difficulty": "MEDIUM"
-  },
-  "NS": {
-    "score": 54,
-    "count": 691,
-    "difficulty": "EASY"
-  },
-  "WE": {
-    "score": 35,
-    "count": 364,
-    "difficulty": "MEDIUM"
-  },
-  "TL": {
-    "score": 7,
-    "count": 110,
-    "difficulty": "HARD"
-  },
-  "NY": {
-    "score": 24,
-    "count": 165,
-    "difficulty": "MEDIUM"
-  },
-  "OW": {
-    "score": 62,
-    "count": 442,
-    "difficulty": "EASY"
-  },
-  "YO": {
-    "score": 17,
-    "count": 147,
-    "difficulty": "MEDIUM"
-  },
-  "AO": {
-    "score": 5,
-    "count": 37,
-    "difficulty": "HARD"
-  },
-  "AP": {
-    "score": 71,
-    "count": 446,
-    "difficulty": "EASY"
-  },
-  "HY": {
-    "score": 29,
-    "count": 181,
-    "difficulty": "MEDIUM"
-  },
-  "IE": {
-    "score": 59,
-    "count": 716,
-    "difficulty": "EASY"
-  },
-  "PL": {
-    "score": 22,
-    "count": 251,
-    "difficulty": "MEDIUM"
-  },
-  "OM": {
-    "score": 56,
-    "count": 402,
-    "difficulty": "EASY"
-  },
-  "PP": {
-    "score": 10,
-    "count": 201,
-    "difficulty": "HARD"
-  },
-  "PE": {
-    "score": 124,
-    "count": 874,
-    "difficulty": "EASY"
-  },
-  "EA": {
-    "score": 94,
-    "count": 781,
-    "difficulty": "EASY"
-  },
-  "RC": {
-    "score": 8,
-    "count": 97,
-    "difficulty": "HARD"
-  },
-  "EO": {
-    "score": 13,
-    "count": 96,
-    "difficulty": "HARD"
-  },
-  "OL": {
-    "score": 92,
-    "count": 686,
-    "difficulty": "EASY"
-  },
-  "RG": {
-    "score": 9,
-    "count": 160,
-    "difficulty": "HARD"
-  },
-  "GY": {
-    "score": 15,
-    "count": 135,
-    "difficulty": "HARD"
-  },
-  "YL": {
-    "score": 19,
-    "count": 146,
-    "difficulty": "MEDIUM"
-  },
-  "FU": {
-    "score": 10,
-    "count": 206,
-    "difficulty": "HARD"
-  },
-  "RY": {
-    "score": 42,
-    "count": 287,
-    "difficulty": "MEDIUM"
-  },
-  "MP": {
-    "score": 23,
-    "count": 317,
-    "difficulty": "MEDIUM"
-  },
-  "RR": {
-    "score": 11,
-    "count": 217,
-    "difficulty": "HARD"
-  },
-  "TE": {
-    "score": 219,
-    "count": 1374,
-    "difficulty": "EASY"
-  },
-  "SC": {
-    "score": 17,
-    "count": 285,
-    "difficulty": "MEDIUM"
-  },
-  "SL": {
-    "score": 14,
-    "count": 225,
-    "difficulty": "HARD"
-  },
-  "SP": {
-    "score": 19,
-    "count": 365,
-    "difficulty": "MEDIUM"
-  },
-  "SA": {
-    "score": 52,
-    "count": 516,
-    "difficulty": "EASY"
+    "6": {
+      "count": 79,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 82,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 73,
+      "difficulty": "EASY"
+    }
   },
   "IL": {
-    "score": 110,
-    "count": 810,
-    "difficulty": "EASY"
+    "6": {
+      "count": 70,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 86,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 52,
+      "difficulty": "EASY"
+    }
   },
-  "SI": {
-    "score": 33,
-    "count": 437,
-    "difficulty": "MEDIUM"
+  "LI": {
+    "6": {
+      "count": 79,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 145,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 152,
+      "difficulty": "EASY"
+    }
   },
-  "GN": {
-    "score": 15,
-    "count": 85,
-    "difficulty": "HARD"
+  "IN": {
+    "6": {
+      "count": 250,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 498,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 507,
+      "difficulty": "EASY"
+    }
   },
-  "RN": {
-    "score": 17,
-    "count": 214,
-    "difficulty": "MEDIUM"
+  "NG": {
+    "6": {
+      "count": 143,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 359,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 356,
+      "difficulty": "EASY"
+    }
   },
-  "TR": {
-    "score": 34,
-    "count": 436,
-    "difficulty": "MEDIUM"
+  "WA": {
+    "6": {
+      "count": 55,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 43,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 32,
+      "difficulty": "MEDIUM"
+    }
   },
-  "UT": {
-    "score": 62,
-    "count": 484,
-    "difficulty": "EASY"
+  "AY": {
+    "6": {
+      "count": 36,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 39,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 22,
+      "difficulty": "MEDIUM"
+    }
   },
-  "SY": {
-    "score": 23,
-    "count": 161,
-    "difficulty": "MEDIUM"
+  "LB": {
+    "6": {
+      "count": 6,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
   },
-  "TO": {
-    "score": 112,
-    "count": 708,
-    "difficulty": "EASY"
+  "BE": {
+    "6": {
+      "count": 54,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 60,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 45,
+      "difficulty": "MEDIUM"
+    }
   },
-  "OP": {
-    "score": 61,
-    "count": 397,
-    "difficulty": "EASY"
+  "BI": {
+    "6": {
+      "count": 29,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 38,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 18,
+      "difficulty": "HARD"
+    }
   },
-  "TT": {
-    "score": 13,
-    "count": 311,
-    "difficulty": "HARD"
+  "NO": {
+    "6": {
+      "count": 30,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 32,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 42,
+      "difficulty": "MEDIUM"
+    }
   },
-  "TA": {
-    "score": 129,
-    "count": 777,
-    "difficulty": "EASY"
+  "CO": {
+    "6": {
+      "count": 81,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 115,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 113,
+      "difficulty": "EASY"
+    }
   },
-  "CK": {
-    "score": 27,
-    "count": 479,
-    "difficulty": "MEDIUM"
+  "OV": {
+    "6": {
+      "count": 18,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 22,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 39,
+      "difficulty": "MEDIUM"
+    }
   },
-  "AU": {
-    "score": 33,
-    "count": 335,
-    "difficulty": "MEDIUM"
+  "IG": {
+    "6": {
+      "count": 36,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 42,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 50,
+      "difficulty": "MEDIUM"
+    }
   },
-  "UB": {
-    "score": 15,
-    "count": 210,
-    "difficulty": "HARD"
+  "HT": {
+    "6": {
+      "count": 19,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 22,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 20,
+      "difficulty": "HARD"
+    }
   },
-  "AV": {
-    "score": 24,
-    "count": 302,
-    "difficulty": "MEDIUM"
+  "LL": {
+    "6": {
+      "count": 64,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 95,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 81,
+      "difficulty": "EASY"
+    }
   },
-  "VA": {
-    "score": 29,
-    "count": 242,
-    "difficulty": "MEDIUM"
+  "LE": {
+    "6": {
+      "count": 207,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 174,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 157,
+      "difficulty": "EASY"
+    }
   },
-  "RS": {
-    "score": 43,
-    "count": 759,
-    "difficulty": "MEDIUM"
+  "EG": {
+    "6": {
+      "count": 16,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 14,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 24,
+      "difficulty": "MEDIUM"
+    }
   },
-  "AW": {
-    "score": 45,
-    "count": 297,
-    "difficulty": "EASY"
+  "LU": {
+    "6": {
+      "count": 20,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 20,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 23,
+      "difficulty": "MEDIUM"
+    }
   },
-  "AK": {
-    "score": 37,
-    "count": 289,
-    "difficulty": "MEDIUM"
+  "UD": {
+    "6": {
+      "count": 19,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 19,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 17,
+      "difficulty": "HARD"
+    }
   },
-  "KE": {
-    "score": 104,
-    "count": 776,
-    "difficulty": "EASY"
+  "DE": {
+    "6": {
+      "count": 140,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 123,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 155,
+      "difficulty": "EASY"
+    }
   },
-  "HI": {
-    "score": 49,
-    "count": 442,
-    "difficulty": "EASY"
+  "LM": {
+    "6": {
+      "count": 8,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
   },
-  "WN": {
-    "score": 12,
-    "count": 102,
-    "difficulty": "HARD"
+  "MO": {
+    "6": {
+      "count": 53,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 44,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 61,
+      "difficulty": "EASY"
+    }
   },
-  "WO": {
-    "score": 11,
-    "count": 166,
-    "difficulty": "HARD"
+  "PA": {
+    "6": {
+      "count": 49,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 58,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 54,
+      "difficulty": "EASY"
+    }
   },
-  "OK": {
-    "score": 28,
-    "count": 206,
-    "difficulty": "MEDIUM"
+  "CA": {
+    "6": {
+      "count": 69,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 91,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 89,
+      "difficulty": "EASY"
+    }
   },
-  "BB": {
-    "score": 8,
-    "count": 175,
-    "difficulty": "HARD"
+  "PI": {
+    "6": {
+      "count": 42,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 54,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 51,
+      "difficulty": "EASY"
+    }
   },
-  "OO": {
-    "score": 76,
-    "count": 668,
-    "difficulty": "EASY"
+  "NE": {
+    "6": {
+      "count": 119,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 130,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 121,
+      "difficulty": "EASY"
+    }
   },
-  "KU": {
-    "score": 10,
-    "count": 78,
-    "difficulty": "HARD"
+  "MN": {
+    "6": {
+      "count": 6,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
   },
-  "DG": {
-    "score": 7,
-    "count": 115,
-    "difficulty": "HARD"
+  "NI": {
+    "6": {
+      "count": 63,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 74,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 90,
+      "difficulty": "EASY"
+    }
   },
-  "GG": {
-    "score": 9,
-    "count": 204,
-    "difficulty": "HARD"
+  "MB": {
+    "6": {
+      "count": 21,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 15,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 29,
+      "difficulty": "MEDIUM"
+    }
   },
-  "OT": {
-    "score": 78,
-    "count": 562,
-    "difficulty": "EASY"
+  "SH": {
+    "6": {
+      "count": 50,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 77,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 59,
+      "difficulty": "EASY"
+    }
   },
-  "LS": {
-    "score": 26,
-    "count": 531,
-    "difficulty": "MEDIUM"
+  "OE": {
+    "6": {
+      "count": 7,
+      "difficulty": "HARD"
+    }
+  },
+  "EB": {
+    "6": {
+      "count": 14,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 17,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 10,
+      "difficulty": "HARD"
+    }
+  },
+  "MU": {
+    "6": {
+      "count": 16,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 17,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 17,
+      "difficulty": "HARD"
+    }
+  },
+  "UL": {
+    "6": {
+      "count": 26,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 47,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 58,
+      "difficulty": "EASY"
+    }
+  },
+  "ET": {
+    "6": {
+      "count": 75,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 71,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 77,
+      "difficulty": "EASY"
+    }
+  },
+  "AN": {
+    "6": {
+      "count": 160,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 216,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 213,
+      "difficulty": "EASY"
+    }
+  },
+  "NA": {
+    "6": {
+      "count": 51,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 64,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 72,
+      "difficulty": "EASY"
+    }
+  },
+  "OG": {
+    "6": {
+      "count": 6,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 13,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 11,
+      "difficulty": "HARD"
+    }
+  },
+  "CH": {
+    "6": {
+      "count": 66,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 93,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 85,
+      "difficulty": "EASY"
+    }
+  },
+  "HO": {
+    "6": {
+      "count": 60,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 50,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 53,
+      "difficulty": "EASY"
+    }
+  },
+  "EM": {
+    "6": {
+      "count": 38,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 52,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 64,
+      "difficulty": "EASY"
+    }
+  },
+  "GL": {
+    "6": {
+      "count": 13,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 18,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 7,
+      "difficulty": "HARD"
+    }
+  },
+  "IM": {
+    "6": {
+      "count": 20,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 44,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 48,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "MA": {
+    "6": {
+      "count": 97,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 91,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 92,
+      "difficulty": "EASY"
+    }
   },
   "NK": {
-    "score": 22,
-    "count": 315,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 11,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 13,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 9,
+      "difficulty": "HARD"
+    }
   },
-  "EL": {
-    "score": 155,
-    "count": 893,
-    "difficulty": "EASY"
+  "NN": {
+    "6": {
+      "count": 41,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 24,
+      "difficulty": "MEDIUM"
+    }
   },
-  "LY": {
-    "score": 70,
-    "count": 538,
-    "difficulty": "EASY"
+  "NU": {
+    "6": {
+      "count": 13,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 12,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 13,
+      "difficulty": "HARD"
+    }
   },
-  "RK": {
-    "score": 12,
-    "count": 178,
-    "difficulty": "HARD"
+  "NS": {
+    "6": {
+      "count": 27,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 52,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 42,
+      "difficulty": "MEDIUM"
+    }
   },
-  "RL": {
-    "score": 11,
-    "count": 156,
-    "difficulty": "HARD"
+  "SW": {
+    "6": {
+      "count": 5,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 12,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 11,
+      "difficulty": "HARD"
+    }
   },
-  "EY": {
-    "score": 44,
-    "count": 281,
-    "difficulty": "MEDIUM"
+  "WE": {
+    "6": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 39,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 36,
+      "difficulty": "MEDIUM"
+    }
   },
-  "LT": {
-    "score": 18,
-    "count": 221,
-    "difficulty": "MEDIUM"
+  "TH": {
+    "6": {
+      "count": 57,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 67,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 63,
+      "difficulty": "EASY"
+    }
   },
-  "SK": {
-    "score": 27,
-    "count": 230,
-    "difficulty": "MEDIUM"
+  "TL": {
+    "6": {
+      "count": 30,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 26,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 24,
+      "difficulty": "MEDIUM"
+    }
   },
-  "ZA": {
-    "score": 18,
-    "count": 110,
-    "difficulty": "MEDIUM"
+  "NY": {
+    "6": {
+      "count": 14,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 15,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
   },
-  "AA": {
-    "score": 5,
-    "count": 36,
-    "difficulty": "HARD"
+  "OW": {
+    "6": {
+      "count": 47,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 32,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    }
   },
-  "KO": {
-    "score": 16,
-    "count": 125,
-    "difficulty": "HARD"
+  "YO": {
+    "6": {
+      "count": 11,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 5,
+      "difficulty": "HARD"
+    }
   },
-  "UG": {
-    "score": 27,
-    "count": 250,
-    "difficulty": "MEDIUM"
+  "RT": {
+    "6": {
+      "count": 56,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 61,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 55,
+      "difficulty": "EASY"
+    }
+  },
+  "AP": {
+    "6": {
+      "count": 27,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 43,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 40,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "HY": {
+    "6": {
+      "count": 7,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 10,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 7,
+      "difficulty": "HARD"
+    }
+  },
+  "IE": {
+    "6": {
+      "count": 76,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 78,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 71,
+      "difficulty": "EASY"
+    }
+  },
+  "PP": {
+    "6": {
+      "count": 28,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 40,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 49,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "PE": {
+    "6": {
+      "count": 84,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 67,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 63,
+      "difficulty": "EASY"
+    }
+  },
+  "EA": {
+    "6": {
+      "count": 103,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 127,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 100,
+      "difficulty": "EASY"
+    }
+  },
+  "RC": {
+    "6": {
+      "count": 21,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 15,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 25,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "RG": {
+    "6": {
+      "count": 27,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 22,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 26,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "YL": {
+    "6": {
+      "count": 7,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 8,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
+  },
+  "FU": {
+    "6": {
+      "count": 23,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 28,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 22,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "RY": {
+    "6": {
+      "count": 28,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 49,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 43,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "MP": {
+    "6": {
+      "count": 24,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 46,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 44,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "RR": {
+    "6": {
+      "count": 30,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 40,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 41,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "TE": {
+    "6": {
+      "count": 165,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 212,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 232,
+      "difficulty": "EASY"
+    }
+  },
+  "SC": {
+    "6": {
+      "count": 27,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 30,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 39,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "SL": {
+    "6": {
+      "count": 18,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 13,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 14,
+      "difficulty": "HARD"
+    }
+  },
+  "EE": {
+    "6": {
+      "count": 46,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 44,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 36,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "SP": {
+    "6": {
+      "count": 27,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 39,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 38,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "SA": {
+    "6": {
+      "count": 46,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 27,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 35,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "SI": {
+    "6": {
+      "count": 46,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 90,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 90,
+      "difficulty": "EASY"
+    }
+  },
+  "GN": {
+    "6": {
+      "count": 12,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 6,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 14,
+      "difficulty": "HARD"
+    }
+  },
+  "TR": {
+    "6": {
+      "count": 57,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 65,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 93,
+      "difficulty": "EASY"
+    }
+  },
+  "UT": {
+    "6": {
+      "count": 43,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 41,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 50,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "SY": {
+    "6": {
+      "count": 17,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 6,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 13,
+      "difficulty": "HARD"
+    }
+  },
+  "TO": {
+    "6": {
+      "count": 68,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 77,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 60,
+      "difficulty": "EASY"
+    }
+  },
+  "OM": {
+    "6": {
+      "count": 36,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 55,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 76,
+      "difficulty": "EASY"
+    }
+  },
+  "IU": {
+    "6": {
+      "count": 8,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 7,
+      "difficulty": "HARD"
+    }
+  },
+  "TT": {
+    "6": {
+      "count": 45,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 49,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 35,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "TA": {
+    "6": {
+      "count": 75,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 100,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 93,
+      "difficulty": "EASY"
+    }
+  },
+  "CK": {
+    "6": {
+      "count": 50,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 57,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 48,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "AU": {
+    "6": {
+      "count": 32,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 31,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 26,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "UB": {
+    "6": {
+      "count": 18,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 16,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 9,
+      "difficulty": "HARD"
+    }
+  },
+  "RN": {
+    "6": {
+      "count": 29,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 25,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "AV": {
+    "6": {
+      "count": 27,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 18,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 25,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "VA": {
+    "6": {
+      "count": 20,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 38,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 33,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "RS": {
+    "6": {
+      "count": 16,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 28,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 23,
+      "difficulty": "MEDIUM"
+    }
   },
   "DL": {
-    "score": 8,
-    "count": 120,
-    "difficulty": "HARD"
+    "6": {
+      "count": 23,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 12,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 11,
+      "difficulty": "HARD"
+    }
   },
-  "EF": {
-    "score": 17,
-    "count": 172,
-    "difficulty": "MEDIUM"
+  "LY": {
+    "6": {
+      "count": 67,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 68,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 75,
+      "difficulty": "EASY"
+    }
   },
-  "GA": {
-    "score": 51,
-    "count": 501,
-    "difficulty": "EASY"
+  "AW": {
+    "6": {
+      "count": 15,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 12,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 14,
+      "difficulty": "HARD"
+    }
   },
-  "GO": {
-    "score": 49,
-    "count": 357,
-    "difficulty": "EASY"
+  "AK": {
+    "6": {
+      "count": 20,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 15,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 15,
+      "difficulty": "HARD"
+    }
   },
-  "EH": {
-    "score": 5,
-    "count": 48,
-    "difficulty": "HARD"
+  "KE": {
+    "6": {
+      "count": 104,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 52,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 30,
+      "difficulty": "MEDIUM"
+    }
   },
-  "LD": {
-    "score": 18,
-    "count": 177,
-    "difficulty": "MEDIUM"
+  "WH": {
+    "6": {
+      "count": 5,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 15,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
   },
-  "EW": {
-    "score": 24,
-    "count": 222,
-    "difficulty": "MEDIUM"
+  "HI": {
+    "6": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 63,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 57,
+      "difficulty": "EASY"
+    }
   },
-  "PS": {
-    "score": 53,
-    "count": 372,
-    "difficulty": "EASY"
+  "WN": {
+    "6": {
+      "count": 5,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 6,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 16,
+      "difficulty": "HARD"
+    }
   },
-  "MY": {
-    "score": 24,
-    "count": 148,
-    "difficulty": "MEDIUM"
+  "BB": {
+    "6": {
+      "count": 16,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 11,
+      "difficulty": "HARD"
+    }
   },
-  "IK": {
-    "score": 20,
-    "count": 149,
-    "difficulty": "MEDIUM"
+  "OO": {
+    "6": {
+      "count": 44,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 41,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 38,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "DG": {
+    "6": {
+      "count": 10,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
+  },
+  "GG": {
+    "6": {
+      "count": 16,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 18,
+      "difficulty": "HARD"
+    }
+  },
+  "GI": {
+    "6": {
+      "count": 24,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 39,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 38,
+      "difficulty": "MEDIUM"
+    }
   },
   "KI": {
-    "score": 49,
-    "count": 323,
-    "difficulty": "EASY"
+    "6": {
+      "count": 31,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 58,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 31,
+      "difficulty": "MEDIUM"
+    }
   },
-  "OC": {
-    "score": 30,
-    "count": 259,
-    "difficulty": "MEDIUM"
+  "LD": {
+    "6": {
+      "count": 27,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 18,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 17,
+      "difficulty": "HARD"
+    }
   },
-  "KY": {
-    "score": 25,
-    "count": 179,
-    "difficulty": "MEDIUM"
+  "OT": {
+    "6": {
+      "count": 54,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 48,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 35,
+      "difficulty": "MEDIUM"
+    }
   },
-  "OD": {
-    "score": 52,
-    "count": 352,
-    "difficulty": "EASY"
+  "EL": {
+    "6": {
+      "count": 114,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 92,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 112,
+      "difficulty": "EASY"
+    }
   },
-  "DY": {
-    "score": 25,
-    "count": 158,
-    "difficulty": "MEDIUM"
+  "RK": {
+    "6": {
+      "count": 17,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 15,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 14,
+      "difficulty": "HARD"
+    }
+  },
+  "RL": {
+    "6": {
+      "count": 18,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 20,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 14,
+      "difficulty": "HARD"
+    }
+  },
+  "EY": {
+    "6": {
+      "count": 43,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 26,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 12,
+      "difficulty": "HARD"
+    }
+  },
+  "SK": {
+    "6": {
+      "count": 11,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 10,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
+  },
+  "ZA": {
+    "6": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
+  },
+  "ED": {
+    "6": {
+      "count": 304,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 344,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 359,
+      "difficulty": "EASY"
+    }
+  },
+  "UG": {
+    "6": {
+      "count": 17,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 19,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 13,
+      "difficulty": "HARD"
+    }
+  },
+  "EF": {
+    "6": {
+      "count": 17,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 22,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 23,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "FO": {
+    "6": {
+      "count": 28,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 36,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "GA": {
+    "6": {
+      "count": 29,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 27,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "GO": {
+    "6": {
+      "count": 20,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 16,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 17,
+      "difficulty": "HARD"
+    }
+  },
+  "EH": {
+    "6": {
+      "count": 5,
+      "difficulty": "HARD"
+    }
+  },
+  "LF": {
+    "6": {
+      "count": 7,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 10,
+      "difficulty": "HARD"
+    }
+  },
+  "OL": {
+    "6": {
+      "count": 62,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 68,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 63,
+      "difficulty": "EASY"
+    }
+  },
+  "EW": {
+    "6": {
+      "count": 18,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 17,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 14,
+      "difficulty": "HARD"
+    }
+  },
+  "IK": {
+    "6": {
+      "count": 9,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 5,
+      "difficulty": "HARD"
+    }
+  },
+  "OP": {
+    "6": {
+      "count": 33,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 37,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "PS": {
+    "6": {
+      "count": 7,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 12,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 7,
+      "difficulty": "HARD"
+    }
   },
   "TC": {
-    "score": 6,
-    "count": 80,
-    "difficulty": "HARD"
+    "6": {
+      "count": 10,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 17,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 14,
+      "difficulty": "HARD"
+    }
   },
   "OB": {
-    "score": 28,
-    "count": 248,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 15,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 18,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 18,
+      "difficulty": "HARD"
+    }
   },
-  "OH": {
-    "score": 5,
-    "count": 52,
-    "difficulty": "HARD"
-  },
-  "OZ": {
-    "score": 9,
-    "count": 77,
-    "difficulty": "HARD"
-  },
-  "WL": {
-    "score": 7,
-    "count": 76,
-    "difficulty": "HARD"
-  },
-  "WY": {
-    "score": 6,
-    "count": 37,
-    "difficulty": "HARD"
-  },
-  "YE": {
-    "score": 37,
-    "count": 237,
-    "difficulty": "MEDIUM"
-  },
-  "OX": {
-    "score": 16,
-    "count": 100,
-    "difficulty": "HARD"
+  "OD": {
+    "6": {
+      "count": 29,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 23,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 23,
+      "difficulty": "MEDIUM"
+    }
   },
   "OY": {
-    "score": 19,
-    "count": 126,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 11,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 8,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
   },
   "YI": {
-    "score": 8,
-    "count": 79,
-    "difficulty": "HARD"
+    "6": {
+      "count": 10,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 15,
+      "difficulty": "HARD"
+    }
   },
-  "EZ": {
-    "score": 5,
-    "count": 49,
-    "difficulty": "HARD"
-  },
-  "ZY": {
-    "score": 8,
-    "count": 59,
-    "difficulty": "HARD"
-  },
-  "WS": {
-    "score": 12,
-    "count": 151,
-    "difficulty": "HARD"
-  },
-  "KL": {
-    "score": 6,
-    "count": 70,
-    "difficulty": "HARD"
-  },
-  "UF": {
-    "score": 6,
-    "count": 104,
-    "difficulty": "HARD"
-  },
-  "MM": {
-    "score": 8,
-    "count": 148,
-    "difficulty": "HARD"
-  },
-  "ZZ": {
-    "score": 5,
-    "count": 76,
-    "difficulty": "HARD"
-  },
-  "BY": {
-    "score": 20,
-    "count": 118,
-    "difficulty": "MEDIUM"
-  },
-  "YP": {
-    "score": 6,
-    "count": 74,
-    "difficulty": "HARD"
-  },
-  "PU": {
-    "score": 19,
-    "count": 271,
-    "difficulty": "MEDIUM"
-  },
-  "DO": {
-    "score": 59,
-    "count": 483,
-    "difficulty": "EASY"
-  },
-  "PY": {
-    "score": 15,
-    "count": 146,
-    "difficulty": "HARD"
-  },
-  "RP": {
-    "score": 7,
-    "count": 82,
-    "difficulty": "HARD"
-  },
-  "IP": {
-    "score": 20,
-    "count": 260,
-    "difficulty": "MEDIUM"
-  },
-  "IX": {
-    "score": 12,
-    "count": 89,
-    "difficulty": "HARD"
-  },
-  "EK": {
-    "score": 13,
-    "count": 96,
-    "difficulty": "HARD"
-  },
-  "HR": {
-    "score": 5,
-    "count": 90,
-    "difficulty": "HARD"
-  },
-  "HU": {
-    "score": 22,
-    "count": 239,
-    "difficulty": "MEDIUM"
-  },
-  "PH": {
-    "score": 31,
-    "count": 189,
-    "difficulty": "MEDIUM"
-  },
-  "CL": {
-    "score": 12,
-    "count": 236,
-    "difficulty": "HARD"
-  },
-  "EV": {
-    "score": 16,
-    "count": 165,
-    "difficulty": "HARD"
-  },
-  "AX": {
-    "score": 24,
-    "count": 138,
-    "difficulty": "MEDIUM"
-  },
-  "MS": {
-    "score": 14,
-    "count": 262,
-    "difficulty": "HARD"
-  },
-  "FY": {
-    "score": 7,
-    "count": 76,
-    "difficulty": "HARD"
-  },
-  "OF": {
-    "score": 21,
-    "count": 138,
-    "difficulty": "MEDIUM"
-  },
-  "EX": {
-    "score": 31,
-    "count": 199,
-    "difficulty": "MEDIUM"
-  },
-  "VO": {
-    "score": 17,
-    "count": 160,
-    "difficulty": "MEDIUM"
-  },
-  "PO": {
-    "score": 40,
-    "count": 468,
-    "difficulty": "MEDIUM"
-  },
-  "TS": {
-    "score": 45,
-    "count": 813,
-    "difficulty": "EASY"
-  },
-  "YM": {
-    "score": 7,
-    "count": 71,
-    "difficulty": "HARD"
-  },
-  "YS": {
-    "score": 22,
-    "count": 200,
-    "difficulty": "MEDIUM"
-  },
-  "UX": {
-    "score": 5,
-    "count": 32,
-    "difficulty": "HARD"
-  },
-  "XE": {
-    "score": 17,
-    "count": 136,
-    "difficulty": "MEDIUM"
+  "DY": {
+    "6": {
+      "count": 14,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 11,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 7,
+      "difficulty": "HARD"
+    }
   },
   "GU": {
-    "score": 17,
-    "count": 243,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 19,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 22,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 18,
+      "difficulty": "HARD"
+    }
   },
-  "ZI": {
-    "score": 10,
-    "count": 104,
-    "difficulty": "HARD"
+  "OK": {
+    "6": {
+      "count": 22,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 16,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 10,
+      "difficulty": "HARD"
+    }
   },
-  "IB": {
-    "score": 11,
-    "count": 154,
-    "difficulty": "HARD"
+  "OC": {
+    "6": {
+      "count": 16,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 29,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 38,
+      "difficulty": "MEDIUM"
+    }
   },
-  "XI": {
-    "score": 8,
-    "count": 118,
-    "difficulty": "HARD"
+  "UF": {
+    "6": {
+      "count": 5,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 5,
+      "difficulty": "HARD"
+    }
   },
-  "NL": {
-    "score": 5,
-    "count": 52,
-    "difficulty": "HARD"
+  "MM": {
+    "6": {
+      "count": 12,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 17,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 24,
+      "difficulty": "MEDIUM"
+    }
   },
-  "PR": {
-    "score": 13,
-    "count": 289,
-    "difficulty": "HARD"
+  "BY": {
+    "6": {
+      "count": 7,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 5,
+      "difficulty": "HARD"
+    }
   },
-  "EU": {
-    "score": 13,
-    "count": 112,
-    "difficulty": "HARD"
+  "JO": {
+    "6": {
+      "count": 12,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 10,
+      "difficulty": "HARD"
+    }
   },
-  "XT": {
-    "score": 5,
-    "count": 43,
-    "difficulty": "HARD"
+  "LV": {
+    "6": {
+      "count": 10,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 7,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
   },
-  "IZ": {
-    "score": 9,
-    "count": 101,
-    "difficulty": "HARD"
+  "PU": {
+    "6": {
+      "count": 20,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 18,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 16,
+      "difficulty": "HARD"
+    }
   },
-  "KS": {
-    "score": 14,
-    "count": 386,
-    "difficulty": "HARD"
+  "DO": {
+    "6": {
+      "count": 37,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 38,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 43,
+      "difficulty": "MEDIUM"
+    }
   },
-  "XY": {
-    "score": 6,
-    "count": 44,
-    "difficulty": "HARD"
+  "PY": {
+    "6": {
+      "count": 10,
+      "difficulty": "HARD"
+    }
   },
-  "TZ": {
-    "score": 6,
-    "count": 50,
-    "difficulty": "HARD"
+  "NV": {
+    "6": {
+      "count": 9,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 9,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 16,
+      "difficulty": "HARD"
+    }
   },
-  "JA": {
-    "score": 8,
-    "count": 142,
-    "difficulty": "HARD"
+  "RP": {
+    "6": {
+      "count": 9,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 8,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 5,
+      "difficulty": "HARD"
+    }
   },
-  "AH": {
-    "score": 28,
-    "count": 158,
-    "difficulty": "MEDIUM"
+  "RV": {
+    "6": {
+      "count": 14,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 14,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 16,
+      "difficulty": "HARD"
+    }
   },
-  "JI": {
-    "score": 10,
-    "count": 106,
-    "difficulty": "HARD"
+  "IP": {
+    "6": {
+      "count": 18,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 20,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 27,
+      "difficulty": "MEDIUM"
+    }
   },
-  "GS": {
-    "score": 13,
-    "count": 218,
-    "difficulty": "HARD"
+  "KY": {
+    "6": {
+      "count": 9,
+      "difficulty": "HARD"
+    }
   },
-  "YR": {
-    "score": 5,
-    "count": 81,
-    "difficulty": "HARD"
+  "HR": {
+    "6": {
+      "count": 16,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 5,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 14,
+      "difficulty": "HARD"
+    }
   },
-  "YT": {
-    "score": 5,
-    "count": 53,
-    "difficulty": "HARD"
+  "HU": {
+    "6": {
+      "count": 19,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 17,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 9,
+      "difficulty": "HARD"
+    }
   },
-  "FS": {
-    "score": 8,
-    "count": 139,
-    "difficulty": "HARD"
+  "MY": {
+    "6": {
+      "count": 9,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 5,
+      "difficulty": "HARD"
+    }
+  },
+  "PH": {
+    "6": {
+      "count": 18,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 15,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 16,
+      "difficulty": "HARD"
+    }
+  },
+  "CL": {
+    "6": {
+      "count": 22,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 44,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 32,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "EV": {
+    "6": {
+      "count": 25,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 36,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 36,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "AX": {
+    "6": {
+      "count": 5,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 6,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 5,
+      "difficulty": "HARD"
+    }
+  },
+  "LT": {
+    "6": {
+      "count": 25,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 24,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 15,
+      "difficulty": "HARD"
+    }
+  },
+  "OF": {
+    "6": {
+      "count": 10,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 12,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 9,
+      "difficulty": "HARD"
+    }
+  },
+  "PL": {
+    "6": {
+      "count": 35,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 46,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 49,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "NF": {
+    "6": {
+      "count": 7,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 13,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 20,
+      "difficulty": "HARD"
+    }
+  },
+  "EX": {
+    "6": {
+      "count": 28,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 29,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 27,
+      "difficulty": "MEDIUM"
+    }
+  },
+  "VO": {
+    "6": {
+      "count": 17,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 17,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 18,
+      "difficulty": "HARD"
+    }
+  },
+  "PO": {
+    "6": {
+      "count": 47,
+      "difficulty": "EASY"
+    },
+    "7": {
+      "count": 46,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 56,
+      "difficulty": "EASY"
+    }
+  },
+  "GR": {
+    "6": {
+      "count": 24,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 31,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 35,
+      "difficulty": "MEDIUM"
+    }
   },
   "WI": {
-    "score": 25,
-    "count": 354,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 33,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 34,
+      "difficulty": "MEDIUM"
+    },
+    "8": {
+      "count": 20,
+      "difficulty": "HARD"
+    }
+  },
+  "IB": {
+    "6": {
+      "count": 6,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 18,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 20,
+      "difficulty": "HARD"
+    }
+  },
+  "XI": {
+    "6": {
+      "count": 10,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 9,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 7,
+      "difficulty": "HARD"
+    }
+  },
+  "NL": {
+    "6": {
+      "count": 9,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 6,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 11,
+      "difficulty": "HARD"
+    }
+  },
+  "NR": {
+    "6": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
+  },
+  "EU": {
+    "6": {
+      "count": 10,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 7,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
+  },
+  "KA": {
+    "6": {
+      "count": 8,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 10,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 6,
+      "difficulty": "HARD"
+    }
+  },
+  "XP": {
+    "6": {
+      "count": 6,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 8,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 11,
+      "difficulty": "HARD"
+    }
+  },
+  "YE": {
+    "6": {
+      "count": 12,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 8,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 9,
+      "difficulty": "HARD"
+    }
+  },
+  "IZ": {
+    "6": {
+      "count": 5,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 9,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 8,
+      "difficulty": "HARD"
+    }
+  },
+  "JA": {
+    "6": {
+      "count": 12,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 11,
+      "difficulty": "HARD"
+    }
+  },
+  "DN": {
+    "6": {
+      "count": 5,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 5,
+      "difficulty": "HARD"
+    }
+  },
+  "YR": {
+    "6": {
+      "count": 7,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 5,
+      "difficulty": "HARD"
+    }
+  },
+  "EO": {
+    "6": {
+      "count": 8,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 11,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 16,
+      "difficulty": "HARD"
+    }
+  },
+  "DW": {
+    "6": {
+      "count": 5,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 8,
+      "difficulty": "HARD"
+    }
+  },
+  "PR": {
+    "6": {
+      "count": 28,
+      "difficulty": "MEDIUM"
+    },
+    "7": {
+      "count": 62,
+      "difficulty": "EASY"
+    },
+    "8": {
+      "count": 66,
+      "difficulty": "EASY"
+    }
   },
   "YA": {
-    "score": 22,
-    "count": 169,
-    "difficulty": "MEDIUM"
+    "6": {
+      "count": 7,
+      "difficulty": "HARD"
+    }
   },
-  "UK": {
-    "score": 12,
-    "count": 83,
-    "difficulty": "HARD"
+  "AH": {
+    "6": {
+      "count": 8,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 8,
+      "difficulty": "HARD"
+    }
+  },
+  "WO": {
+    "6": {
+      "count": 6,
+      "difficulty": "HARD"
+    },
+    "7": {
+      "count": 12,
+      "difficulty": "HARD"
+    },
+    "8": {
+      "count": 13,
+      "difficulty": "HARD"
+    }
   },
   "SN": {
-    "score": 5,
-    "count": 133,
-    "difficulty": "HARD"
-  },
-  "ZO": {
-    "score": 16,
-    "count": 115,
-    "difficulty": "HARD"
+    "6": {
+      "count": 8,
+      "difficulty": "HARD"
+    }
   }
 }

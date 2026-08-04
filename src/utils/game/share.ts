@@ -13,8 +13,11 @@ const EMOJI: Record<LetterFeedback, string> = {
   correct: "🟩",
   gramCorrect: "🟩",
   misplaced: "🟨",
-  gramMisplaced: "🟧",
+  gramMisplaced: "🟨",
   absent: "⬛",
+  // An offset blank tile (a column the slid word left empty): shown as the same
+  // empty square as out-of-bounds padding.
+  blank: "⬜",
 };
 
 const OUT_OF_BOUNDS = "⬜";
@@ -38,6 +41,8 @@ type ShareTextParams = {
   feedback: LetterFeedback[][];
   difficulty: Difficulty;
   score: number;
+  /** Append the emoji grid. Omit when sharing an image of the grid instead. */
+  includeGrid?: boolean;
 };
 
 export function buildShareText({
@@ -49,11 +54,13 @@ export function buildShareText({
   feedback,
   difficulty,
   score,
+  includeGrid = true,
 }: ShareTextParams): string {
   const result = won ? `${guessCount}/${maxGuesses}` : `X/${maxGuesses}`;
   const circle = DIFFICULTY_CIRCLE[difficulty];
   const header = `Grammble #${puzzleNumber} ${circle} ${gram.toUpperCase()} ${result}`;
   const scoreLine = `Score: ${score}/100`;
-  const grid = buildShareGrid(feedback);
-  return [header, scoreLine, grid].join("\n");
+  const lines = [header, scoreLine];
+  if (includeGrid) lines.push(buildShareGrid(feedback));
+  return lines.join("\n");
 }

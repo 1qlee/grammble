@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import {
   TabGroup,
   TabList,
@@ -6,10 +6,7 @@ import {
   TabPanels,
   TabPanel,
 } from '@headlessui/react'
-
-// useLayoutEffect warns during SSR; fall back to useEffect on the server.
-const useIsomorphicLayoutEffect =
-  typeof window !== 'undefined' ? useLayoutEffect : useEffect
+import { useIsomorphicLayoutEffect } from '~/hooks/useIsomorphicLayoutEffect'
 
 type Option<T extends string> = {
   label: React.ReactNode

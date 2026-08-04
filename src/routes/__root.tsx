@@ -12,21 +12,64 @@ import { Nav } from "~/components/Nav";
 import { NotFound } from "~/components/NotFound.js";
 import { seo } from "~/utils/seo.js";
 import { getInitialAppDataServerFn } from "~/utils/trpc/server-caller";
+import { getDateString } from "~/utils/game/daily-puzzle";
+import {
+  readDailiesCache,
+  writeDailiesCache,
+} from "~/utils/game/dailies-cache";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "~/utils/query-client";
+import { useEndGameDialogStore } from "~/hooks/useEndGameDialog";
 
 import type { User } from "~/prisma-generated/browser";
 import { ThemeProvider } from "~/utils/providers/theme-provider";
 import { useAnonymousSessionSync } from "~/hooks/useAnonymousSessionSync";
 import Toast from "~/components/ui/Toast";
 
+// Only the game routes read `dailies` from context (index + the three mode
+// routes, plus ModeTabs/EndGameDialog rendered within them). Other routes skip
+// the puzzle fetch. Archive routes (/six/$date) run their own loaders and read
+// only `user`, so they're intentionally excluded.
+const GAME_PATHS = new Set(["/", "/six", "/seven", "/eight"]);
+
 export const Route = createRootRoute({
-  beforeLoad: async () => {
-    const { user, theme, dailies } = await getInitialAppDataServerFn();
+  beforeLoad: async ({ location }) => {
+    const isGamePath = GAME_PATHS.has(location.pathname);
+    const date = getDateString();
+    // Reuse today's already-fetched puzzle data (all modes) when it's cached for
+    // this tab, so switching modes doesn't re-run the heavy getAllDaily on every
+    // navigation. The cache is client-only; the server always fetches fresh.
+    const cached = isGamePath ? readDailiesCache(date) : null;
+
+    const { user, theme, dailies } = await getInitialAppDataServerFn({
+      data: { needsDailies: isGamePath && !cached },
+    });
+    const userId = (user?.id as string | undefined) ?? null;
+
+    let resolvedDailies = dailies;
+    if (isGamePath) {
+      if (cached && cached.userId === userId) {
+        resolvedDailies = cached.data;
+      } else {
+        // No cache yet, or it belongs to a different account signed in within
+        // the same tab. The former already fetched above; the latter skipped the
+        // fetch, so pull fresh data for the current user before caching it.
+        resolvedDailies =
+          cached && cached.userId !== userId
+            ? (
+                await getInitialAppDataServerFn({
+                  data: { needsDailies: true },
+                })
+              ).dailies
+            : dailies;
+        writeDailiesCache(date, userId, resolvedDailies);
+      }
+    }
+
     return {
       user: (user ?? undefined) as User | undefined,
       theme,
-      dailies,
+      dailies: resolvedDailies,
     };
   },
   head: () => ({
@@ -132,7 +175,7 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  const { theme, user } = Route.useRouteContext();
+  const { theme, user, dailies } = Route.useRouteContext();
   // Guard against interaction until the app has hydrated.
   const [isHydrated, setIsHydrated] = React.useState(false);
 
@@ -140,6 +183,24 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     setIsHydrated(true);
+    // Mark the app hydrated at the root, not just when a GameBoard first mounts.
+    // The index route never mounts a GameBoard, so gating this flag there meant
+    // navigating from the menu into any mode always replayed the first-load
+    // overlay even though the puzzle data was already in context. Setting it
+    // here lets client-side mode switches from the menu seed synchronously and
+    // skip the overlay.
+    useEndGameDialogStore.getState().setIsAppHydrated(true);
+  }, []);
+
+  // Warm the per-tab dailies cache from the initial SSR payload so the first
+  // client-side mode switch reuses it instead of refetching. Runs once on the
+  // initial load; subsequent writes are owned by beforeLoad and the submit
+  // write-through, so this deliberately does not re-run when `dailies` changes.
+  React.useEffect(() => {
+    if (Object.keys(dailies).length > 0) {
+      writeDailiesCache(getDateString(), user?.id ?? null, dailies);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

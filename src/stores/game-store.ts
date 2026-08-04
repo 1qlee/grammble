@@ -11,7 +11,7 @@ import {
 
 export type { LetterFeedback };
 
-export type Toast = { message: string; type: ToastType };
+export type Toast = { message: string; type: ToastType; shake?: boolean };
 
 export type GameStatus = "IN_PROGRESS" | "WON" | "LOST";
 
@@ -26,6 +26,9 @@ interface GameState {
   gram: string;
   mode: GameMode;
   wordLength: number;
+  // True when the board is showing a replayed past puzzle from the archive
+  // rather than today's daily. Gates the stale-date refresh guard at submit.
+  isArchive: boolean;
 
   // Game session
   guesses: string[];
@@ -51,6 +54,7 @@ interface GameActions {
   setGuess: (value: string) => void;
   setCharAt: (index: number, char: string) => void;
   removeCharAt: (index: number) => void;
+  moveCursorTo: (index: number) => void;
   submitGuess: (
     feedback: LetterFeedback[],
     status: GameStatus,
@@ -59,7 +63,12 @@ interface GameActions {
   ) => void;
 
   // Puzzle initialization
-  setDailyPuzzle: (date: string, gram: string, mode: GameMode) => void;
+  setDailyPuzzle: (
+    date: string,
+    gram: string,
+    mode: GameMode,
+    isArchive?: boolean,
+  ) => void;
   resetSession: () => void;
   hydrateSession: (data: {
     guesses: string[];
@@ -84,6 +93,7 @@ const initialState: GameState = {
   gram: "",
   mode: DEFAULT_GAME_MODE,
   wordLength: WORD_LENGTH_BY_MODE[DEFAULT_GAME_MODE],
+  isArchive: false,
   guesses: [],
   feedback: [],
   currentGuessIndex: 0,
@@ -160,6 +170,23 @@ export const useGameStore = create<GameState & GameActions>()(
           return { guesses: newGuesses };
         }),
 
+      moveCursorTo: (index) =>
+        set((state) => {
+          const currentGuess = state.guesses[state.currentGuessIndex] ?? "";
+          // Move the active cursor forward onto a clicked empty slot by padding
+          // the gap with blanks, keeping the guess a contiguous string. The
+          // cursor is always guess.length, so it lands on the clicked slot.
+          // Ignore clicks on the current slot / filled tiles and anything past
+          // the last typeable slot.
+          if (index <= currentGuess.length || index >= state.wordLength) {
+            return state;
+          }
+          const newGuesses = [...state.guesses];
+          newGuesses[state.currentGuessIndex] =
+            currentGuess + " ".repeat(index - currentGuess.length);
+          return { guesses: newGuesses };
+        }),
+
       submitGuess: (feedback, status, word, score) =>
         set((state) => ({
           feedback: [...state.feedback, feedback],
@@ -169,7 +196,7 @@ export const useGameStore = create<GameState & GameActions>()(
           score: score ?? state.score,
         })),
 
-      setDailyPuzzle: (date, gram, mode) =>
+      setDailyPuzzle: (date, gram, mode, isArchive = false) =>
         set((state) => {
           const wordLength = WORD_LENGTH_BY_MODE[mode];
           // If the date or mode changed, reset game state for the new puzzle.
@@ -180,9 +207,10 @@ export const useGameStore = create<GameState & GameActions>()(
               gram,
               mode,
               wordLength,
+              isArchive,
             };
           }
-          return { date, gram, mode, wordLength };
+          return { date, gram, mode, wordLength, isArchive };
         }),
 
       resetSession: () =>

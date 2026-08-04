@@ -139,30 +139,31 @@ model Settings {
 }
 
 model Gram {
-  id             String   @id @default(uuid())
-  letters        String   @unique
-  guessWordCount Int
-  score          Int
-  difficulty     Difficulty
-  timesUsed      Int      @default(0)
-  lastUsedDate   String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  puzzles        Puzzle[]
+  id           String   @id @default(uuid())
+  letters      String   @unique
+  timesUsed    Int      @default(0)
+  lastUsedDate String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  puzzles      Puzzle[]
 
   @@map("gram")
 }
 
 model Puzzle {
-  id           String        @id @default(uuid())
-  date         String
-  number       Int
-  mode         GameMode
-  gramId       String
-  gram         Gram          @relation(fields: [gramId], references: [id])
-  word         String
-  createdAt    DateTime      @default(now())
-  gameSessions GameSession[]
+  id             String        @id @default(uuid())
+  date           String
+  number         Int
+  mode           GameMode
+  gramId         String
+  gram           Gram          @relation(fields: [gramId], references: [id])
+  word           String
+  // Per-mode difficulty and viable-guess supply for this puzzle's gram. Stored
+  // on the puzzle (not the gram) because a gram's quality differs by mode.
+  difficulty     Difficulty
+  guessWordCount Int
+  createdAt      DateTime      @default(now())
+  gameSessions   GameSession[]
 
   @@unique([date, mode])
   @@unique([number, mode])

@@ -8,7 +8,7 @@ interface AppDialogState {
   // Set when the dialog is opened from a locked game mode tab, so the
   // subscription upsell can tailor its copy to that mode.
   upsellMode: GameMode | null;
-  open: (tab?: AppDialogTab, upsellMode?: GameMode) => void;
+  open: (tab?: AppDialogTab, upsellMode?: GameMode | null) => void;
   close: () => void;
 }
 

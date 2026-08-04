@@ -35,6 +35,13 @@ export const MODE_ROUTE_BY_MODE: Record<GameMode, "/six" | "/seven" | "/eight"> 
   EIGHT: "/eight",
 };
 
-export const TILE_POP_PEAK_DURATION_MS = 200;
-export const TILE_POP_PEAK_SCALE = 1.1;
-export const TILE_POP_SPRING_BOUNCE = 0.7;
+// Archive (past-puzzle) route per mode, taking a `$date` param. Used to switch
+// modes while staying on a loaded archived puzzle's date.
+export const MODE_ARCHIVE_ROUTE_BY_MODE: Record<
+  GameMode,
+  "/six/$date" | "/seven/$date" | "/eight/$date"
+> = {
+  SIX: "/six/$date",
+  SEVEN: "/seven/$date",
+  EIGHT: "/eight/$date",
+};

@@ -5,8 +5,9 @@ const THEME_COOKIE = "_preferred-theme";
 
 const modeSchema = v.picklist(["SIX", "SEVEN", "EIGHT"] as const);
 
-export const getInitialAppDataServerFn = createServerFn({ method: "GET" }).handler(
-  async () => {
+export const getInitialAppDataServerFn = createServerFn({ method: "GET" })
+  .inputValidator(v.object({ needsDailies: v.boolean() }))
+  .handler(async ({ data }) => {
     const [
       { getCookie, getRequestHeaders, setCookie },
       { createCaller },
@@ -80,11 +81,18 @@ export const getInitialAppDataServerFn = createServerFn({ method: "GET" }).handl
       console.error("[getInitialAppData] auth/user lookup failed:", err);
     }
 
+    // Only the game routes consume `dailies`, but auth/theme is needed on every
+    // route. Skip the puzzle fetch elsewhere (signin, dashboard, etc.) so those
+    // routes don't pay for getAllDaily's queries. Empty object keeps the context
+    // shape stable so consumers' optional access (`dailies[mode]?`) still works.
     const caller = createCaller({ user: trpcUser });
-    // Fetch every mode the user is entitled to, once. Non-premium users only
-    // get the 6-letter mode; premium users get all three. Shared via route
-    // context so switching modes is instant (no per-route fetch).
-    const dailies = await caller.game.getAllDaily();
+    let dailies: Awaited<ReturnType<typeof caller.game.getAllDaily>> = {};
+    if (data.needsDailies) {
+      // Fetch every mode the user is entitled to, once. Non-premium users only
+      // get the 6-letter mode; premium users get all three. Shared via route
+      // context so switching modes is instant (no per-route fetch).
+      dailies = await caller.game.getAllDaily();
+    }
 
     return { user: rootUser, theme, dailies };
   },
@@ -107,12 +115,88 @@ export const getUserStatsServerFn = createServerFn({ method: "GET" })
     return createCaller(ctx).game.getUserStats({ mode: data.mode });
   });
 
+export const getArchiveServerFn = createServerFn({ method: "GET" })
+  .inputValidator(
+    v.object({
+      mode: modeSchema,
+      year: v.number(),
+      month: v.number(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const [
+      { getRequestHeaders },
+      { createCaller },
+      { createTRPCContextFromHeaders },
+    ] = await Promise.all([
+      import("@tanstack/react-start/server"),
+      import("~/trpc/router"),
+      import("~/trpc/init"),
+    ]);
+    const headers = new Headers(getRequestHeaders() as HeadersInit);
+    const ctx = await createTRPCContextFromHeaders(headers);
+    return createCaller(ctx).game.getArchive(data);
+  });
+
+export const getArchiveDayScoresServerFn = createServerFn({ method: "GET" })
+  .inputValidator(v.object({ date: v.string() }))
+  .handler(async ({ data }) => {
+    const [
+      { getRequestHeaders },
+      { createCaller },
+      { createTRPCContextFromHeaders },
+    ] = await Promise.all([
+      import("@tanstack/react-start/server"),
+      import("~/trpc/router"),
+      import("~/trpc/init"),
+    ]);
+    const headers = new Headers(getRequestHeaders() as HeadersInit);
+    const ctx = await createTRPCContextFromHeaders(headers);
+    return createCaller(ctx).game.getArchiveDayScores(data);
+  });
+
+export const getArchivePuzzleServerFn = createServerFn({ method: "GET" })
+  .inputValidator(v.object({ mode: modeSchema, date: v.string() }))
+  .handler(async ({ data }) => {
+    const [
+      { getRequestHeaders },
+      { createCaller },
+      { createTRPCContextFromHeaders },
+    ] = await Promise.all([
+      import("@tanstack/react-start/server"),
+      import("~/trpc/router"),
+      import("~/trpc/init"),
+    ]);
+    const headers = new Headers(getRequestHeaders() as HeadersInit);
+    const ctx = await createTRPCContextFromHeaders(headers);
+    return createCaller(ctx).game.getArchivePuzzle(data);
+  });
+
+export const getRecapServerFn = createServerFn({ method: "GET" })
+  .inputValidator(v.object({ mode: modeSchema, date: v.string() }))
+  .handler(async ({ data }) => {
+    const [
+      { getRequestHeaders },
+      { createCaller },
+      { createTRPCContextFromHeaders },
+    ] = await Promise.all([
+      import("@tanstack/react-start/server"),
+      import("~/trpc/router"),
+      import("~/trpc/init"),
+    ]);
+    const headers = new Headers(getRequestHeaders() as HeadersInit);
+    const ctx = await createTRPCContextFromHeaders(headers);
+    return createCaller(ctx).game.getRecap(data);
+  });
+
 export const submitGuessServerFn = createServerFn({ method: "POST" })
   .inputValidator(
     v.object({
       mode: modeSchema,
       guess: v.string(),
       history: v.optional(v.array(v.string())),
+      date: v.optional(v.string()),
+      archive: v.optional(v.boolean()),
     }),
   )
   .handler(async ({ data }) => {

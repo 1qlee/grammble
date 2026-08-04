@@ -18,6 +18,9 @@ import { Route as LogoutRouteImport } from './routes/logout'
 import { Route as EightRouteImport } from './routes/eight'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SixDateRouteImport } from './routes/six_.$date'
+import { Route as SevenDateRouteImport } from './routes/seven_.$date'
+import { Route as EightDateRouteImport } from './routes/eight_.$date'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc/$'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
@@ -67,6 +70,21 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SixDateRoute = SixDateRouteImport.update({
+  id: '/six_/$date',
+  path: '/six/$date',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SevenDateRoute = SevenDateRouteImport.update({
+  id: '/seven_/$date',
+  path: '/seven/$date',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EightDateRoute = EightDateRouteImport.update({
+  id: '/eight_/$date',
+  path: '/eight/$date',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -98,6 +116,9 @@ export interface FileRoutesByFullPath {
   '/six': typeof SixRoute
   '/verify-email': typeof VerifyEmailRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/eight/$date': typeof EightDateRoute
+  '/seven/$date': typeof SevenDateRoute
+  '/six/$date': typeof SixDateRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -112,6 +133,9 @@ export interface FileRoutesByTo {
   '/six': typeof SixRoute
   '/verify-email': typeof VerifyEmailRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/eight/$date': typeof EightDateRoute
+  '/seven/$date': typeof SevenDateRoute
+  '/six/$date': typeof SixDateRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -128,6 +152,9 @@ export interface FileRoutesById {
   '/six': typeof SixRoute
   '/verify-email': typeof VerifyEmailRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/eight_/$date': typeof EightDateRoute
+  '/seven_/$date': typeof SevenDateRoute
+  '/six_/$date': typeof SixDateRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -144,6 +171,9 @@ export interface FileRouteTypes {
     | '/six'
     | '/verify-email'
     | '/dashboard'
+    | '/eight/$date'
+    | '/seven/$date'
+    | '/six/$date'
     | '/api/auth/$'
     | '/api/stripe/webhook'
     | '/api/trpc/$'
@@ -158,6 +188,9 @@ export interface FileRouteTypes {
     | '/six'
     | '/verify-email'
     | '/dashboard'
+    | '/eight/$date'
+    | '/seven/$date'
+    | '/six/$date'
     | '/api/auth/$'
     | '/api/stripe/webhook'
     | '/api/trpc/$'
@@ -173,6 +206,9 @@ export interface FileRouteTypes {
     | '/six'
     | '/verify-email'
     | '/_authed/dashboard'
+    | '/eight_/$date'
+    | '/seven_/$date'
+    | '/six_/$date'
     | '/api/auth/$'
     | '/api/stripe/webhook'
     | '/api/trpc/$'
@@ -188,6 +224,9 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SixRoute: typeof SixRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  EightDateRoute: typeof EightDateRoute
+  SevenDateRoute: typeof SevenDateRoute
+  SixDateRoute: typeof SixDateRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
@@ -258,6 +297,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/six_/$date': {
+      id: '/six_/$date'
+      path: '/six/$date'
+      fullPath: '/six/$date'
+      preLoaderRoute: typeof SixDateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/seven_/$date': {
+      id: '/seven_/$date'
+      path: '/seven/$date'
+      fullPath: '/seven/$date'
+      preLoaderRoute: typeof SevenDateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eight_/$date': {
+      id: '/eight_/$date'
+      path: '/eight/$date'
+      fullPath: '/eight/$date'
+      preLoaderRoute: typeof EightDateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authed/dashboard': {
       id: '/_authed/dashboard'
       path: '/dashboard'
@@ -310,6 +370,9 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SixRoute: SixRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  EightDateRoute: EightDateRoute,
+  SevenDateRoute: SevenDateRoute,
+  SixDateRoute: SixDateRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiStripeWebhookRoute: ApiStripeWebhookRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,

@@ -14,10 +14,8 @@ import Tabs from './ui/Tabs'
 
 export type AppDialogTab = 'settings' | 'subscription'
 
-const TAB_OPTIONS: [{ label: string; value: AppDialogTab }, { label: string; value: AppDialogTab }] = [
-  { label: 'Settings', value: 'settings' },
-  { label: 'Subscription', value: 'subscription' },
-]
+const SETTINGS_TAB: { label: string; value: AppDialogTab } = { label: 'Settings', value: 'settings' }
+const SUBSCRIPTION_TAB: { label: string; value: AppDialogTab } = { label: 'Subscription', value: 'subscription' }
 
 type AppDialogProps = {
   isOpen: boolean
@@ -32,6 +30,9 @@ export default function AppDialog({ isOpen, initialTab, onClose, user }: AppDial
   const upsellMode = useAppDialogStore((s) => s.upsellMode)
   const upsellWordLength = upsellMode ? WORD_LENGTH_BY_MODE[upsellMode] : null
 
+  const showSubscriptionTab = !user?.isPremium
+  const tabOptions = showSubscriptionTab ? [SETTINGS_TAB, SUBSCRIPTION_TAB] : [SETTINGS_TAB]
+
   const [activeTab, setActiveTab] = useState<AppDialogTab>(initialTab)
 
   const [billing, setBilling] = useState<BillingStatus | null>(null)
@@ -40,8 +41,8 @@ export default function AppDialog({ isOpen, initialTab, onClose, user }: AppDial
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (isOpen) setActiveTab(initialTab)
-  }, [isOpen, initialTab])
+    if (isOpen) setActiveTab(showSubscriptionTab ? initialTab : 'settings')
+  }, [isOpen, initialTab, showSubscriptionTab])
 
   useEffect(() => {
     const fetchPrices = async () => {
@@ -96,7 +97,7 @@ export default function AppDialog({ isOpen, initialTab, onClose, user }: AppDial
     >
       <div className="p-4 pb-0 pr-12">
         <Tabs
-          options={TAB_OPTIONS}
+          options={tabOptions}
           value={activeTab}
           onChange={setActiveTab}
         />

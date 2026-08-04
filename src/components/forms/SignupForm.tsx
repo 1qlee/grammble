@@ -9,7 +9,7 @@ import {
   SignupSchema,
   usernameValidator,
 } from "./SignupForm.types";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { LoaderCircle } from "lucide-react";
 import { signUp } from "~/utils/auth/auth-client";
 import { useState } from "react";
@@ -24,6 +24,7 @@ type Props = {
 export default function SignupForm({ checkoutIntent }: Props) {
   const [formError, setFormError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const router = useRouter();
 
   const form = useAppForm({
     defaultValues: {
@@ -121,6 +122,10 @@ export default function SignupForm({ checkoutIntent }: Props) {
             // fall through to default navigation
           }
         }
+        // Re-resolve the router context (user + game state) under the new
+        // session cookie before navigating; without this the board renders the
+        // pre-auth anonymous state until a hard refresh.
+        await router.invalidate();
         navigate({ to: "/dashboard" });
       }
     },
@@ -163,8 +168,16 @@ export default function SignupForm({ checkoutIntent }: Props) {
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">Sign up</h1>
         <p>
-          Create an account to save your stats and access other
-          features. <Link to="/signin">Sign in instead</Link>.
+          {checkoutIntent
+            ? "First create an account before subscribing to premium."
+            : "Create an account to save your stats and access other features."}{" "}
+          <Link
+            to="/signin"
+            search={checkoutIntent ? { checkout: checkoutIntent } : undefined}
+          >
+            Sign in instead
+          </Link>
+          .
         </p>
       </div>
       {/* Components are bound to `form` and `field` to ensure extreme type safety */}

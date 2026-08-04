@@ -3,10 +3,16 @@ import { useEffect, useRef, useState } from "react";
 import { Transition } from "@headlessui/react";
 import { animate } from "animejs";
 import { X } from "lucide-react";
-import Alert from "~/components/ui/Alert";
 import { useGameStore } from "~/stores/game-store";
 
 export type ToastType = "info" | "warning" | "success" | "error";
+
+const SURFACE_BY_TYPE: Record<ToastType, string> = {
+  info: "surface-raised",
+  success: "surface-green",
+  warning: "surface-yellow",
+  error: "surface-red",
+};
 
 const DISMISS_MS = 2500;
 const SWIPE_THRESHOLD = 4;
@@ -20,7 +26,7 @@ export default function Toast() {
   const shakeRef = useRef<HTMLDivElement | null>(null);
 
   const shakeIfError = (t: typeof toast) => {
-    if (t?.type === "error" && shakeRef.current) {
+    if ((t?.type === "error" || t?.shake) && shakeRef.current) {
       animate(shakeRef.current, {
         x: [
           { to: -8, duration: 60 },
@@ -99,15 +105,25 @@ export default function Toast() {
             role="status"
             style={{ touchAction: "none" }}
             className="pointer-events-auto select-none"
+            // The toast renders outside any open Dialog's panel, so a pointer
+            // interaction here would bubble to Headless UI's outside-click
+            // listener and dismiss the Dialog. Stop it at the toast surface so
+            // swiping or X-ing the toast leaves the Dialog mounted.
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <div ref={shakeRef}>
-            <Alert type={cached.type} className="shadow-md pr-8 relative min-w-[200px]">
+            <div
+              className={clsx(
+                SURFACE_BY_TYPE[cached.type],
+                "rounded-lg text-sm p-2 shadow-md pr-8 relative min-w-[200px]",
+              )}
+            >
               <span>{cached.message}</span>
               <button
                 type="button"
                 aria-label="Dismiss notification"
                 onClick={() => setToast(null)}
-                onPointerDown={(e) => e.stopPropagation()}
                 className={clsx(
                   "absolute top-1/2 -translate-y-1/2 right-2",
                   "inline-flex items-center justify-center w-5 h-5 rounded",
@@ -117,7 +133,7 @@ export default function Toast() {
               >
                 <X className="w-4 h-4" aria-hidden="true" />
               </button>
-            </Alert>
+            </div>
             </div>
           </div>
         )}

@@ -63,6 +63,13 @@ export const auth = betterAuth({
       await redis.del(key);
     },
   },
+  // Origins allowed to make auth requests (CSRF protection).
+  // BETTER_AUTH_URL is trusted automatically; add LAN/dev hosts here.
+  trustedOrigins: [
+    ...(process.env.AUTH_TRUSTED_ORIGINS
+      ? process.env.AUTH_TRUSTED_ORIGINS.split(",").map((o) => o.trim())
+      : []),
+  ],
   plugins: [username()],
   database: prismaAdapter(prismaClient, {
     provider: "postgresql",

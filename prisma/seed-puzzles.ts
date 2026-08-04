@@ -9,15 +9,19 @@ const START_DATE = "2026-04-23"; // First puzzle date
 const NUM_DAYS = 365; // How many days to seed
 const SEED = 42; // PRNG seed for reproducible shuffle
 
-// Two hidden words are "too similar" if one contains the other (e.g. ACCUSE /
-// ACCUSER) or if they match on at least this fraction of positions over the
-// shorter word's length.
+// Two hidden words on the SAME day are "too similar" if one contains the other
+// or they match on at least this fraction of positions over the shorter word.
 const SIMILARITY_THRESHOLD = 0.6;
-// How many distinct 6-letter candidates to try before giving up on a gram.
-const MAX_SIX_TRIES = 25;
+// How many candidate answers to try per gram before moving to the next gram.
+const MAX_ANSWER_TRIES = 25;
 
 type GameMode = "SIX" | "SEVEN" | "EIGHT";
 const MODES: GameMode[] = ["SIX", "SEVEN", "EIGHT"];
+type ModeKey = "6" | "7" | "8";
+const MODE_KEY: Record<GameMode, ModeKey> = { SIX: "6", SEVEN: "7", EIGHT: "8" };
+
+// Grams that must never be used as a daily puzzle in any mode, regardless of score.
+const EXCLUDED_GRAMS = new Set<string>(["AE"]);
 
 // --- Prisma ---
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
@@ -39,10 +43,10 @@ const answerPools: Record<GameMode, string[]> = {
 };
 
 type Difficulty = "EASY" | "MEDIUM" | "HARD";
-const gramScores: Record<
-  string,
-  { score: number; count: number; difficulty: Difficulty }
-> = JSON.parse(readFileSync(resolve(scriptsDir, "gram-scores.json"), "utf-8"));
+type ModeEntry = { count: number; difficulty: Difficulty };
+// gram -> per-mode entry (a mode key is present only when the gram is valid there).
+const gramScores: Record<string, Partial<Record<ModeKey, ModeEntry>>> =
+  JSON.parse(readFileSync(resolve(scriptsDir, "gram-scores.json"), "utf-8"));
 
 // --- Seeded PRNG (mulberry32) ---
 function mulberry32(seed: number) {
@@ -64,69 +68,104 @@ function shuffle<T>(array: T[], rng: () => number): T[] {
   return result;
 }
 
-// --- Similarity check between two hidden words ---
+// --- Similarity between two same-day hidden words ---
 function tooSimilar(a: string, b: string): boolean {
-  // Containment covers prefix/suffix cases like ACCUSE / ACCUSER.
   if (a.includes(b) || b.includes(a)) return true;
   const min = Math.min(a.length, b.length);
   let matches = 0;
-  for (let i = 0; i < min; i++) {
-    if (a[i] === b[i]) matches++;
-  }
+  for (let i = 0; i < min; i++) if (a[i] === b[i]) matches++;
   return matches / min >= SIMILARITY_THRESHOLD;
 }
 
-// --- Build gram -> per-mode candidate answers ---
-// Only grams that appear in gram-scores are considered, and a gram is only
-// usable for a day if it has at least one answer in every mode's pool.
-function buildGramIndex(): Map<string, Record<GameMode, string[]>> {
-  const idx = new Map<string, Record<GameMode, string[]>>();
+// --- Per-mode gram -> candidate answers index ---
+// For each mode, map every gram that is valid IN THAT MODE to the answers
+// containing it. A gram is only a candidate for a mode if gramScores[gram][mode].
+function buildGramIndex(): Record<GameMode, Map<string, string[]>> {
+  const idx: Record<GameMode, Map<string, string[]>> = {
+    SIX: new Map(),
+    SEVEN: new Map(),
+    EIGHT: new Map(),
+  };
   for (const mode of MODES) {
+    const key = MODE_KEY[mode];
     for (const word of answerPools[mode]) {
       const seen = new Set<string>();
       for (let i = 0; i < word.length - 1; i++) {
         const letters = word.substring(i, i + 2);
         if (seen.has(letters)) continue;
         seen.add(letters);
-        if (gramScores[letters] == null) continue;
-        let entry = idx.get(letters);
-        if (entry == null) {
-          entry = { SIX: [], SEVEN: [], EIGHT: [] };
-          idx.set(letters, entry);
+        if (EXCLUDED_GRAMS.has(letters)) continue;
+        if (gramScores[letters]?.[key] == null) continue;
+        let list = idx[mode].get(letters);
+        if (list == null) {
+          list = [];
+          idx[mode].set(letters, list);
         }
-        entry[mode].push(word);
+        list.push(word);
       }
     }
   }
   return idx;
 }
 
-// --- Select a non-similar 6/7/8 word triple for a gram ---
-function selectTriple(
-  cands: Record<GameMode, string[]>,
+const difficultyRank: Record<Difficulty, number> = {
+  EASY: 0,
+  MEDIUM: 1,
+  HARD: 2,
+};
+
+// Per-mode usage state, used to keep the daily combination fresh: prefer grams
+// never used in this mode, then least-recently-used.
+type ModeUsage = Map<string, { timesUsed: number; lastDate: string | null }>;
+
+// Pick a gram + answer for one mode: closest to the target difficulty, then
+// freshest (unused first, then oldest), avoiding grams already chosen for other
+// modes today and answers too similar to the day's other answers.
+function selectForMode(
+  mode: GameMode,
+  target: Difficulty,
+  gramIndex: Map<string, string[]>,
+  usage: ModeUsage,
+  excludeGrams: Set<string>,
+  chosenAnswers: string[],
   usedWords: Set<string>,
   rng: () => number,
-): Record<GameMode, string> | null {
-  const sixList = shuffle(
-    cands.SIX.filter((w) => !usedWords.has(w)),
-    rng,
-  );
-  const sevenList = shuffle(
-    cands.SEVEN.filter((w) => !usedWords.has(w)),
-    rng,
-  );
-  const eightList = shuffle(
-    cands.EIGHT.filter((w) => !usedWords.has(w)),
-    rng,
-  );
+): { gram: string; answer: string; entry: ModeEntry } | null {
+  const key = MODE_KEY[mode];
+  const targetRank = difficultyRank[target];
 
-  for (const six of sixList.slice(0, MAX_SIX_TRIES)) {
-    for (const seven of sevenList) {
-      if (tooSimilar(six, seven)) continue;
-      for (const eight of eightList) {
-        if (tooSimilar(six, eight) || tooSimilar(seven, eight)) continue;
-        return { SIX: six, SEVEN: seven, EIGHT: eight };
+  // Shuffle first so equally-ranked grams break ties randomly (but reproducibly).
+  const ranked = shuffle([...gramIndex.keys()], rng)
+    .filter((g) => !excludeGrams.has(g))
+    .sort((a, b) => {
+      const ea = gramScores[a]![key]!;
+      const eb = gramScores[b]![key]!;
+      const distA = Math.abs(difficultyRank[ea.difficulty] - targetRank);
+      const distB = Math.abs(difficultyRank[eb.difficulty] - targetRank);
+      if (distA !== distB) return distA - distB;
+
+      const ua = usage.get(a);
+      const ub = usage.get(b);
+      const tA = ua?.timesUsed ?? 0;
+      const tB = ub?.timesUsed ?? 0;
+      if (tA === 0 && tB > 0) return -1;
+      if (tB === 0 && tA > 0) return 1;
+      if (tA > 0 && tB > 0) {
+        const dA = ua?.lastDate ?? "";
+        const dB = ub?.lastDate ?? "";
+        if (dA !== dB) return dA < dB ? -1 : 1;
       }
+      return 0;
+    });
+
+  for (const gram of ranked) {
+    const answers = shuffle(
+      gramIndex.get(gram)!.filter((w) => !usedWords.has(w)),
+      rng,
+    ).slice(0, MAX_ANSWER_TRIES);
+    for (const answer of answers) {
+      if (chosenAnswers.some((other) => tooSimilar(answer, other))) continue;
+      return { gram, answer, entry: gramScores[gram]![key]! };
     }
   }
   return null;
@@ -136,40 +175,47 @@ function selectTriple(
 async function main() {
   const rng = mulberry32(SEED);
 
-  // Track gram usage state during seeding
+  // Global gram registry usage (across modes) for the Gram rows.
   const gramUsage = new Map<
     string,
     { timesUsed: number; lastDate: string | null }
   >();
+  // Per-mode usage, for freshness of the daily combination.
+  const modeUsage: Record<GameMode, ModeUsage> = {
+    SIX: new Map(),
+    SEVEN: new Map(),
+    EIGHT: new Map(),
+  };
+
   const existingGrams = await prisma.gram.findMany();
   for (const g of existingGrams) {
-    gramUsage.set(g.letters, {
-      timesUsed: g.timesUsed,
-      lastDate: g.lastUsedDate,
-    });
+    gramUsage.set(g.letters, { timesUsed: g.timesUsed, lastDate: g.lastUsedDate });
   }
 
-  // Answers already used by existing puzzles must not be reused.
   const usedWords = new Set<string>();
   const existingPuzzles = await prisma.puzzle.findMany({
-    select: { date: true, number: true, word: true },
+    select: { date: true, number: true, word: true, mode: true, gram: true },
   });
-  for (const p of existingPuzzles) usedWords.add(p.word);
+  for (const p of existingPuzzles) {
+    usedWords.add(p.word);
+    const u = modeUsage[p.mode as GameMode];
+    const prev = u.get(p.gram.letters);
+    u.set(p.gram.letters, {
+      timesUsed: (prev?.timesUsed ?? 0) + 1,
+      lastDate:
+        prev?.lastDate && prev.lastDate > p.date ? prev.lastDate : p.date,
+    });
+  }
   const existingDates = new Set(existingPuzzles.map((p) => p.date));
   let nextNumber =
     existingPuzzles.reduce((max, p) => (p.number > max ? p.number : max), 0) + 1;
 
-  // Build the gram index and keep only grams usable across all three modes.
   const gramIndex = buildGramIndex();
-  const usableGrams = [...gramIndex.keys()].filter((g) => {
-    const c = gramIndex.get(g)!;
-    return c.SIX.length > 0 && c.SEVEN.length > 0 && c.EIGHT.length > 0;
-  });
   console.log(
-    `Grams: ${gramIndex.size} scored, ${usableGrams.length} usable across all 3 modes`,
+    `Valid grams per mode -- 6:${gramIndex.SIX.size}  7:${gramIndex.SEVEN.size}  8:${gramIndex.EIGHT.size}`,
   );
 
-  // Generate dates
+  // Dates
   const startDate = new Date(START_DATE + "T00:00:00Z");
   const dates: string[] = [];
   for (let i = 0; i < NUM_DAYS; i++) {
@@ -178,7 +224,7 @@ async function main() {
     dates.push(d.toISOString().split("T")[0]);
   }
 
-  // UTC day-of-week (0=Sun..6=Sat) -> target difficulty
+  // UTC day-of-week (0=Sun..6=Sat) -> target difficulty (applied per mode)
   const difficultySchedule: Difficulty[] = [
     "HARD", // Sun
     "EASY", // Mon
@@ -188,11 +234,6 @@ async function main() {
     "MEDIUM", // Fri
     "HARD", // Sat
   ];
-  const difficultyRank: Record<Difficulty, number> = {
-    EASY: 0,
-    MEDIUM: 1,
-    HARD: 2,
-  };
 
   let created = 0;
   let skipped = 0;
@@ -205,95 +246,86 @@ async function main() {
       continue;
     }
 
-    const targetDifficulty =
+    const target =
       difficultySchedule[new Date(date + "T00:00:00Z").getUTCDay()];
-    const targetRank = difficultyRank[targetDifficulty];
 
-    // Rank usable grams: closeness to target difficulty, then prefer unused,
-    // then least-recently-used, then highest score (most guess words).
-    const ranked = [...usableGrams].sort((a, b) => {
-      const ea = gramScores[a];
-      const eb = gramScores[b];
-      const distA = Math.abs(difficultyRank[ea.difficulty] - targetRank);
-      const distB = Math.abs(difficultyRank[eb.difficulty] - targetRank);
-      if (distA !== distB) return distA - distB;
-
-      const usageA = gramUsage.get(a);
-      const usageB = gramUsage.get(b);
-      const timesA = usageA?.timesUsed ?? 0;
-      const timesB = usageB?.timesUsed ?? 0;
-      if (timesA === 0 && timesB > 0) return -1;
-      if (timesB === 0 && timesA > 0) return 1;
-      if (timesA > 0 && timesB > 0) {
-        const dateA = usageA?.lastDate ?? "";
-        const dateB = usageB?.lastDate ?? "";
-        if (dateA < dateB) return -1;
-        if (dateA > dateB) return 1;
-      }
-      return eb.score - ea.score;
-    });
-
-    // Walk ranked grams until one yields a valid (non-similar, unused) triple.
-    let chosenGram: string | null = null;
-    let triple: Record<GameMode, string> | null = null;
-    for (const gram of ranked) {
-      const t = selectTriple(gramIndex.get(gram)!, usedWords, rng);
-      if (t != null) {
-        chosenGram = gram;
-        triple = t;
+    // Pick a distinct gram + answer for each mode.
+    const picks: Record<
+      GameMode,
+      { gram: string; answer: string; entry: ModeEntry }
+    > = {} as never;
+    const excludeGrams = new Set<string>();
+    const chosenAnswers: string[] = [];
+    let ok = true;
+    for (const mode of MODES) {
+      const pick = selectForMode(
+        mode,
+        target,
+        gramIndex[mode],
+        modeUsage[mode],
+        excludeGrams,
+        chosenAnswers,
+        usedWords,
+        rng,
+      );
+      if (pick == null) {
+        ok = false;
         break;
       }
+      picks[mode] = pick;
+      excludeGrams.add(pick.gram); // grams differ across modes within the day
+      chosenAnswers.push(pick.answer);
     }
 
-    if (chosenGram == null || triple == null) {
-      console.warn(`No gram could produce a triple for ${date}, skipping`);
+    if (!ok) {
+      console.warn(`Could not assemble all 3 modes for ${date}, skipping`);
       continue;
     }
 
-    const gramEntry = gramScores[chosenGram];
-    if (gramEntry.difficulty === targetDifficulty) {
-      scheduleHits[targetDifficulty]++;
-    } else {
-      scheduleMisses[targetDifficulty]++;
-    }
-
-    // Upsert the shared Gram record once for the day.
-    const gramRecord = await prisma.gram.upsert({
-      where: { letters: chosenGram },
-      create: {
-        letters: chosenGram,
-        guessWordCount: gramEntry.count,
-        score: gramEntry.score,
-        difficulty: gramEntry.difficulty,
-        timesUsed: 1,
-        lastUsedDate: date,
-      },
-      update: {
-        timesUsed: { increment: 1 },
-        lastUsedDate: date,
-      },
-    });
-
-    const prev = gramUsage.get(chosenGram);
-    gramUsage.set(chosenGram, {
-      timesUsed: (prev?.timesUsed ?? 0) + 1,
-      lastDate: date,
-    });
-
-    // Create one puzzle per mode, sharing the day's number and gram.
     for (const mode of MODES) {
-      const word = triple[mode];
-      usedWords.add(word);
+      const { gram, answer, entry } = picks[mode];
+      const gramRecord = await prisma.gram.upsert({
+        where: { letters: gram },
+        create: {
+          letters: gram,
+          timesUsed: 1,
+          lastUsedDate: date,
+        },
+        update: {
+          timesUsed: { increment: 1 },
+          lastUsedDate: date,
+        },
+      });
+
       await prisma.puzzle.create({
         data: {
           date,
           number: nextNumber,
           mode,
           gramId: gramRecord.id,
-          word,
+          word: answer,
+          difficulty: entry.difficulty,
+          guessWordCount: entry.count,
         },
       });
+
+      usedWords.add(answer);
+      const prevGlobal = gramUsage.get(gram);
+      gramUsage.set(gram, {
+        timesUsed: (prevGlobal?.timesUsed ?? 0) + 1,
+        lastDate: date,
+      });
+      const u = modeUsage[mode];
+      const prevMode = u.get(gram);
+      u.set(gram, {
+        timesUsed: (prevMode?.timesUsed ?? 0) + 1,
+        lastDate: date,
+      });
+
+      if (entry.difficulty === target) scheduleHits[target]++;
+      else scheduleMisses[target]++;
     }
+
     nextNumber++;
     created++;
   }
@@ -305,10 +337,7 @@ async function main() {
     `Unique grams used: ${gramUsage.size}, total gram records: ${await prisma.gram.count()}`,
   );
   console.log(
-    `Schedule hits  — EASY=${scheduleHits.EASY}  MEDIUM=${scheduleHits.MEDIUM}  HARD=${scheduleHits.HARD}`,
-  );
-  console.log(
-    `Schedule misses — EASY=${scheduleMisses.EASY}  MEDIUM=${scheduleMisses.MEDIUM}  HARD=${scheduleMisses.HARD}`,
+    `Per-mode difficulty match (hit/total): EASY=${scheduleHits.EASY}/${scheduleHits.EASY + scheduleMisses.EASY}  MEDIUM=${scheduleHits.MEDIUM}/${scheduleHits.MEDIUM + scheduleMisses.MEDIUM}  HARD=${scheduleHits.HARD}/${scheduleHits.HARD + scheduleMisses.HARD}`,
   );
 
   await prisma.$disconnect();

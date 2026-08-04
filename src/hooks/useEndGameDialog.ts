@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { useGameStore, type GameStatus } from "~/stores/game-store";
 import type { GameMode } from "~/utils/game/constants";
 
-const OPEN_DELAY_MS = 1000;
+const OPEN_DELAY_MS = 2000;
 
 interface EndGameDialogState {
   isOpen: boolean;

@@ -1,10 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import clsx from "clsx";
-import { animate } from "animejs";
 import { useGameStore, type LetterFeedback } from "~/stores/game-store";
+import { useAnimeMount } from "~/hooks/useAnimeMount";
 import { GramFace } from "./GramFace";
 import { AntsOutline } from "./AntsOutline";
-import { CHAR_IN } from "./tileAnimations.constants";
+import { CHAR_IN, CHAR_OUT } from "./tileAnimations.constants";
 
 interface Props {
   chars: [string, string];
@@ -14,22 +14,54 @@ interface Props {
   leftIndex: number;
   rightIndex: number;
   editable: boolean;
+  revealDelay?: number;
 }
 
 interface GramCharProps {
   chars: [string, string];
   feedback?: LetterFeedback;
+  dismissing: boolean;
+  onExited: () => void;
+  revealDelay?: number;
 }
 
-function GramChar({ chars, feedback }: GramCharProps) {
-  const ref = useRef<HTMLSpanElement>(null);
+// Mirrors GuessTile's TileChar: the gram face animates in on mount and, when the
+// gram breaks apart (dismissing), plays CHAR_OUT and stays mounted until it
+// completes instead of vanishing instantly.
+function GramChar({
+  chars,
+  feedback,
+  dismissing,
+  onExited,
+  revealDelay,
+}: GramCharProps) {
+  const { ref, mounted, dismiss } = useAnimeMount<HTMLSpanElement>(
+    CHAR_IN,
+    CHAR_OUT,
+  );
 
   useEffect(() => {
-    if (!ref.current) return;
-    animate(ref.current, CHAR_IN);
-  }, []);
+    if (dismissing) dismiss();
+  }, [dismissing, dismiss]);
 
-  return <GramFace ref={ref} chars={chars} feedback={feedback} />;
+  useEffect(() => {
+    if (!mounted) onExited();
+  }, [mounted, onExited]);
+
+  if (!mounted) return null;
+
+  return (
+    <GramFace
+      ref={ref}
+      chars={chars}
+      feedback={feedback}
+      style={
+        revealDelay !== undefined
+          ? ({ "--reveal-delay": `${revealDelay}ms` } as CSSProperties)
+          : undefined
+      }
+    />
+  );
 }
 
 export function GramTile({
@@ -40,9 +72,30 @@ export function GramTile({
   leftIndex,
   rightIndex,
   editable,
+  revealDelay,
 }: Props) {
   const editing = useGameStore((s) => s.editing);
   const editKey = useGameStore((s) => s.editKey);
+
+  // Keep the gram face mounted through its CHAR_OUT exit: render it whenever the
+  // gram is shown, and hold it on screen while it dismisses (when `show` flips
+  // false) until the animation completes. Snapshots preserve the last shown
+  // chars/feedback so the exit animates the letters that are leaving.
+  const [renderGram, setRenderGram] = useState(show);
+  const gramKeyRef = useRef(0);
+  const charsSnapshot = useRef(chars);
+  const feedbackSnapshot = useRef(feedback);
+  if (show) {
+    charsSnapshot.current = chars;
+    feedbackSnapshot.current = feedback;
+  }
+
+  useEffect(() => {
+    if (show && !renderGram) {
+      gramKeyRef.current += 1;
+      setRenderGram(true);
+    }
+  }, [show, renderGram]);
 
   const canEdit = editable && show;
   const leftActive = canEdit && editing.toggled && editing.key === leftIndex;
@@ -59,12 +112,21 @@ export function GramTile({
     <div
       className={clsx("tile-wide", !show && "pointer-events-none")}
       style={{
-        transform: `translateX(calc(${columnStart - 1} * (var(--tile-size, 52px) + var(--tile-gap, 2px)) + var(--tile-gap, 2px) * 2))`,
+        transform: `translateX(calc(${columnStart - 1} * (var(--tile-size, 52px) + var(--tile-gap, 2px)) + var(--row-pad, 4px)))`,
         transition: "none",
       }}
       aria-hidden={!show}
     >
-      {show && <GramChar chars={chars} feedback={feedback} />}
+      {renderGram && (
+        <GramChar
+          key={gramKeyRef.current}
+          chars={charsSnapshot.current}
+          feedback={feedbackSnapshot.current}
+          dismissing={!show}
+          onExited={() => setRenderGram(false)}
+          revealDelay={revealDelay}
+        />
+      )}
       {canEdit && (
         <>
           <span

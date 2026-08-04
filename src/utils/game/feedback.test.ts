@@ -94,4 +94,49 @@ describe("computeFeedback", () => {
     expect(fb[0]).toBe("absent");
     expect(fb[1]).toBe("absent");
   });
+
+  // Offset-placed (slid) guesses: leading spaces are blank columns, and the rest
+  // of the row is scored against the absolute board columns the letters occupy.
+  describe("offset placement (blank tiles)", () => {
+    it("marks leading spaces blank and scores the letters at their absolute columns", () => {
+      // " ARDEN" over GARDEN: col0 blank, ARDEN sits at cols 1..5, its EN landing
+      // on GARDEN's EN, so the gram aligns and A/R/D are green in place.
+      const fb = computeFeedback(" ARDEN", "GARDEN", "EN");
+      expect(fb).toEqual([
+        "blank",
+        "correct",
+        "correct",
+        "correct",
+        "gramCorrect",
+        "gramCorrect",
+      ]);
+    });
+
+    it("aligns the gram by absolute column, so sliding turns a misplaced gram correct", () => {
+      // OPEN left-aligned: its EN (cols 2-3) misses GARDEN's EN (cols 4-5).
+      const flat = computeFeedback("OPEN", "GARDEN", "EN");
+      expect(flat[2]).toBe("gramMisplaced");
+      expect(flat[3]).toBe("gramMisplaced");
+      // Slid two columns so its EN lands on cols 4-5: now the gram is correct.
+      const slid = computeFeedback("  OPEN", "GARDEN", "EN");
+      expect(slid).toEqual([
+        "blank",
+        "blank",
+        "absent",
+        "absent",
+        "gramCorrect",
+        "gramCorrect",
+      ]);
+    });
+
+    it("is identical to the flat result for a full-length, offset-0 guess", () => {
+      // No leading spaces means no blanks and byte-identical behavior to before.
+      expect(computeFeedback("ENTREE", "ENTERS", "EN")).toEqual(
+        computeFeedback("ENTREE", "ENTERS", "EN"),
+      );
+      expect(
+        computeFeedback("ENTREE", "ENTERS", "EN").includes("blank"),
+      ).toBe(false);
+    });
+  });
 });

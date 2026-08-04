@@ -4,17 +4,35 @@ import {
   WORD_LENGTH_BY_MODE,
   type GameMode,
 } from "~/utils/game/constants";
+import type { ArchiveDayStatus } from "~/trpc/router";
 import { useModeNavigation } from "./useModeNavigation";
+import {
+  STATUS_BORDER,
+  STATUS_SELECTED,
+  STATUS_SURFACE,
+} from "./statusSurfaces.constants";
 
 interface ModeScoreTabsProps {
   current: GameMode;
   isPremium: boolean;
-  // Per-mode score for today's puzzle. A numeric value renders the completed
-  // (green) keycap with a score band; omit/null marks a mode as not yet played.
+  // Per-mode score for the shown puzzle, used only for the WON score band. A
+  // loss also carries a numeric score, so this can't imply the keycap color.
   scoreByMode: Partial<Record<GameMode, number | null>>;
+  // Per-mode game state driving the keycap color. This is the authoritative
+  // source for won/lost/in-progress; a missing mode reads as OPEN (not played).
+  statusByMode?: Partial<Record<GameMode, ArchiveDayStatus>>;
   // Called before a click navigates or opens the upsell, so the host dialog can
   // close itself first (see `useModeNavigation`).
   onLeave?: () => void;
+  // When provided, selecting an unlocked mode calls this instead of navigating
+  // to that mode's board. Used by the archive dialog, where the tabs choose
+  // which mode a past puzzle will be played in rather than loading a game
+  // immediately. Locked modes still fall through to the upsell.
+  onSelectMode?: (mode: GameMode) => void;
+  // When the host board is showing an archived puzzle, switching modes should
+  // navigate to that same date's puzzle rather than today's daily. Forwarded to
+  // `useModeNavigation`. Ignored when `onSelectMode` handles the click.
+  archiveDate?: string;
 }
 
 // Keycap geometry scales off the shared `--tab-size`, with a 30px fallback for
@@ -34,21 +52,35 @@ const bandStyle = {
   fontSize: "calc(var(--tab-font, 13px) * 0.72)",
 } as React.CSSProperties;
 
-const unitStyle = {
-  fontSize: "calc(var(--tab-font, 13px) * 0.55)",
-} as React.CSSProperties;
-
 export default function ModeScoreTabs({
   current,
   isPremium,
   scoreByMode,
+  statusByMode,
   onLeave,
+  onSelectMode,
+  archiveDate,
 }: ModeScoreTabsProps) {
-  const { isLocked, handleClick } = useModeNavigation(
+  const { isLocked, handleClick: navigateToMode } = useModeNavigation({
     current,
     isPremium,
     onLeave,
-  );
+    archiveDate,
+    // Keep the end-game dialog open when switching to a mode that is already
+    // completed; it just re-renders with that mode's results.
+    shouldKeepHostOpen: (mode) => typeof scoreByMode[mode] === "number",
+  });
+
+  const handleClick = (mode: GameMode) => {
+    if (mode === current) return;
+    // Selection mode (archive): an unlocked tap just sets the active mode and
+    // leaves the dialog open. Locked taps still fall through to the upsell.
+    if (onSelectMode && !isLocked(mode)) {
+      onSelectMode(mode);
+      return;
+    }
+    navigateToMode(mode);
+  };
 
   return (
     <div className="flex" style={{ gap: "calc(var(--tab-size, 30px) * 0.17)" }}>
@@ -56,19 +88,44 @@ export default function ModeScoreTabs({
         const locked = isLocked(mode);
         const active = mode === current;
         const modeScore = scoreByMode[mode];
-        const done = !locked && typeof modeScore === "number";
+        // Status is authoritative for the color; a loss carries a numeric score
+        // too, so it can't be inferred from `modeScore`. Absent = not played.
+        const modeStatus: ArchiveDayStatus = statusByMode?.[mode] ?? "OPEN";
 
-        const tileClasses = locked
-          ? "bg-locked-stripes bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-          : done
-            ? "bg-linear-to-b from-green-200 to-green-400 border-green-500 hover:from-green-300 hover:to-green-500 dark:from-green-600 dark:to-green-700 dark:border-green-800 dark:hover:from-green-500 dark:hover:to-green-600"
-            : "bg-zinc-200 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 hover:bg-zinc-300 dark:hover:bg-zinc-600";
+        // Status color language shared with ModeTabs / the archive calendar. The
+        // active keycap swaps its raised highlight for the matching depressed
+        // companion so it reads as pushed in; gradient surfaces hide a hover
+        // background, so hover feedback rides brightness instead.
+        const surfaceClasses = locked
+          ? "surface-raised text-zinc-500! opacity-60 hover:opacity-100 hover:brightness-95 dark:hover:brightness-110"
+          : active
+            ? `${STATUS_SURFACE[modeStatus]} ${STATUS_SELECTED[modeStatus]}`
+            : `${STATUS_SURFACE[modeStatus]} opacity-60 hover:opacity-100 hover:brightness-95 dark:hover:brightness-110`;
+
+        // Selected keycap border: same color family as its surface, a deeper
+        // shade for contrast (see STATUS_BORDER). The selection ring is carried
+        // by the `surface-*-selected` utility above.
+        const activeBorder = active && !locked ? STATUS_BORDER[modeStatus] : "";
 
         const numClasses = locked
           ? "text-zinc-500"
-          : done
+          : modeStatus === "WON"
             ? "text-green-900 dark:text-green-50"
-            : "text-zinc-700 dark:text-zinc-200";
+            : modeStatus === "LOST"
+              ? "text-red-900 dark:text-red-50"
+              : modeStatus === "IN_PROGRESS"
+                ? "text-yellow-900 dark:text-yellow-50"
+                : "text-zinc-700 dark:text-zinc-200";
+
+        const stateLabel = locked
+          ? " (premium)"
+          : modeStatus === "WON"
+            ? ` (${modeScore} pts)`
+            : modeStatus === "LOST"
+              ? " (failed)"
+              : modeStatus === "IN_PROGRESS"
+                ? " (in progress)"
+                : " (not played)";
 
         return (
           <button
@@ -76,14 +133,8 @@ export default function ModeScoreTabs({
             type="button"
             onClick={() => handleClick(mode)}
             aria-pressed={active}
-            aria-label={`${WORD_LENGTH_BY_MODE[mode]}-letter mode${
-              locked ? " (premium)" : done ? ` (${modeScore} pts)` : " (not played)"
-            }`}
-            className={`relative flex cursor-pointer flex-col overflow-hidden border text-left shadow-sm transition-colors ${tileClasses} ${
-              active
-                ? "ring-2 ring-offset-1 ring-green-600 ring-offset-white dark:ring-green-500 dark:ring-offset-zinc-900"
-                : ""
-            }`}
+            aria-label={`${WORD_LENGTH_BY_MODE[mode]}-letter mode${stateLabel}`}
+            className={`relative flex cursor-pointer flex-col overflow-hidden border text-left transition-all duration-150 ${surfaceClasses} ${activeBorder}`}
             style={tileStyle}
           >
             <span
@@ -100,15 +151,13 @@ export default function ModeScoreTabs({
               >
                 <Crown className="h-2.5 w-2.5 fill-yellow-400" aria-hidden="true" />
               </span>
-            ) : done ? (
-              <span
-                className="flex items-center justify-center gap-px bg-black/10 font-bold tabular-nums leading-none text-green-900 dark:bg-black/20 dark:text-green-50"
-                style={bandStyle}
-              >
-                {modeScore}
-                <small className="font-semibold opacity-65" style={unitStyle}>
-                  pts
-                </small>
+            ) : modeStatus === "WON" ? (
+              <span className="flex items-center justify-center gap-px bg-green-900/20 font-bold text-green-100 tabular-nums leading-none dark:bg-black/20" style={bandStyle} > {modeScore}</span>
+            ) : modeStatus === "LOST" ? (
+              <span className="flex items-center justify-center gap-px bg-red-900/20 font-bold text-red-100 tabular-nums leading-none dark:bg-black/20" style={bandStyle} > {modeScore}</span>
+            ) : modeStatus === "IN_PROGRESS" ? (
+              <span className="flex items-center justify-center bg-yellow-900/20 text-yellow-100 dark:bg-black/20" style={bandStyle}>
+                <CirclePlay className="h-2.5 w-2.5" aria-hidden="true" />
               </span>
             ) : (
               <span

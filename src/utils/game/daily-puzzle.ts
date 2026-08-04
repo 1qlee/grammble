@@ -14,6 +14,37 @@ export function getDateString(): string {
   return dateFormatter.format(new Date());
 }
 
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+// Renders a puzzle's `YYYY-MM-DD` date for the scoreboard: "Today" for the
+// current daily puzzle, "Jun 24" for another date this year, and "Jun 24, '26"
+// when the puzzle is from a different year than today.
+export function formatPuzzleDate(date: string): string {
+  const today = getDateString();
+  if (date === today) return "Today";
+
+  const [year, month, day] = date.split("-").map(Number);
+  const label = `${MONTHS[month - 1]} ${day}`;
+
+  const currentYear = Number(today.slice(0, 4));
+  return year === currentYear
+    ? label
+    : `${label}, '${String(year).slice(-2)}`;
+}
+
 export async function getDailyPuzzle(date: string, mode: GameMode) {
   const { prismaClient } = await import("~/utils/db/prisma");
 

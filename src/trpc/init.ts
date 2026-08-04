@@ -16,17 +16,31 @@ export interface TRPCContext {
     image?: string | null;
     isPremium: boolean;
   } | null;
+  // Best-effort client IP from proxy headers. Used to rate-limit anonymous
+  // callers. Optional so in-process callers (createCaller with a bare context)
+  // still type-check; those paths only issue queries, never rate-limited
+  // mutations.
+  clientIp?: string | null;
+}
+
+function clientIpFrom(headers: Headers): string | null {
+  return (
+    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    headers.get("x-real-ip") ||
+    null
+  );
 }
 
 export async function createTRPCContextFromHeaders(
   headers: Headers,
 ): Promise<TRPCContext> {
   const { auth } = await import("~/utils/auth/auth");
+  const clientIp = clientIpFrom(headers);
 
   try {
     const session = await auth.api.getSession({ headers });
 
-    if (!session?.user) return { user: null };
+    if (!session?.user) return { user: null, clientIp };
 
     const { prismaClient } = await import("~/utils/db/prisma");
     const dbUser = await prismaClient.user.findUnique({
@@ -51,9 +65,10 @@ export async function createTRPCContextFromHeaders(
 
     return {
       user: { ...session.user, isPremium },
+      clientIp,
     };
   } catch {
-    return { user: null };
+    return { user: null, clientIp };
   }
 }
 
