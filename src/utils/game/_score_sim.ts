@@ -113,7 +113,7 @@ function playSloppy(answer: string, gram: string, valid: string[]): Sim {
 
 // Answer-length candidates still consistent with the feedback entering each guess -- the same signal
 // candidatePoolByGuess computes server-side, recreated here from the trial's own guesses/feedback so
-// the sim exercises the exploration relief. universe6 is the answer-length gram words (the pool a
+// the sim exercises the stuck-strong breadth buff. universe6 is the answer-length gram words (the pool a
 // player reasons over); the true answer is always among them.
 function poolByGuessSim(
   guesses: string[],

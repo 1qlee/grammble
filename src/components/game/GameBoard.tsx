@@ -1,16 +1,24 @@
-import { useState, useSyncExternalStore } from "react";
+import { lazy, Suspense, useEffect, useState, useSyncExternalStore } from "react";
 import type { User } from "~/prisma-generated/browser";
 import type { DailyModeData } from "~/trpc/router";
-import EndGameDialog from "~/components/EndGameDialog";
 import Guesses from "~/components/Guesses";
 import GameLoadingOverlay from "~/components/game/GameLoadingOverlay";
 import Keyboard from "~/components/keyboard/Keyboard";
 import Button from "~/components/buttons/Button";
 import { useGameStore, type GameStatus } from "~/stores/game-store";
 import { useStatsRecorder } from "~/hooks/useStatsRecorder";
-import { useEndGameDialogStore } from "~/hooks/useEndGameDialog";
+import {
+  useEndGameDialog,
+  useEndGameDialogStore,
+} from "~/hooks/useEndGameDialog";
 import { useTimedOverlay } from "~/hooks/useTimedOverlay";
 import { useIsomorphicLayoutEffect } from "~/hooks/useIsomorphicLayoutEffect";
+
+// The end-game dialog pulls in the entire recap/stats/charts/canvas-share tree,
+// none of which is needed until a game is terminal. Splitting it here keeps that
+// subtree out of the initial (in-progress) load; it is warmed on game-over so it
+// is resolved before the auto-open delay elapses.
+const EndGameDialog = lazy(() => import("~/components/EndGameDialog"));
 
 interface GameBoardProps {
   data: DailyModeData;
@@ -48,6 +56,10 @@ export default function GameBoard({
   const storeHasData = useGameStore((s) => s.guesses.length > 0);
   const openEndGameDialog = useEndGameDialogStore((s) => s.setIsOpen);
   const setIsAppHydrated = useEndGameDialogStore((s) => s.setIsAppHydrated);
+  // Drives the IN_PROGRESS -> terminal auto-open detection from the always-mounted
+  // board rather than from inside the lazily-loaded dialog, so completing a game
+  // still opens the dialog even before its chunk has been requested.
+  const { isOpen: isEndGameOpen } = useEndGameDialog();
 
   // Before the store is seeded on the client, derive status from route
   // context so SSR and first client render agree with the user's real state.
@@ -55,6 +67,13 @@ export default function GameBoard({
     ? storeStatus
     : ((data.gameState?.status as GameStatus | undefined) ?? "IN_PROGRESS");
   const isGameOver = effectiveStatus !== "IN_PROGRESS";
+
+  // Warm the dialog chunk as soon as the game is terminal so it resolves during
+  // the auto-open delay (or before the user taps "View results"), avoiding a
+  // Suspense flash on open. The import is deduped, so this is a no-op once loaded.
+  useEffect(() => {
+    if (isGameOver) void import("~/components/EndGameDialog");
+  }, [isGameOver]);
 
   // The full-screen overlay only exists to mask the gap between the empty SSR
   // board and the client store seed on the very first load. After the app has
@@ -187,13 +206,17 @@ export default function GameBoard({
           <Keyboard />
         </div>
       )}
-      <EndGameDialog
-        puzzleNumber={data.puzzleNumber}
-        difficulty={data.difficulty}
-        isAuthed={!!user}
-        isPremium={!!user?.isPremium}
-        initialStats={data.stats}
-      />
+      {isEndGameOpen && (
+        <Suspense fallback={null}>
+          <EndGameDialog
+            puzzleNumber={data.puzzleNumber}
+            difficulty={data.difficulty}
+            isAuthed={!!user}
+            isPremium={!!user?.isPremium}
+            initialStats={data.stats}
+          />
+        </Suspense>
+      )}
     </>
   );
 }

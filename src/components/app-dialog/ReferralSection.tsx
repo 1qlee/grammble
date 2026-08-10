@@ -73,7 +73,7 @@ export default function ReferralSection({
             className="flex items-center gap-2"
             title="Copy code"
           >
-            <code className="text-sm font-mono">{referralCode}</code>
+            <code className="text-sm">{referralCode}</code>
             {copied ? (
               <Check className="w-4 h-4 text-green-500" />
             ) : (

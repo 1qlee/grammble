@@ -15,6 +15,9 @@ interface Props {
   rightIndex: number;
   editable: boolean;
   revealDelay?: number;
+  // Recap note highlight, mirroring GuessTile: "hit" rings the gram as part of the hovered/tapped
+  // note, "dim" fades it as context. Undefined leaves it at its normal appearance.
+  note?: "hit" | "dim";
 }
 
 interface GramCharProps {
@@ -73,6 +76,7 @@ export function GramTile({
   rightIndex,
   editable,
   revealDelay,
+  note,
 }: Props) {
   const editing = useGameStore((s) => s.editing);
   const editKey = useGameStore((s) => s.editKey);
@@ -110,7 +114,14 @@ export function GramTile({
 
   return (
     <div
-      className={clsx("tile-wide", !show && "pointer-events-none")}
+      className={clsx(
+        "tile-wide",
+        !show && "pointer-events-none",
+        note && "transition-[opacity,outline-color] duration-200",
+        note === "hit" &&
+          "z-10 outline outline-2 outline-offset-1 outline-zinc-900 dark:outline-zinc-100",
+        note === "dim" && "opacity-30",
+      )}
       style={{
         transform: `translateX(calc(${columnStart - 1} * (var(--tile-size, 52px) + var(--tile-gap, 2px)) + var(--row-pad, 4px)))`,
         transition: "none",

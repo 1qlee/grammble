@@ -132,6 +132,9 @@ model Settings {
   userId    String   @unique
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   theme     Theme    @default(light)
+  confirmAllGuesses Boolean @default(false)
+  colorBlindMode Boolean @default(false)
+  reduceMotion Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -121,11 +121,11 @@ export default function Tabs<T extends string>({
         onClickCapture={onClickCapture}
       >
         <div ref={tabListRef}>
-          <TabList className={`relative flex rounded-full bg-zinc-100 items-center inset-shadow-default border border-t-zinc-300/80 border-zinc-200/50 dark:bg-zinc-800 dark:border-zinc-700/80 dark:border-t-zinc-500/50 w-fit min-w-max ${size === 'sm' ? 'p-0.5' : 'p-1'}`}>
+          <TabList className={`relative flex rounded-full bg-zinc-100 items-center border border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700 w-fit min-w-max ${size === 'sm' ? 'p-0.5' : 'p-1'}`}>
             {indicator.width > 0 && (
               <div
                 aria-hidden="true"
-                className="absolute rounded-full bg-default shadow-sm transition-[left,width,top,height] duration-100"
+                className="absolute rounded-full bg-default border border-zinc-200 dark:border-zinc-700 transition-[left,width,top,height] duration-100"
                 style={{
                   left: indicator.left,
                   width: indicator.width,

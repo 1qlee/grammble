@@ -15,9 +15,21 @@ import type {
 } from "~/utils/game/recap";
 import {
   contributionLabel,
-  FRAME_LABELS,
+  frameLineLabel,
   OPENER_GRADE_KEYS,
+  OPENER_MAX,
+  openerLinePercent,
 } from "./skillLuck.constants";
+import { noteTiles, type NoteCell } from "~/utils/game/note-tiles";
+import type { LetterFeedback } from "~/utils/game/types";
+
+// The board context a note's tile attribution is resolved against: the played guesses, their
+// feedback, and whether the game was won (the winning guess is excluded from some walks).
+interface TileContext {
+  guesses: string[];
+  feedback: LetterFeedback[][];
+  won: boolean;
+}
 
 // One bar on the opener slide: the gram tile placed within a row of blank tiles, sized to the
 // share of possible answers that place it there. `position` is the gram's start slot in a word of
@@ -150,16 +162,35 @@ export interface NoteItem {
   label: string;
   points: number;
   max?: number;
+  // Set for graded-opener lines: the criterion percentage shown in place of the raw point delta, from
+  // the original weight-scaled points (before reconcileNotes rounds them for the slide's sum).
+  percent?: string;
+  // The contribution's stable key (see CONTRIBUTION_LABELS / FRAME_LABELS), kept so the recap can map
+  // the note back to the board tiles it was earned on for the hover/tap highlight.
+  key: string;
+  // Board cells the contribution refers to (see noteTiles). Usually in this note's guess row, but a
+  // neglect note points at an omitted letter's earliest appearance on an earlier row. Empty for keys
+  // with no per-tile meaning (a length shortfall), which render as plain text.
+  tiles: NoteCell[];
 }
 
 // Turn a guess's contributions into labelled score-breakdown lines, keeping raw (unrounded) point
 // values so `reconcileNotes` can round them as a group against the slide's displayed delta. Items
 // arrive pre-sorted by magnitude.
-function noteItems(items: ScoreContribution[]): NoteItem[] {
-  return items.map((it) => ({
-    label: contributionLabel(it.key, it.points),
-    points: it.points,
-  }));
+function noteItems(
+  items: ScoreContribution[],
+  gi: number,
+  ctx: TileContext
+): NoteItem[] {
+  return items.map((it) => {
+    const tiles = noteTiles(it.key, gi, ctx.guesses, ctx.feedback, ctx.won);
+    return {
+      label: contributionLabel(it.key, it.points, tiles.length),
+      points: it.points,
+      key: it.key,
+      tiles,
+    };
+  });
 }
 
 // Rounds a slide's note points so they sum to exactly `target` -- the slide's displayed score change
@@ -190,29 +221,39 @@ function reconcileNotes(notes: NoteItem[], target: number): NoteItem[] {
   return parts.filter((n) => n.points !== 0);
 }
 
-// Splits the base ledger into the structural pedestal (starting floor, per-turn costs, solve bonus)
-// and the graded OPENING (the opener's gram bet, distinct letters, full-length choice). The opening
-// is a credit earned on guess one; surfacing it on its own keeps a fast win from reading as "0
-// skill" when its skill lived entirely in the opener. The rounding crumb rides with the opening so
-// both sums stay whole numbers (the structural lines are already integers), and base + opening ===
-// frame by construction.
+// Splits the frame ledger into the structural pedestal (solve base, speed bonus) and the graded
+// OPENING (the opener's gram bet, distinct letters, full-length choice). The opening is a credit
+// earned on guess one; surfacing it on its own keeps a fast win from reading as "0 skill" when its
+// skill lived entirely in the opener.
+//
+// The score's fractional-to-whole rounding crumb is NOT shown as its own line. The opening lines are
+// rendered as percentages (see openerLinePercent), so they are not expected to sum to the opening
+// total anyway -- that makes the opening total the natural, invisible home for the crumb. We keep the
+// opening capped at OPENER_MAX so it never reads above its ceiling, and let the structural base absorb
+// only the rare crumb overflow. base + opening === frame either way, so the pillars still reconcile
+// exactly to the score.
 function splitFrameLines(frameLines: FrameLine[]): {
   baseLines: FrameLine[];
   base: number;
   openingLines: FrameLine[];
   opening: number;
 } {
-  const isOpening = (l: FrameLine) =>
-    OPENER_GRADE_KEYS.has(l.key) || l.key === "rounding";
-  const openingLines = frameLines.filter(isOpening);
-  const baseLines = frameLines.filter((l) => !isOpening(l));
+  const openingLines = frameLines.filter((l) => OPENER_GRADE_KEYS.has(l.key));
+  // Structural lines are the frame minus the opener grade AND minus the rounding crumb (never shown).
+  const baseLines = frameLines.filter(
+    (l) => !OPENER_GRADE_KEYS.has(l.key) && l.key !== "rounding"
+  );
   const sum = (ls: FrameLine[]) =>
     Math.round(ls.reduce((s, l) => s + l.points, 0));
+  const frame = sum(frameLines);
+  const structural = sum(baseLines);
+  // frame - structural is the opener grade plus the crumb; cap it at the opener ceiling.
+  const opening = Math.min(OPENER_MAX, frame - structural);
   return {
     baseLines,
-    base: sum(baseLines),
+    base: frame - opening,
     openingLines,
-    opening: sum(openingLines),
+    opening,
   };
 }
 
@@ -276,6 +317,8 @@ export function useGameRecap(enabled: boolean): {
   const status = useGameStore((s) => s.status);
   const date = useGameStore((s) => s.date);
   const mode = useGameStore((s) => s.mode);
+  const guesses = useGameStore((s) => s.guesses);
+  const feedback = useGameStore((s) => s.feedback);
   const terminal = status === "WON" || status === "LOST";
 
   const { data, isLoading } = useQuery({
@@ -290,6 +333,9 @@ export function useGameRecap(enabled: boolean): {
   const perGuess = breakdown.perGuess;
   const won = status === "WON";
   const guessCount = narrowing.perGuess.length;
+  // Board context every note's tile attribution resolves against; the recap board renders these same
+  // store rows, so a note's columns line up with the tiles the player sees.
+  const tileCtx: TileContext = { guesses, feedback, won };
 
   const { baseLines, base, openingLines, opening } = splitFrameLines(
     breakdown.frameLines
@@ -322,11 +368,14 @@ export function useGameRecap(enabled: boolean): {
       ...openingLines
         .filter((l) => l.key !== "rounding")
         .map((l) => ({
-          label: FRAME_LABELS[l.key] ?? l.key,
+          label: frameLineLabel(l.key, { points: l.points, max: l.max }),
           points: l.points,
           max: l.max,
+          key: l.key,
+          percent: openerLinePercent(l.points, l.max) ?? undefined,
+          tiles: noteTiles(l.key, 0, guesses, feedback, won),
         })),
-      ...noteItems(perGuess[0]?.items ?? []),
+      ...noteItems(perGuess[0]?.items ?? [], 0, tileCtx),
     ],
     Math.round(openerAfter) - Math.round(base)
   );
@@ -401,7 +450,7 @@ export function useGameRecap(enabled: boolean): {
         probes: step.probes,
         otherWords: step.otherWords,
         notes: reconcileNotes(
-          noteItems(pg?.items ?? []),
+          noteItems(pg?.items ?? [], idx, tileCtx),
           Math.round(running) - Math.round(scoreBefore)
         ),
         scoreBefore,

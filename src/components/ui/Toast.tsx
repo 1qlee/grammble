@@ -116,7 +116,7 @@ export default function Toast() {
             <div
               className={clsx(
                 SURFACE_BY_TYPE[cached.type],
-                "rounded-lg text-sm p-2 shadow-md pr-8 relative min-w-[200px]",
+                "rounded-lg text-sm p-2 pr-8 relative min-w-[200px]",
               )}
             >
               <span>{cached.message}</span>

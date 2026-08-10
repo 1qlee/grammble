@@ -30,6 +30,14 @@ const THEME_COLORS: Record<"light" | "dark", ThemeColors> = {
   },
 };
 
+// High-contrast overrides applied on top of the theme palette when color-blind
+// mode is on. Only the feedback fills change (matching the board/keyboard and
+// the shared emoji); background, text, absent and empty stay theme-driven.
+const COLOR_BLIND_FILLS = {
+  correct: "#f5793a",
+  misplaced: "#85c0f9",
+} as const;
+
 function colorFor(cell: LetterFeedback, colors: ThemeColors): string {
   switch (cell) {
     case "correct":
@@ -59,9 +67,12 @@ export function renderGridImage(
   wordLength: number,
   theme: "light" | "dark",
   captionLines: string[],
+  colorBlind = false,
   scale = 28, // px per cell; higher = crisper
 ): Promise<Blob | null> {
-  const colors = THEME_COLORS[theme];
+  const colors: ThemeColors = colorBlind
+    ? { ...THEME_COLORS[theme], ...COLOR_BLIND_FILLS }
+    : THEME_COLORS[theme];
   const gap = Math.round(scale * 0.14);
   const radius = Math.round(scale * 0.12);
   const pad = Math.round(scale * 0.7);

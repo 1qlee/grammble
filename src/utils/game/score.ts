@@ -1,4 +1,4 @@
-import { GRAM_LENGTH, MIN_GUESS_LENGTH } from "~/utils/game/constants";
+import { GRAM_LENGTH, MAX_GUESSES, MIN_GUESS_LENGTH } from "~/utils/game/constants";
 import type { LetterFeedback } from "~/utils/game/types";
 import {
   type Availability,
@@ -19,63 +19,78 @@ import type {
 // DEDUCTION_WEIGHT, ...) is multiplied by PT when converted into score points, so PT is the
 // single global scale of the skill texture around the frame. Larger = quality swings the
 // score more relative to the guess-count baseline.
-const PT = 37;
+const PT = 48;
 
-// The score is a running ledger, not a guess-count table. It starts from the OPENER'S OWN GRADE --
-// see gradeOpener: what the opener was worth before any feedback existed -- and then each guess
-// AFTER the opener pays an ESCALATING turn cost, the visible "cost of taking another turn." Rather
-// than a flat charge, the k-th guess (k>=2) costs TURN_COST_BASE + TURN_COST_STEP*(k-2), so a late
-// guess reads as more struggle than an early probe. That turn cost is the only place guess count
-// enters the score: a fast clean win keeps most of the base, a slow one erodes it turn by turn (and
-// faster near the tail), yet the skill points a strong slow game earns can still overtake a sloppy
-// fast one (Moderate). Solving banks SOLVE_BONUS and ends the ledger; a loss pays the turn costs but
-// never banks the bonus, so losses trend below wins without a hard cap beneath them. A 1-guess win
-// short-circuits to a flat 100 (the opener WAS the answer -- a perfect game).
+// The score is BASE + SKILL. The base is a pure GUESS-COUNT pedestal: a win at n guesses starts from
+// winBaseFor(n) and nothing else -- no unconditional floor, no per-turn ledger, no solve bonus. The
+// pedestal is high for a fast win and steps down WIN_BASE_STEP points per extra guess, so guess count
+// still leads the score, but it deliberately tops out at 100 - SKILL_HEADROOM (NOT 100), reserving the
+// top SKILL_HEADROOM points for what the player demonstrably did. Everything the player controls --
+// the opener's gram bet, distinct letters and length (graded in gradeOpener), plus the post-opener
+// skill ledger -- stacks on top of that pedestal and is the ONLY thing that fills the reserved
+// headroom. A skill-less fast win therefore sits at its pedestal while a well-played one climbs toward
+// 100, and because the per-guess step is smaller than the headroom, a strong slow game can overtake a
+// weak faster one (Moderate). A 1-guess win short-circuits to a flat 100 (the opener WAS the answer --
+// a perfect game). Luck never touches the score: how the board fell is a separate fortune readout
+// (see luck.ts).
 //
-// frameBase = gradeOpener(opener) - turnCostFor(guesses) + (won ? SOLVE_BONUS : 0)
+//   total(win)  = clamp0to100( winBaseFor(n) + openerGrade + postOpenerSkill )
+//   total(loss) = clamp0toLOSS_CAP( LOSS_BASE + openerGrade + postOpenerSkill )
 //
-// This is still a term in the guess count -- Moderate influence mathematically requires one -- but
-// it is a per-turn cost you can narrate ("another turn spent"), not an opaque band the score is
-// clamped into. Skill points then accumulate on top. Luck no longer touches the score at all: how
-// the board fell is measured separately as a fortune readout (see luck.ts).
-// The opener is graded, not gifted. Everything a player controls on guess 1 -- where they bet the
-// gram, how many distinct letters they spent, whether they used the whole word -- is knowable
-// before any feedback exists, so the starting base IS that grade rather than a flat stake. The
-// floor is what a wasteful opener still starts with; a flawless one earns the full pot on top:
-//
-//   openerBase = OPENER_FLOOR + gram-placement grade + distinct-letter grade + full-length grade
-//               (60)          + (<=5)                + (<=6)                 + (<=2)          = 73
-//
-// The gram-placement grade is capped at 5 (down from 10) on purpose. Betting the gram on its likeliest
-// slot is a PRIOR-based guess, not demonstrated play -- you are rewarded before any feedback exists --
-// so it should not dominate the base. The points it gave up were moved into the post-opener skill
-// credits (breadth, deductions, triangulation, held greens), which reward what the player actually
-// did with their later guesses. Net effect: a game won on a lucky opening bet scores lower, while a
-// game that worked the board scores higher. These three opener terms are charged HERE and nowhere
-// else: breadth/length skip the opener (see their notes), so a good opening is paid exactly once.
-const OPENER_FLOOR = 60;
-const OPENER_GRAM_MAX = 5;
-const OPENER_LETTERS_MAX = 6;
-const OPENER_LENGTH_MAX = 2;
-// The turn cost is the main lever that makes guess count matter. Its SHAPE is deliberate: the first
-// guess after the opener is a cheap probe (TURN_COST_FIRST), and every guess beyond that costs a
-// steady TURN_COST_LATER. This is NOT the old escalating quadratic -- that shape could not satisfy
-// the two ends at once. A cheap first follow-up keeps a 2-guess win high (a clean solve on the
-// second try is excellent and should read near the 90s), while a flat, non-trivial per-guess cost
-// after that still pulls each additional guess down meaningfully. Totals are 0,3,15,27,39,51 for
-// n=1..6: a 2-guess pays almost nothing, a mid-count win is clearly docked, yet the tail does not
-// explode (which an escalating curve does, cratering long wins below losses). Guess count dominates
-// the score; skill is texture on top, and turn cost never reorders games WITHIN a guess count.
-const TURN_COST_FIRST = 3;
-const TURN_COST_LATER = 12;
-const SOLVE_BONUS = 22;
+// Why a pedestal instead of the old flat-floor-minus-turn-cost ledger: the old OPENER_FLOOR handed 60
+// of 100 to every game unconditionally, and the low first-guess turn cost let almost every fast win
+// pin against the 100 ceiling, so skill had nowhere to move. Here the pedestal varies with the one
+// thing a win earns by outcome (speed), and the reserved headroom guarantees skill a place to land at
+// every guess count.
+// A win's base is a flat SOLVE credit plus a SPEED bonus for finishing early. WIN_SOLVE_BASE is what
+// any win starts from regardless of speed (it is also the slowest win's whole base, at n ===
+// MAX_GUESSES, where no speed is banked). The speed bonus then rewards guesses saved,
+// g = MAX_GUESSES - n, on a PROGRESSIVE curve: each guess saved is worth more than the last (the
+// increments grow), so an elite fast solve pops toward 100 while the slow end stays low -- which also
+// leaves more of the reserved headroom for skill at the higher guess counts, where a player actually
+// has the turns to demonstrate it. The fastest win (n === 2) banks the whole SPEED_INCREMENTS sum, so
+// its base is WIN_SOLVE_BASE + sum(SPEED_INCREMENTS); the opener grade and skill fill the rest up to
+// 100. A 1-guess win short-circuits to a flat 100 before any of this.
+// Held at 22 (LOSS_BASE 14 stays below it). The fastest win's base is WIN_SOLVE_BASE + sum(SPEED) = 70,
+// so a perfect 2-guess (base 70 + opener 20 + max 2-guess skill 9) lands exactly at 99 -- 100 is
+// reserved exclusively for the perfect 1-guess.
+const WIN_SOLVE_BASE = 22;
+// Per-guess-saved speed increments, indexed by the guess-saved count minus one: the 1st guess saved
+// (n === MAX_GUESSES - 1) is worth SPEED_INCREMENTS[0], the last (n === 2) worth the final entry.
+// Progressive here (6, 10, 14, 18, summing to a 48-point max bonus at n === 2). Dialed back from a
+// 60-point max to make room for the opener's raised 20-point ceiling while keeping the 99 cap on a
+// 2-guess. For a LINEAR speed reward instead, set every entry equal (e.g. [12, 12, 12, 12]); the shape
+// is the only thing to swap.
+const SPEED_INCREMENTS = [6, 10, 14, 18];
 
-// Fraction of a non-winning guess's turn cost refunded when that guess kept GAINING INFORMATION at a
-// point where the player could not yet see the answer (see the strong-play-relief block in
-// accumulateScore). Half, not full: gathering a clue when you are stuck should hurt LESS than
-// deducing the answer outright, but never be free -- a forced extra guess stays clearly costlier
-// than solving one turn sooner, so guess count still dominates and Moderate holds.
-const EXPLORATION_RELIEF = 0.5;
+// The opener is graded, not gifted, and its grade is the FIRST slice of the reserved skill headroom:
+// it rides ON TOP of the guess-count pedestal (as frame lines, so the recap can show the opener's
+// derivation), not inside it. Everything a player controls on guess 1 -- where they bet the gram, how
+// many distinct letters they spent, whether they used the whole word -- is knowable before any
+// feedback exists, so it is credited HERE and nowhere else (breadth and length skip the opener, so a
+// good opening is paid exactly once):
+//
+//   openerGrade = gram weight * gram%  +  letters weight * letters%  +  length weight * length%
+//               = 5 * gram%            +  10 * letters%              +  5 * length%   = up to 20
+//
+// Each criterion is scored as a PERCENTAGE of what was achievable on it, then scaled by a fixed weight
+// that sums, across the three, to OPENER_MAX (20). This is mode-INDEPENDENT: the opener tops out at 20
+// in every game mode, and the recap shows each line as its own percentage (0..100%), not a raw point
+// number, so the three percentages read cleanly on their own scale even though their weighted points do
+// not add up to a round number. The percentages are:
+//   - gram%    = fractions[openerGramStart] / bestFrac -- how close the gram bet was to the best slot.
+//   - letters% = distinct non-gram letters / non-gram slots (wordLength - GRAM_LENGTH).
+//   - length%  = how close the opener was to full length (full = 100%, shortest legal guess = 0%).
+//
+// Distinct letters carries the most weight (10) -- it is what the player actually spent. Gram (5) and
+// length (5) are equal and smaller: the gram bet is a PRIOR-based guess rewarded before any feedback
+// exists, so it should not dominate, and merely using a long word is the least skillful of the three.
+// Because each line is weight * fraction it is generally fractional; the recap hides that behind the
+// percentage display, and the frame's rounding line reconciles the fractional sum into the score.
+const OPENER_MAX = 20;
+const OPENER_GRAM_WEIGHT = 5;
+const OPENER_LETTERS_WEIGHT = 10;
+const OPENER_LENGTH_WEIGHT = 5;
 
 // The candidate pool (answer-length words still consistent with the feedback) at or below which the
 // player is treated as "in the endgame": few possible answers remain, so a further strong guess is
@@ -86,32 +101,40 @@ const EXPLORATION_RELIEF = 0.5;
 // non-winning guesses sit at a wide pool, above this line.
 const STUCK_POOL = 6;
 
-// Per-guess share of the win turn cost: the k-th guess (0-indexed) costs nothing on the opener,
-// TURN_COST_FIRST on the first follow-up, and TURN_COST_LATER on every guess after. Summed across
-// a win's guesses this equals turnCostFor(n); it exists so exploration relief can refund a slice of
-// the SPECIFIC guess it forgives rather than the whole-game total.
-function perGuessTurnCost(i: number): number {
-  if (i < 1) return 0;
-  return i === 1 ? TURN_COST_FIRST : TURN_COST_LATER;
-}
+// Extra credit (as a fraction of the guess's normal breadth share) for a guess that tested a fresh
+// letter while genuinely stuck: a won game's post-opener guess that introduced a new letter and
+// wasted nothing while the field had narrowed to the endgame (poolByGuess <= STUCK_POOL). This
+// replaces the former standalone "exploration" turn-cost refund: probing sharply when few valid words
+// remain earns a small effort bonus. It is credited as its OWN ledger line (`stuckEffort`), NOT folded
+// into breadth, so the recap can explain the concept ("few words left, but you still probed for
+// clues"). positionDeduction is deliberately NOT buffed -- it stays at parity with the other deductions.
+const STUCK_BUFF = 0.25;
 
-// Losses do NOT ride the win turn cost (its tail would crater every loss to 0) and never bank the
-// solve bonus. Instead a loss pays one flat LOSS_TURN_COST -- a loss is always a full MAX_GUESSES
-// game, so there is no per-turn count to escalate over -- and is clamped to LOSS_CAP, a ceiling that
-// sits below any real win. What moves a loss within [0, LOSS_CAP] is the skill ledger: breadth,
-// deductions, triangulation and held greens lift it, waste (now capped) lowers it, so a loss score
-// is gameplay-dependent -- a broad, exploratory loss lands well above a lazy one -- without ever
-// reaching a win's range.
-const LOSS_TURN_COST = 35;
+// Hard ceiling on the total stuck-effort bonus across a game (points, PT-independent). The bonus is a
+// small pat on the back for effort, not a scoring lever, so it is capped low rather than left to scale
+// with breadth. Charged in guess order against this budget, like the deduction/waste caps.
+const STUCK_BUFF_CAP = 3;
+
+// A loss gets its own low pedestal, LOSS_BASE, below the slowest win's pedestal (winBaseFor(6) === 22)
+// so a solved game always starts above an unsolved one -- this gap is what the removed solve bonus used
+// to express. On top of LOSS_BASE the loss still earns the opener grade and the same skill ledger, and
+// is clamped to LOSS_CAP, a ceiling that keeps even a well-played loss below a clean win's range. What
+// moves a loss within [0, LOSS_CAP] is that ledger: breadth, deductions, triangulation and held greens
+// lift it, waste (capped) lowers it, so a broad exploratory loss lands well above a lazy one.
+const LOSS_BASE = 14;
 const LOSS_CAP = 50;
 
-// Total turn cost for an n-guess WIN: the opener (k=1) is free, the first follow-up costs
-// TURN_COST_FIRST, and each guess beyond that adds a flat TURN_COST_LATER. Returns 0 for a 1-guess
-// game (special-cased to a perfect 100). Losses do not use this -- they run through the loss branch
-// in accumulateScore, which applies a gentler flat cost and a hard ceiling instead.
-function turnCostFor(n: number): number {
-  if (n < 2) return 0;
-  return TURN_COST_FIRST + TURN_COST_LATER * (n - 2);
+// The speed bonus for an n-guess WIN: the sum of SPEED_INCREMENTS over the guesses saved
+// (g = MAX_GUESSES - n). Zero at the slowest win (n === MAX_GUESSES) and the full sum at n === 2.
+// With the progressive default it yields 48, 30, 16, 6, 0 for n = 2..6, so the whole win base
+// (WIN_SOLVE_BASE + this) is 70, 52, 38, 28, 22. A 1-guess win never calls this (flat 100).
+function speedBonusFor(n: number): number {
+  const saved = MAX_GUESSES - n;
+  let bonus = 0;
+  for (let i = 0; i < saved && i < SPEED_INCREMENTS.length; i++) {
+    bonus += SPEED_INCREMENTS[i];
+  }
+  return bonus;
 }
 
 // Every point value that reaches the recap is quantized to a tenth: the ledger is read, not just
@@ -145,10 +168,14 @@ function distributeRounding(values: number[], target: number): number[] {
  *    available, so full marks mean "the most probable spot", not "a spot that happened to be
  *    common". A player who reads ER as a word ending and opens FLOWER earns this outright, whether
  *    or not today's answer actually ends in ER.
- *  - openerLetters: distinct non-gram letters spent. Repeating a letter wastes a slot and tests
- *    less of the alphabet, so it scores strictly lower than a repeat-free opener of the same length.
- *  - openerLength: full-length guesses see more of the word. Scales down to nothing at the shortest
- *    guess the game allows.
+ *  - openerLetters: distinct non-gram letters spent, as a percentage of the non-gram slots, scaled by
+ *    a weight of 10. Repeating a letter wastes a slot, so it scores strictly lower than a repeat-free
+ *    opener of the same length.
+ *  - openerLength: how close the opener was to full length, as a percentage (full = 100%, shortest
+ *    legal guess = 0%), scaled by a weight of 5.
+ *
+ * Each line's `points` is weight * percentage and its `max` is the weight, so the three sum to at most
+ * OPENER_MAX (20) in every mode; the recap renders points / max as the percentage.
  *
  * `fractions` is the per-position prior from gramPlacementDistribution; with no prior (or no gram
  * found in the opener) the gram grade is zero and the rest still stand.
@@ -159,15 +186,15 @@ function gradeOpener(
   fractions: number[],
   wordLength: number
 ): FrameLine[] {
-  const lines: FrameLine[] = [{ key: "openerFloor", points: OPENER_FLOOR }];
+  const lines: FrameLine[] = [];
 
   const bestFrac = fractions.length > 0 ? Math.max(...fractions) : 0;
   if (openerGramStart >= 0 && bestFrac > 0) {
     const frac = Math.max(0, Math.min(1, fractions[openerGramStart] ?? 0));
     lines.push({
       key: "openerGram",
-      points: round1(OPENER_GRAM_MAX * (frac / bestFrac)),
-      max: OPENER_GRAM_MAX,
+      points: round1(OPENER_GRAM_WEIGHT * (frac / bestFrac)),
+      max: OPENER_GRAM_WEIGHT,
     });
   }
 
@@ -180,22 +207,25 @@ function gradeOpener(
     if (opener[p] === " ") continue;
     chosen.add(opener[p]);
   }
+  // letters% = distinct non-gram letters / non-gram slots, scaled by the letters weight (10). The
+  // recap shows the percentage; the points are weight * fraction and may be fractional.
   const slots = Math.max(1, wordLength - GRAM_LENGTH);
   const distinct = Math.min(chosen.size, slots);
   lines.push({
     key: "openerLetters",
-    points: round1(OPENER_LETTERS_MAX * (distinct / slots)),
-    max: OPENER_LETTERS_MAX,
+    points: round1(OPENER_LETTERS_WEIGHT * (distinct / slots)),
+    max: OPENER_LETTERS_WEIGHT,
   });
 
+  // length% = how close the opener was to full length, scaled by the length weight (5). Full length is
+  // 100%, the shortest legal guess is 0%. Count real letters, not blank offset padding.
   const spread = Math.max(1, wordLength - MIN_GUESS_LENGTH);
-  // Count real letters, not blank offset padding, for the length grade.
-  const openerLetters = opener.replace(/ /g, "").length;
-  const deficit = Math.max(0, Math.min(spread, wordLength - openerLetters));
+  const openerLen = opener.replace(/ /g, "").length;
+  const deficit = Math.max(0, Math.min(spread, wordLength - openerLen));
   lines.push({
     key: "openerLength",
-    points: round1(OPENER_LENGTH_MAX * (1 - deficit / spread)),
-    max: OPENER_LENGTH_MAX,
+    points: round1(OPENER_LENGTH_WEIGHT * (1 - deficit / spread)),
+    max: OPENER_LENGTH_WEIGHT,
   });
 
   return lines.filter((l) => Math.abs(l.points) >= 0.05);
@@ -213,16 +243,6 @@ const WASTE_WEIGHT = 0.1;
 // them. Capping waste (mirroring the neglect cap) keeps the penalty a nudge, not a collapse.
 const WASTE_CAP = 5;
 
-// Penalty per letter that a guess falls short of the full word length, summed across every
-// guess -- but only for a short guess that did NO new testing (see deficitByGuess). An
-// under-committing short guess that merely re-treads known letters is charged; a short guess
-// that still introduced a fresh letter did real work and is waived. A short guess that placed
-// no fresh letter but locked in deduced ones (yellow -> green) has its charge reduced by one
-// letter per deduction, so positional work shrinks the shortfall it is charged for (applied at
-// the call site). The winning guess is always full length, so it never contributes. Charged as a
-// skill error (PT * weight per missing letter). Buffed 50% (from 0.11) with the other penalties.
-const LENGTH_WEIGHT = 0.165;
-
 // Premium for converting a yellow into a correctly placed green: you had to deduce
 // the position, which is skill, not luck. A letter handed to you as a green earns
 // no premium; placing a letter you only knew as a yellow does. This is what lets a
@@ -236,10 +256,12 @@ const DEDUCTION_WEIGHT = 0.06;
 // yellow-heavy solve that hoards every letter as a misplaced tile and then dumps them all green on
 // the winning guess earns one deduction PER letter at once, at full board knowledge -- e.g. five
 // letters in a 7-length answer stacked to +16, dwarfing every other skill term and dragging a mid-
-// count win to ~100. Capping the count holds deduction's ceiling near breadth's (CAP * PT * WEIGHT
-// ~= 3 * 37 * 0.06 ~= 6.7, matching breadth's 37 * 0.18 ~= 6.7), so placing a batch of deduced
-// letters still reads as strong play without eclipsing the whole ledger. Placing letters green
-// early is no longer punished relative to hoarding.
+// count win to ~100. Capping the count holds deduction's ceiling near breadth's -- both are
+// PT-scaled so the match is independent of PT's value: DEDUCTION_CAP * DEDUCTION_WEIGHT (3 * 0.06 =
+// 0.18) equals BREADTH_WEIGHT (0.18), so deduction's max and breadth's max are equal by construction
+// (asserted in score-ceilings.test.ts). Placing a batch of deduced letters still reads as strong
+// play without eclipsing the whole ledger, and placing letters green early is no longer punished
+// relative to hoarding.
 const DEDUCTION_CAP = 3;
 
 // Premium for a COLD placement: a green placed on a letter that was never seen as a yellow first --
@@ -265,6 +287,14 @@ const COLD_PLACEMENT_CAP = DEDUCTION_CAP;
 const NEGLECT_WEIGHT = 0.06;
 const NEGLECT_CAP = 3;
 
+// Direct penalty for playing a guess SHORTER than the full word length: a flat cost of not committing
+// to the answer length, charged per missing letter on any non-opener guess whether or not it tested
+// something new, at the softer neglect weight. Capped like neglect so a run of short guesses cannot
+// stack an unbounded penalty. The opener is exempt (its length is graded into the frame by
+// openerLength).
+const SHORT_GUESS_WEIGHT = NEGLECT_WEIGHT;
+const SHORT_GUESS_CAP = NEGLECT_CAP;
+
 // Premium for deducing the GRAM's position: the gram's letters are given, but WHERE it
 // sits in the answer is not. Each guess that places the gram in a fresh wrong spot (a
 // gramMisplaced tile) eliminates one candidate position; converting that search into the
@@ -286,9 +316,23 @@ const GRAM_DEDUCTION_WEIGHT = 0.06;
 // / NEGLECT_CAP). gramDeduction scales linearly with positions eliminated and would otherwise be
 // unbounded -- exactly the failure mode DEDUCTION_CAP exists to stop, and worse across modes: a
 // 6-letter answer has 5 gram slots, a 7-letter 6, an 8-letter 7, so longer modes could farm more
-// triangulation credit for the same skill. Capping the count holds its ceiling near the other
-// rewards (CAP * PT * WEIGHT ~= 3 * 37 * 0.06 ~= 6.7) and normalizes it across word lengths.
+// triangulation credit for the same skill. Capping the count holds its ceiling at parity with the
+// other capped credits -- GRAM_DEDUCTION_CAP * GRAM_DEDUCTION_WEIGHT equals DEDUCTION_CAP *
+// DEDUCTION_WEIGHT, so their PT-scaled maxes match by construction (asserted in
+// score-ceilings.test.ts) -- and normalizes it across word lengths.
 const GRAM_DEDUCTION_CAP = 3;
+
+// Ruling out a wrong LETTER position: an already-known-present letter (seen yellow earlier) replayed
+// at a slot not previously ruled out and still yellow eliminates one more place that letter can sit.
+// This is the letter-position sibling of gramDeduction (ruling out a wrong gram spot) -- the same
+// narrowing on a different search axis -- so it is deliberately calibrated AT PARITY with it: same
+// per-elimination weight and the same count cap. Like gramDeduction it is NOT coverage-scaled (where
+// a letter sits is an axis independent of how much of the alphabet you have found) and skips the
+// opener. Its own budget keeps it from competing with the gram cap. The letter's FIRST yellow is not
+// paid here -- that is its discovery, credited by breadth -- so discovery and a later green
+// (deduction) are never double-counted.
+const POSITION_DEDUCTION_WEIGHT = GRAM_DEDUCTION_WEIGHT;
+const POSITION_DEDUCTION_CAP = GRAM_DEDUCTION_CAP;
 
 // Penalty for re-placing the gram at a start already proven wrong (a repeated gramMisplaced
 // at the same position). That probe learns nothing new about the gram -- the position was
@@ -330,6 +374,35 @@ const HELD_GREEN_WEIGHT = 0.12;
 const BREADTH_WEIGHT = 0.18;
 const BREADTH_RAMP_LO = 4;
 const BREADTH_RAMP_HI = 7;
+
+// The tuning table, exposed ONLY for the ceiling-invariant test (score-ceilings.test.ts) and any
+// calibration tooling. These are the exact same constants used throughout this module -- referenced,
+// not re-declared, so they can never drift from the values the scorer actually uses. Grouping them
+// lets a test assert the parity relationships the comments claim (e.g. a capped credit's max equals
+// breadth's, independent of PT) instead of trusting hand-computed numbers in prose. Server-only like
+// the rest of score.ts; never import this from the client. A component's PT-scaled point CEILING is
+// PT * weight for the ramped/averaged credits (breadth, heldGreen) and PT * cap * weight for the
+// count-capped ones (deduction, coldPlacement, gramDeduction, positionDeduction).
+export const SCORE_TUNING = {
+  PT,
+  BREADTH_WEIGHT,
+  DEDUCTION_WEIGHT,
+  DEDUCTION_CAP,
+  COLD_PLACEMENT_WEIGHT,
+  COLD_PLACEMENT_CAP,
+  GRAM_DEDUCTION_WEIGHT,
+  GRAM_DEDUCTION_CAP,
+  POSITION_DEDUCTION_WEIGHT,
+  POSITION_DEDUCTION_CAP,
+  NEGLECT_WEIGHT,
+  NEGLECT_CAP,
+  SHORT_GUESS_WEIGHT,
+  SHORT_GUESS_CAP,
+  WASTE_WEIGHT,
+  WASTE_CAP,
+  GRAM_STAGNATION_WEIGHT,
+  HELD_GREEN_WEIGHT,
+} as const;
 
 const isGreen = (s: LetterFeedback | undefined) =>
   s === "correct" || s === "gramCorrect";
@@ -412,48 +485,17 @@ function countTestedLetters(
   return tested.size;
 }
 
-/**
- * Per-guess chargeable length deficit: how many letters short of full each guess was, but
- * ZERO for any short guess that still introduced a non-gram letter never tried before. A
- * short guess that does real testing (isolating the last unknown letter, probing a fresh
- * letter cheaply) is doing the game's work, not under-committing, so its shortfall is waived;
- * only a short guess that merely re-treads already-tested letters is charged. Gram tiles are
- * not counted as tested letters (the gram is given). The winning guess is always full length,
- * so it never contributes.
- */
-function deficitByGuess(
-  guesses: string[],
-  feedback: LetterFeedback[][],
-  wordLength: number
-): number[] {
-  const tested = new Set<string>();
-  const out: number[] = [];
-
-  for (let i = 0; i < guesses.length; i++) {
-    const word = guesses[i];
-    const row = feedback[i] ?? [];
-    // Blank columns (offset padding on a slid short guess) are not letters, so
-    // the shortfall is measured against the real letter count, not the padded
-    // string length.
+// Raw per-guess length shortfall: how many letters short of the full word each guess was, with NO
+// productivity waiver (the direct short-guess penalty charges it whether or not the guess tested
+// something new).
+// Blank padding on a slid short guess is not a letter. Feeds the direct short-guess penalty
+// (SHORT_GUESS_WEIGHT); the caller exempts the opener. A winning guess is the full-length answer, so
+// its shortfall is always 0 and it never contributes.
+function shortfallByGuess(guesses: string[], wordLength: number): number[] {
+  return guesses.map((word) => {
     const letterCount = word.length - countBlanks(word);
-    const short = Math.max(0, wordLength - letterCount);
-
-    let introducedNew = false;
-    const letters: string[] = [];
-    for (let p = 0; p < word.length; p++) {
-      const tile = row[p];
-      if (tile === "gramCorrect" || tile === "gramMisplaced" || tile === "blank")
-        continue;
-      const c = word[p];
-      if (!tested.has(c)) introducedNew = true;
-      letters.push(c);
-    }
-
-    out.push(short > 0 && !introducedNew ? short : 0);
-    for (const c of letters) tested.add(c);
-  }
-
-  return out;
+    return Math.max(0, wordLength - letterCount);
+  });
 }
 
 // --- Per-guess variants of the counting helpers above ---------------------------------------
@@ -540,6 +582,38 @@ function gramDeductionsByGuess(
   }
   // Never placed correctly (e.g. a loss): no credit, mirroring the scalar helper.
   return gramStarts.map(() => 0);
+}
+
+// Distinct NEW wrong letter-positions eliminated per guess (see POSITION_DEDUCTION_WEIGHT). A letter
+// ALREADY known present going into the guess (seen yellow on an earlier guess) is replayed at a slot
+// not previously ruled out and comes back yellow again: one more place that letter cannot sit. The
+// letter analog of gramDeductionsByGuess. Knowledge is read ENTERING each guess (everYellow /
+// knownWrongPos are folded in AFTER crediting), so a letter's first yellow -- its discovery, paid by
+// breadth -- earns nothing here, and a green placement (a deduction) is `correct`, not `misplaced`,
+// so it is naturally excluded too.
+function positionRuledOutByGuess(
+  guesses: string[],
+  feedback: LetterFeedback[][]
+): number[] {
+  const everYellow = new Set<string>();
+  const knownWrongPos = new Set<string>();
+  const out = guesses.map(() => 0);
+  for (let i = 0; i < guesses.length; i++) {
+    const word = guesses[i] ?? "";
+    const row = feedback[i] ?? [];
+    for (let p = 0; p < word.length; p++) {
+      if (row[p] !== "misplaced") continue;
+      const c = word[p];
+      if (everYellow.has(c) && !knownWrongPos.has(`${c}@${p}`)) out[i]++;
+    }
+    for (let p = 0; p < word.length; p++) {
+      if (row[p] === "misplaced") {
+        everYellow.add(word[p]);
+        knownWrongPos.add(`${word[p]}@${p}`);
+      }
+    }
+  }
+  return out;
 }
 
 function gramStagnationByGuess(
@@ -678,38 +752,41 @@ function wastedByGuess(
 }
 
 /**
- * Grammble scoring: opener-anchored and additive. The score is built as
+ * Grammble scoring: base-plus-skill and additive. The score is built as
  *
  *     total = clamp0to100( frame + skill )
  *
- * where `frame` is a running-ledger baseline (the GRADED OPENER minus an escalating turn cost
- * across the guesses after the opener, plus SOLVE_BONUS on a win) and `skill` is the sum of point
- * contributions accumulated guess by guess. This replaces the older guess-count band table: guess
- * count now enters ONLY as a per-turn cost -- the narratable "cost of another turn," steeper for
- * later guesses -- rather than a lookup, so strong play in a slow game can out-earn sloppy play in a
- * fast one while faster wins still keep more of the base (Moderate).
+ * where `frame` is a GUESS-COUNT PEDESTAL plus the graded opener that rides on it, and `skill` is the
+ * sum of point contributions accumulated guess by guess. The pedestal (winBaseFor(n)) is the only
+ * place guess count enters: it is high for a fast win and steps down per extra guess, but it tops out
+ * at 100 - SKILL_HEADROOM, reserving the top of the range for the opener grade and skill. Because the
+ * per-guess step is smaller than that reserved headroom, strong play in a slow game can out-earn
+ * sloppy play in a fast one (Moderate) while faster wins still start from a higher pedestal.
  *
  * The score measures only what the player controls. How the board happened to fall -- whether the
  * answer's letters turned up, whether the field collapsed kindly -- is LUCK, and luck no longer
  * feeds the score at all; it is measured separately as a standalone fortune readout (see luck.ts).
  *
- * FRAME (the opening position, then the cost of playing it out):
- *  - the opener is graded on its own merits -- gram bet, distinct letters, length -- and that grade
- *    is the starting base (see gradeOpener). A good bet scores even when today's answer sits
- *    elsewhere, because it is paid from the prior, not from the outcome.
- *  - minus an escalating turn cost per guess after the opener; plus SOLVE_BONUS on a win.
+ * FRAME (the guess-count pedestal, then the opening position that rides on it):
+ *  - a pure guess-count pedestal: winBaseFor(n) on a win, LOSS_BASE on a loss. No unconditional floor,
+ *    no per-turn cost, no solve bonus (the pedestal gap between a win and a loss replaces it).
+ *  - plus the opener graded on its own merits -- gram bet, distinct letters, length (see gradeOpener).
+ *    A good bet scores even when today's answer sits elsewhere, because it is paid from the prior, not
+ *    the outcome. This grade is the first slice of the reserved skill headroom.
  *
  * SKILL (decision quality after the opener, controllable) -- the whole of the accumulator:
  *  - breadth: distinct non-gram letters tested before the finish (ramped), split by who tested
  *    them, EXCLUDING the opener (its letters are graded into the frame).
  *  - deduction: a yellow reasoned into a green, scaled by how much was known.
  *  - gramDeduction: distinct wrong gram positions eliminated (triangulation).
+ *  - positionDeduction: distinct wrong letter positions eliminated (a known letter replayed at a
+ *    fresh slot, still yellow) -- the letter analog of gramDeduction.
  *  - heldGreen: the average green frame carried across the middle guesses.
- *  - minus waste, unproductive length, neglect, and gram stagnation (skill errors).
+ *  - minus waste, a direct short-guess penalty, neglect, and gram stagnation (skill errors).
  *
- * A 1-guess win is a perfect 100. Losses run through the SAME accumulator: they pay every turn
- * cost but never bank SOLVE_BONUS, so a well-played loss can climb while a hollow one sinks; losses
- * trend below wins without being hard-capped beneath them. `gramPositionFractions` carries the
+ * A 1-guess win is a perfect 100. Losses run through the SAME accumulator: they start from the lower
+ * LOSS_BASE pedestal and are capped at LOSS_CAP, so a well-played loss can climb while a hollow one
+ * sinks, yet a loss never reaches a clean win's range. `gramPositionFractions` carries the
  * per-position prior (see gramPlacementDistribution); when omitted the opener's gram grade is zero
  * and the rest of its grade still stands.
  */
@@ -728,8 +805,9 @@ interface ScoreParams {
   // Answer-length candidates still consistent with the feedback ENTERING each guess (poolByGuess[i]
   // = words that could still be the answer before guess i was played, the answer among them). When
   // poolByGuess[i] === 1 only the answer fits, so a further non-winning guess is forced clue-gathering
-  // and earns exploration relief (see the block in accumulateScore). The router computes this from the
-  // solver; absent -> relief never fires, so old callers, tests, and the sim are unaffected.
+  // and earns the stuck-strong breadth buff (see the breadth block in accumulateScore). The router
+  // computes this from the solver; absent -> the buff never fires, so old callers, tests, and the sim
+  // are unaffected.
   poolByGuess?: number[];
 }
 
@@ -850,6 +928,11 @@ function accumulateScore(params: ScoreParams): ScoreBreakdown {
   );
   const breadthPoints = PT * BREADTH_WEIGHT * breadthRamp;
   const newTested = newTestedByGuess(guesses, feedback, won);
+  // Wasted (dead-letter retry) count per guess; computed here so the stuck-strong breadth buff below
+  // can require a clean guess. Its own capped penalty is applied later, in the waste block.
+  const waste = wastedByGuess(guesses, feedback);
+  // New wrong letter-positions ruled out per guess; credited below (position triangulation).
+  const positionRuledOut = positionRuledOutByGuess(guesses, feedback);
   // The opener still gates the ramp (it covers letters like any guess), but its letters are paid in
   // the frame, not here, so the pot is split over the NON-OPENER new testing only. Dividing by that
   // non-opener total -- rather than the whole-game total with the opener's slice thrown away -- is
@@ -860,10 +943,32 @@ function accumulateScore(params: ScoreParams): ScoreBreakdown {
     (s, x, i) => (i === 0 ? s : s + x),
     0
   );
+  // A won game's post-opener guess that kept probing sharply while genuinely stuck -- introduced a new
+  // letter, wasted nothing, and the field had narrowed to the endgame (poolByGuess <= STUCK_POOL) --
+  // earns a STUCK_BUFF premium on the breadth it contributed, credited as its own `stuckEffort` line
+  // (capped at STUCK_BUFF_CAP total) rather than inflating the breadth number. This is the reward-side
+  // sibling of the neglect/stagnation waivers: don't under-credit a move a sharp player had no better
+  // alternative to. It needs the solver's per-guess pool counts (the router supplies them); absent
+  // poolByGuess it never fires, so old callers, tests, and the sim are unchanged unless they pass it.
+  const stuckStrong = (i: number): boolean =>
+    won &&
+    i >= 1 &&
+    i <= lastNonWin &&
+    !!params.poolByGuess &&
+    newTested[i] > 0 &&
+    waste[i] === 0 &&
+    (params.poolByGuess[i] ?? Infinity) <= STUCK_POOL;
+  let stuckBudget = STUCK_BUFF_CAP;
   if (breadthPoints > 0 && nonOpenerNewTested > 0) {
     newTested.forEach((t, i) => {
       if (i === 0 || t === 0) return;
-      add("breadth", breadthPoints * (t / nonOpenerNewTested), i);
+      const share = breadthPoints * (t / nonOpenerNewTested);
+      add("breadth", share, i);
+      if (stuckStrong(i) && stuckBudget > 0) {
+        const bonus = Math.min(stuckBudget, share * STUCK_BUFF);
+        stuckBudget -= bonus;
+        add("stuckEffort", bonus, i);
+      }
     });
   }
 
@@ -915,7 +1020,20 @@ function accumulateScore(params: ScoreParams): ScoreBreakdown {
     add("gramDeduction", PT * GRAM_DEDUCTION_WEIGHT * charged, i);
   });
 
-  // skill-error penalties: gram stagnation, waste, unproductive length, neglect (capped in order).
+  // position triangulation (skill): distinct wrong LETTER positions eliminated -- a known-present
+  // letter replayed at a fresh slot that comes back yellow again (see POSITION_DEDUCTION_WEIGHT). The
+  // letter analog of gram triangulation above: same parity weight, same count cap consumed in guess
+  // order, its own budget, and no coverage damping. It is NOT stuck-buffed -- it stays at parity with
+  // the other deductions rather than riding the breadth premium.
+  let positionDeductionBudget = POSITION_DEDUCTION_CAP;
+  positionRuledOut.forEach((d, i) => {
+    if (d <= 0 || positionDeductionBudget <= 0) return;
+    const charged = Math.min(d, positionDeductionBudget);
+    positionDeductionBudget -= charged;
+    add("positionDeduction", PT * POSITION_DEDUCTION_WEIGHT * charged, i);
+  });
+
+  // skill-error penalties: gram stagnation, waste, neglect, short guess (capped in order).
   // Stagnation and neglect waive charges the player could not have avoided (see Availability): a
   // re-parked gram is not charged when no unplayed word could reach a fresh position, and an omitted
   // known letter is not charged when no unplayed non-answer word contains it.
@@ -929,7 +1047,6 @@ function accumulateScore(params: ScoreParams): ScoreBreakdown {
       if (s > 0) add("gramStagnation", -PT * GRAM_STAGNATION_WEIGHT * s, i);
     }
   );
-  const waste = wastedByGuess(guesses, feedback);
   let wasteBudget = WASTE_CAP;
   waste.forEach((w, i) => {
     if (w <= 0 || wasteBudget <= 0) return;
@@ -937,23 +1054,22 @@ function accumulateScore(params: ScoreParams): ScoreBreakdown {
     wasteBudget -= charged;
     add("waste", -PT * WASTE_WEIGHT * charged, i);
   });
-  deficitByGuess(guesses, feedback, wordLength).forEach((deficit, i) => {
-    // The opener's length is graded into the base (openerLength); charging it here too would
-    // punish a short opener twice.
-    if (i === 0 || deficit <= 0) return;
-    // A short guess that placed deduced letters (yellow -> green) did positional work, so forgive
-    // one letter of the shortfall per deduction it made this guess: the same placements credited by
-    // the deduction premium above. This only shrinks the charge (a short guess that deduced as many
-    // letters as it fell short pays nothing); it never turns the penalty into a bonus.
-    const chargeable = Math.max(0, deficit - deductions[i]);
-    if (chargeable > 0) add("length", -PT * LENGTH_WEIGHT * chargeable, i);
-  });
   let neglectBudget = NEGLECT_CAP;
   neglectByGuess(guesses, feedback, won, params.probePool).forEach((c, i) => {
     if (c <= 0 || neglectBudget <= 0) return;
     const charged = Math.min(c, neglectBudget);
     neglectBudget -= charged;
     add("neglect", -PT * NEGLECT_WEIGHT * charged, i);
+  });
+  // Direct short-guess penalty: every non-opener guess shorter than the full word is charged per
+  // missing letter, unconditionally (see SHORT_GUESS_WEIGHT). Purely about length and separate from
+  // the no-progress penalty above, so a short guess always carries a cost. Capped in guess order.
+  let shortGuessBudget = SHORT_GUESS_CAP;
+  shortfallByGuess(guesses, wordLength).forEach((short, i) => {
+    if (i === 0 || short <= 0 || shortGuessBudget <= 0) return;
+    const charged = Math.min(short, shortGuessBudget);
+    shortGuessBudget -= charged;
+    add("shortGuess", -PT * SHORT_GUESS_WEIGHT * charged, i);
   });
 
   // heldGreen (skill): the average green frame carried across the middle guesses (1..lastNonWin).
@@ -977,56 +1093,33 @@ function accumulateScore(params: ScoreParams): ScoreBreakdown {
     }
   }
 
-  // strong-play relief (skill, wins only): a slow game should not harshly punish a player who kept
-  // GAINING INFORMATION when they could not yet see the answer. Each NON-WINNING post-opener guess
-  // that played STRONG -- introduced a new letter (newTested > 0) and re-tested no dead letter
-  // (waste === 0) -- while the field had genuinely narrowed toward the endgame (poolByGuess <=
-  // STUCK_POOL, i.e. only a handful of possible answers remained: the pool==1 "only the answer fits"
-  // case AND its close neighbours) earns back half its turn cost. This lets continued strong play
-  // counteract the guess-count penalty exactly where a stuck-but-sharp player would otherwise feel
-  // over-docked, without rewarding wheel-spinning (a waste or no-new-letter guess earns nothing) and
-  // without touching fast wins (their non-winning guesses sit at a wide-open pool, above the
-  // threshold). It is the reward-side sibling of the neglect/stagnation waivers: don't punish a move a
-  // sharp player had no better alternative to. Bounded at half the guess's turn cost, so a forced
-  // extra guess still nets negative and guess count keeps leading. Needs the solver's per-guess pool
-  // counts (the router supplies them); absent poolByGuess it never fires, so old callers, tests, and
-  // the sim are unchanged unless they pass it.
-  if (won && lastNonWin >= 1 && params.poolByGuess) {
-    for (let i = 1; i <= lastNonWin; i++) {
-      if (newTested[i] <= 0 || waste[i] > 0) continue;
-      if ((params.poolByGuess[i] ?? Infinity) > STUCK_POOL) continue;
-      add("exploration", EXPLORATION_RELIEF * perGuessTurnCost(i), i);
-    }
-  }
-
   // Luck no longer touches the score. The uncertainty drag, gram-lock relief, coverage and endgame
   // credits that used to live here were the "how the board fell" terms; they are gone from the score
   // and measured separately as a standalone fortune readout (see luck.ts). What the player controls
   // -- breadth, deductions, gram triangulation, held greens, and the clean-play penalties above --
   // is the whole of skill now. Per-guess coverage still scales the deduction premium.
 
-  // Running-ledger base, itemized: the graded opener, then the outcome-specific tail. Skill (added
-  // above) builds on top. The parts sum to the baseline and are surfaced so the recap can show the
-  // derivation.
-  const frameParts: FrameLine[] = gradeOpener(
+  // Base ledger, itemized: on a win the flat solve credit plus the speed bonus for finishing early
+  // (omitted at the slowest win, where it is zero), on a loss the lower LOSS_BASE; then the graded
+  // opener that rides on top. Skill (added above) builds on top of all of it. The parts sum to the
+  // baseline and are surfaced so the recap can show the derivation. A win is clamped to 100; a loss to
+  // LOSS_CAP, which sits below any clean win's range.
+  const openerLines = gradeOpener(
     guesses[0] ?? "",
     openerGramStart,
     fractions,
     wordLength
   );
   if (won) {
-    // Win: opener grade minus the (cheap-first, then flat) turn cost, plus the solve bonus. Clamped
-    // to 100.
-    if (n > 1) frameParts.push({ key: "turnCost", points: -turnCostFor(n) });
-    frameParts.push({ key: "solveBonus", points: SOLVE_BONUS });
-    return finalize(frameParts);
+    const speed = speedBonusFor(n);
+    const frameParts: FrameLine[] = [
+      { key: "winBase", points: WIN_SOLVE_BASE },
+      ...(speed > 0 ? [{ key: "speedBonus", points: speed }] : []),
+      ...openerLines,
+    ];
+    return finalize(frameParts, 100);
   }
-  // Loss: no solve bonus and no escalating turn cost -- one flat LOSS_TURN_COST instead -- and a
-  // ceiling of LOSS_CAP so a loss can never reach a win's range. Skill (breadth, deductions, held
-  // greens, minus capped waste) is what moves the loss within [0, LOSS_CAP], making it gameplay-
-  // dependent rather than a flat floor.
-  frameParts.push({ key: "lossCost", points: -LOSS_TURN_COST });
-  return finalize(frameParts, LOSS_CAP);
+  return finalize([{ key: "lossBase", points: LOSS_BASE }, ...openerLines], LOSS_CAP);
 }
 
 /**

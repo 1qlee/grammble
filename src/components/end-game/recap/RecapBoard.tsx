@@ -2,6 +2,7 @@ import { type CSSProperties } from "react";
 import { useGameStore } from "~/stores/game-store";
 import { MAX_GUESSES } from "~/utils/game/constants";
 import { GuessRow } from "~/components/guesses/GuessRow";
+import type { NoteCell } from "~/utils/game/note-tiles";
 
 /**
  * The player's board at recap scale, built up one guess at a time: just the `revealCount` submitted
@@ -14,7 +15,17 @@ import { GuessRow } from "~/components/guesses/GuessRow";
  * out the inter-tile gaps: `cols` tiles plus their gaps fill the row exactly, and every tile-derived
  * value (font size, corner radius, the gram overlay's offset) scales off that one variable.
  */
-export function RecapBoard({ revealCount }: { revealCount: number }) {
+export function RecapBoard({
+  revealCount,
+  highlight,
+}: {
+  revealCount: number;
+  // A note highlight from the score breakdown: the exact board cells to emphasise (every other tile
+  // in a row that contains a highlighted cell is dimmed). Null when nothing is hovered/tapped. Rows
+  // with no highlighted cell render normally, so a note can point at any row (e.g. neglect highlights
+  // an omitted letter's earliest appearance, not the note's own guess row).
+  highlight?: NoteCell[] | null;
+}) {
   const guesses = useGameStore((s) => s.guesses);
   const feedback = useGameStore((s) => s.feedback);
   const gram = useGameStore((s) => s.gram);
@@ -39,6 +50,11 @@ export function RecapBoard({ revealCount }: { revealCount: number }) {
     >
       {Array.from({ length: shown }, (_, i) => {
         const revealed = !!guesses[i] && !!feedback[i];
+        // While a note is active every row reacts: this row's matching cells stay lit, every other
+        // tile on the board dims. A row with no matching cell gets an empty list, dimming all of it.
+        const rowCols = highlight
+          ? highlight.filter((cell) => cell.row === i).map((cell) => cell.col)
+          : [];
         return (
           <GuessRow
             key={i}
@@ -52,6 +68,7 @@ export function RecapBoard({ revealCount }: { revealCount: number }) {
             revealRow={i === newestIdx ? 0 : undefined}
             animateIn={i === newestIdx}
             padded={false}
+            highlightCols={highlight ? rowCols : undefined}
           />
         );
       })}

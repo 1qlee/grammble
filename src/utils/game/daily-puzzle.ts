@@ -1,5 +1,6 @@
-import type { GameMode } from "./constants";
-import { GAME_MODES } from "./constants";
+// Client-safe daily-puzzle helpers only. Server-only puzzle lookups (which touch
+// Prisma) live in daily-puzzle-db.ts so this module can be imported by client
+// components without pulling the Prisma client into the browser bundle.
 
 const PUZZLE_TIMEZONE = "America/Los_Angeles";
 
@@ -43,36 +44,4 @@ export function formatPuzzleDate(date: string): string {
   return year === currentYear
     ? label
     : `${label}, '${String(year).slice(-2)}`;
-}
-
-export async function getDailyPuzzle(date: string, mode: GameMode) {
-  const { prismaClient } = await import("~/utils/db/prisma");
-
-  const puzzle = await prismaClient.puzzle.findUnique({
-    where: { date_mode: { date, mode } },
-    include: { gram: true },
-  });
-
-  if (!puzzle) {
-    throw new Error(`No puzzle found for date ${date} mode ${mode}`);
-  }
-
-  return puzzle;
-}
-
-export async function getAllDailyPuzzles(date: string) {
-  const { prismaClient } = await import("~/utils/db/prisma");
-
-  const puzzles = await prismaClient.puzzle.findMany({
-    where: { date },
-    include: { gram: true },
-  });
-
-  const byMode = new Map(puzzles.map((p) => [p.mode, p]));
-  for (const mode of GAME_MODES) {
-    if (!byMode.has(mode)) {
-      throw new Error(`No puzzle found for date ${date} mode ${mode}`);
-    }
-  }
-  return byMode as Map<GameMode, (typeof puzzles)[number]>;
 }

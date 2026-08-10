@@ -3,8 +3,8 @@ import { cubicBezier } from "animejs";
 // The keycap rising out of the slot when a letter is entered: fades in from
 // 10px below, overshoots up past its resting spot, then settles back down.
 // Pairs with TILE_SLOT_PUNCH on the parent .tile for a "keycap pops out of the
-// well" feel. The resting raised-edge shadow lives on `.tile-char`/surface-raised
-// in CSS, so we only tween transform + opacity here.
+// well" feel. The resting surface (flat fill + border) lives on
+// `.tile-char`/surface-raised in CSS, so we only tween transform + opacity here.
 export const CHAR_IN = {
   opacity: [{ from: 0, to: 1, duration: 90 }],
   translateY: [

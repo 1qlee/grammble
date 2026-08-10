@@ -2,11 +2,11 @@ import * as v from "valibot";
 import { TRPCError } from "@trpc/server";
 import type { TRPCContext } from "./init";
 import { createTRPCRouter, publicProcedure, protectedProcedure } from "./init";
+import { getDateString } from "~/utils/game/daily-puzzle";
 import {
-  getDateString,
   getDailyPuzzle,
   getAllDailyPuzzles,
-} from "~/utils/game/daily-puzzle";
+} from "~/utils/game/daily-puzzle-db";
 import { getGuessSet } from "~/utils/game/word-list";
 import { computeFeedback } from "~/utils/game/feedback";
 import { parseGuess } from "~/utils/game/guess-placement";
@@ -44,8 +44,8 @@ async function gramFractionsFor(
 }
 
 // Answer-length candidates still consistent with the feedback entering each guess. Feeds the score's
-// exploration relief: where this is 1, only the answer still fit, so a further probe was forced
-// clue-gathering (see accumulateScore). Solver is server-only, hence the dynamic import.
+// stuck-strong breadth buff: where this is small, only a handful still fit, so a further probe was
+// clue-gathering while stuck (see accumulateScore). Solver is server-only, hence the dynamic import.
 async function poolByGuessFor(
   mode: GameMode,
   gram: string,
@@ -235,6 +235,8 @@ export type ArchiveDay = {
   number: number;
   gram: string;
   status: ArchiveDayStatus;
+  // Session score for the day; only meaningful for WON/LOST, null otherwise.
+  score: number | null;
 };
 
 export type ArchiveData = {
@@ -389,19 +391,21 @@ const gameRouter = createTRPCRouter({
               userId: ctx.user.id,
               puzzleId: { in: visible.map((p) => p.id) },
             },
-            select: { puzzleId: true, status: true },
+            select: { puzzleId: true, status: true, score: true },
           })
         : [];
-      const statusByPuzzle = new Map(
-        sessions.map((s) => [s.puzzleId, s.status as ArchiveDayStatus])
-      );
+      const sessionByPuzzle = new Map(sessions.map((s) => [s.puzzleId, s]));
 
-      const days: ArchiveDay[] = visible.map((p) => ({
-        date: p.date,
-        number: p.number,
-        gram: p.gram.letters,
-        status: statusByPuzzle.get(p.id) ?? "OPEN",
-      }));
+      const days: ArchiveDay[] = visible.map((p) => {
+        const session = sessionByPuzzle.get(p.id);
+        return {
+          date: p.date,
+          number: p.number,
+          gram: p.gram.letters,
+          status: (session?.status as ArchiveDayStatus) ?? "OPEN",
+          score: session?.score ?? null,
+        };
+      });
 
       const prev = await prismaClient.puzzle.findFirst({
         where: { mode: input.mode, date: { lt: start } },
@@ -586,7 +590,7 @@ const gameRouter = createTRPCRouter({
         probePool,
         gram,
         // Reuse the narrowing already computed above: perGuess[i].before is the candidate count
-        // entering guess i, so no second solver pass is needed for the exploration-relief signal.
+        // entering guess i, so no second solver pass is needed for the stuck-strong breadth signal.
         poolByGuess: narrowing.perGuess.map((p) => p.before),
       });
 

@@ -4,7 +4,9 @@ import { Odometer } from "../stats/Odometer";
 import {
   AXIS_END_LABELS,
   contributionLabel,
-  FRAME_LABELS,
+  frameLineLabel,
+  OPENER_GRADE_KEYS,
+  openerLinePercent,
 } from "./skillLuck.constants";
 import {
   contentDelay,
@@ -44,15 +46,15 @@ function signedLabel(n: number): string {
   return n > 0 ? `+${n}` : `${n}`;
 }
 
-// Shared track styling: every pillar well reads as an inset (zinc-100 light / zinc-900 dark,
-// bordered one shade off). Fills are top-to-bottom gradients wherever their color appears.
+// Shared track styling: every pillar well is a flat zinc-100 light / zinc-900 dark surface,
+// bordered one shade off. Fills are solid colors wherever their color appears.
 const TRACK =
   "rounded-lg border border-zinc-300 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900";
-const FILL_BLUE = "bg-gradient-to-b from-blue-400 to-blue-500";
-const FILL_AMBER = "bg-gradient-to-b from-amber-400 to-amber-500";
-const FILL_ZINC = "bg-gradient-to-b from-zinc-400 to-zinc-500";
-const FILL_BASE = "bg-gradient-to-b from-green-400 to-green-500";
-const FILL_OPENING = "bg-gradient-to-b from-purple-400 to-purple-500";
+const FILL_BLUE = "bg-blue-500";
+const FILL_AMBER = "bg-amber-500";
+const FILL_ZINC = "bg-zinc-500";
+const FILL_BASE = "bg-green-500";
+const FILL_OPENING = "bg-purple-500";
 
 // Text + fill colors for a signed skill value: a gain reads blue, a penalty amber, zero neutral zinc.
 function axisStyle(value: number) {
@@ -111,10 +113,12 @@ function LedgerLine({
   label,
   points,
   max,
+  percent,
 }: {
   label: string;
   points: number;
   max?: number;
+  percent?: string;
 }) {
   const tone =
     points > 0
@@ -126,21 +130,20 @@ function LedgerLine({
     <div className="flex items-center justify-between text-xs">
       <span className="text-accent">{label}</span>
       <span className="tabular-nums">
-        <span className={`font-bold ${tone}`}>{signedPoints(points)}</span>
-        {max != null && (
-          <span className="text-zinc-400 dark:text-zinc-500"> / {max}</span>
+        {percent != null ? (
+          // A graded-opener line reads as its criterion percentage, not a raw point count.
+          <span className={`font-bold ${tone}`}>{percent}</span>
+        ) : (
+          <>
+            <span className={`font-bold ${tone}`}>{signedPoints(points)}</span>
+            {max != null && (
+              <span className="text-zinc-400 dark:text-zinc-500"> / {max}</span>
+            )}
+          </>
         )}
       </span>
     </div>
   );
-}
-
-// Player-facing label for a frame ledger line. turnCost carries the guess count, built here since
-// the count is not knowable server-side at label time; every other key maps through FRAME_LABELS.
-function frameLineLabel(key: string, guessCount: number): string {
-  if (key === "turnCost")
-    return `${guessCount} ${guessCount === 1 ? "guess" : "guesses"} taken`;
-  return FRAME_LABELS[key] ?? key;
 }
 
 // One line in a pillar's expandable breakdown. `max` is the ceiling for graded opener items, so the
@@ -149,27 +152,29 @@ interface BreakdownLine {
   label: string;
   points: number;
   max?: number;
+  // Set for graded-opener lines: the criterion percentage shown in place of the raw point count.
+  percent?: string;
 }
 
 // A pillar's data: an additive credit (base, opening) fills bottom-up on a 0-100 scale; the diverging
 // skill axis fills out from the center tick, up for a gain and down for a penalty.
 type Pillar =
   | {
-      kind: "additive";
-      key: string;
-      label: string;
-      value: number;
-      fill: string;
-      lines: BreakdownLine[];
-    }
+    kind: "additive";
+    key: string;
+    label: string;
+    value: number;
+    fill: string;
+    lines: BreakdownLine[];
+  }
   | {
-      kind: "diverging";
-      key: string;
-      label: string;
-      value: number;
-      axis: "skill";
-      lines: BreakdownLine[];
-    };
+    kind: "diverging";
+    key: string;
+    label: string;
+    value: number;
+    axis: "skill";
+    lines: BreakdownLine[];
+  };
 
 const TRACK_HEIGHT = 132;
 
@@ -277,9 +282,8 @@ function PillarColumn({
       className="group flex cursor-pointer flex-col items-center gap-2.5 focus:outline-none"
     >
       <span
-        className={`relative w-full overflow-hidden transition-shadow ${TRACK} ${
-          open ? `ring-2 ${ring.active}` : `group-hover:ring-2 ${ring.hover}`
-        }`}
+        className={`relative w-full overflow-hidden transition-shadow ${TRACK} ${open ? `ring-2 ${ring.active}` : `group-hover:ring-2 ${ring.hover}`
+          }`}
         style={{ height: TRACK_HEIGHT }}
       >
         <PillarFill
@@ -308,9 +312,8 @@ function PillarBreakdown({ pillar }: { pillar: Pillar | null }) {
     pillar?.kind === "diverging" ? AXIS_END_LABELS[pillar.axis] : null;
   return (
     <div
-      className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-        pillar ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-      }`}
+      className={`grid transition-[grid-template-rows] duration-300 ease-out ${pillar ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
     >
       <div className="overflow-hidden">
         <div className="mt-4 flex flex-col gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-800">
@@ -331,6 +334,7 @@ function PillarBreakdown({ pillar }: { pillar: Pillar | null }) {
                     label={line.label}
                     points={line.points}
                     max={line.max}
+                    percent={line.percent}
                   />
                 ))
               ) : (
@@ -391,26 +395,38 @@ export function OverviewScorePanel({
       value: base,
       fill: FILL_BASE,
       lines: baseLines.map((l) => ({
-        label: frameLineLabel(l.key, guessCount),
+        label: frameLineLabel(l.key, {
+          guessCount,
+          points: l.points,
+          max: l.max,
+        }),
         points: l.points,
         max: l.max,
       })),
     },
     ...(hasOpening
       ? [
-          {
-            kind: "additive" as const,
-            key: "opening",
-            label: "Opener",
-            value: opening,
-            fill: FILL_OPENING,
-            lines: openingLines.map((l) => ({
-              label: frameLineLabel(l.key, guessCount),
+        {
+          kind: "additive" as const,
+          key: "opening",
+          label: "Opener",
+          value: opening,
+          fill: FILL_OPENING,
+          lines: openingLines.map((l) => ({
+            label: frameLineLabel(l.key, {
+              guessCount,
               points: l.points,
               max: l.max,
-            })),
-          },
-        ]
+            }),
+            points: l.points,
+            max: l.max,
+            // Graded-opener lines display their criterion percentage; the rounding crumb stays raw.
+            percent: OPENER_GRADE_KEYS.has(l.key)
+              ? (openerLinePercent(l.points, l.max) ?? undefined)
+              : undefined,
+          })),
+        },
+      ]
       : []),
     {
       kind: "diverging",
@@ -440,14 +456,24 @@ export function OverviewScorePanel({
       </div>
       <div {...step}>
         <p className="text-accent text-sm leading-snug">
-          Your score is a <span className="font-semibold">base</span> for
-          solving plus what your <span className="font-semibold">opener</span>{" "}
-          earned, nudged by the <span className="font-semibold">skill</span> of
+          Your score is a{" "}
+          <span className="font-semibold text-green-600 dark:text-green-400">
+            base
+          </span>{" "}
+          for solving plus what your{" "}
+          <span className="font-semibold text-purple-600 dark:text-purple-400">
+            opener
+          </span>{" "}
+          earned, nudged by the{" "}
+          <span className="font-semibold text-blue-600 dark:text-blue-400">
+            skill
+          </span>{" "}
+          of
           every guess after. Tap a pillar to see what drove it.
         </p>
       </div>
       <div {...step}>
-        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
           <div
             className="grid gap-3"
             style={{

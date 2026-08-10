@@ -92,7 +92,7 @@ export default function ArchiveButton({
         type="button"
         onClick={handleClick}
         aria-label={`Puzzle number ${puzzleNumber}. Open archive${isPremium ? "" : " (premium)"}`}
-        className="surface-raised relative inline-flex items-center justify-center leading-none cursor-pointer transition-transform duration-150 hover:-translate-y-px active:translate-y-0"
+        className="surface-raised relative inline-flex items-center justify-center leading-none cursor-pointer transition-colors duration-150 hover:bg-zinc-100 active:bg-zinc-200 dark:hover:bg-zinc-700 dark:active:bg-zinc-600"
         style={{
           height: "var(--sb-gram-h, 30px)",
           padding: "0 calc(var(--sb-gram-h, 30px) * 0.28)",

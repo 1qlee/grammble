@@ -14,6 +14,11 @@ import { resolve } from "path";
 //   3. Not a regular plural / 3rd-person-singular -- a common stem + "S" (CLAIMS,
 //      SYSTEMS) is a cheap, never-the-answer guess that does not reflect genuine
 //      vocabulary for the gram.
+//   4. Not a proper noun -- names like SYDNEY, RODNEY, SIDNEY are recognizable
+//      but are not vocabulary a player reaches for. Without this filter a gram
+//      like DN scrapes past the supply floor on names (SYDNEY/SIDNEY/RODNEY)
+//      while only KIDNEY / KIDNAP are real words. The excluded set is precomputed
+//      in scripts/proper-nouns.json (generate-proper-nouns.py).
 //
 // A gram is valid for a mode when its viable count in that mode >= MIN_SUPPLY.
 // Difficulty is the tercile of viable supply WITHIN that mode's own distribution.
@@ -24,7 +29,11 @@ const MODES = [6, 7, 8] as const;
 type Mode = (typeof MODES)[number];
 
 const FREQ_THRESHOLD = 3.3;
-const MIN_SUPPLY = 5;
+// Minimum count of clean (proper-noun-filtered) viable words for a gram to be
+// valid in a mode. Raised from 5 once proper nouns were excluded: DN drops to 2
+// real words (KIDNEY, KIDNAP), DW to 1 (MIDWAY), while word-rich grams keep 100+.
+// Verified to strand zero answer words in every mode.
+const MIN_SUPPLY = 7;
 
 // Mode 6 (the shortest word) is the baseline test of whether a gram has genuine
 // common vocabulary: longer words have more positions and pull in more obscure
@@ -57,6 +66,9 @@ const frequencies: Record<string, number> = JSON.parse(
   readFileSync(resolve(scriptsDir, "word-frequencies.json"), "utf-8"),
 );
 const dictionary = new Set(loadUpper(resolve(scriptsDir, "whitelist.json")));
+const properNouns = new Set(
+  loadUpper(resolve(scriptsDir, "proper-nouns.json")),
+);
 
 const answerWords: Record<Mode, string[]> = {
   6: loadUpper(answerFiles[6]),
@@ -77,7 +89,11 @@ function isRegularPlural(word: string): boolean {
 }
 
 function isViable(word: string): boolean {
-  return (frequencies[word] ?? 0) >= FREQ_THRESHOLD && !isRegularPlural(word);
+  return (
+    (frequencies[word] ?? 0) >= FREQ_THRESHOLD &&
+    !isRegularPlural(word) &&
+    !properNouns.has(word)
+  );
 }
 
 function answerGrams(words: string[]): Set<string> {

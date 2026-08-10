@@ -1,5 +1,6 @@
 import { MAX_GUESSES } from "~/utils/game/constants";
 import type { LetterFeedback } from "~/utils/game/types";
+import { useSettings } from "~/utils/providers/settings-provider";
 
 const MINI_FEEDBACK_CLASSES: Record<LetterFeedback, string> = {
   correct: "bg-green-300 dark:bg-green-600",
@@ -12,6 +13,17 @@ const MINI_FEEDBACK_CLASSES: Record<LetterFeedback, string> = {
   blank: "bg-zinc-200 dark:bg-zinc-700",
 };
 
+// High-contrast orange/blue variant, matching the board and the shared grid, so
+// the results preview reads correctly under color-blind mode. Only the feedback
+// fills change; absent/blank keep their neutral zinc.
+const MINI_FEEDBACK_CLASSES_COLOR_BLIND: Record<LetterFeedback, string> = {
+  ...MINI_FEEDBACK_CLASSES,
+  correct: "bg-[#f5793a] dark:bg-[#f5793a]",
+  gramCorrect: "bg-[#f5793a] dark:bg-[#f5793a]",
+  misplaced: "bg-[#85c0f9] dark:bg-[#85c0f9]",
+  gramMisplaced: "bg-[#85c0f9] dark:bg-[#85c0f9]",
+};
+
 export function MiniGrid({
   feedback,
   wordLength,
@@ -19,6 +31,10 @@ export function MiniGrid({
   feedback: LetterFeedback[][];
   wordLength: number;
 }) {
+  const { colorBlindMode } = useSettings();
+  const classes = colorBlindMode
+    ? MINI_FEEDBACK_CLASSES_COLOR_BLIND
+    : MINI_FEEDBACK_CLASSES;
   const rows = Array.from({ length: MAX_GUESSES }, (_, r) => feedback[r] ?? []);
   // Preferred size matches the original 12px cells + 2px gaps, but maxWidth lets
   // the whole grid shrink (cells stay square via aspect-ratio) when space is tight.
@@ -35,7 +51,7 @@ export function MiniGrid({
             return (
               <span
                 key={c}
-                className={`flex-1 min-w-0 aspect-square rounded-[1px] ${cell ? MINI_FEEDBACK_CLASSES[cell] : "bg-zinc-200 dark:bg-zinc-700"
+                className={`flex-1 min-w-0 aspect-square rounded-[1px] ${cell ? classes[cell] : "bg-zinc-200 dark:bg-zinc-700"
                   }`}
               />
             );

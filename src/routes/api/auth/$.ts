@@ -3,7 +3,7 @@ import { auth } from "~/utils/auth/auth";
 import { SignupSchema } from "~/components/forms/SignupForm.types";
 import { safeParse } from "valibot";
 import { validateUsernameAgainstBlacklist } from "~/utils/auth/username-validation";
-import { sendVerificationEmail } from "~/utils/email/email";
+import { sendVerificationEmail } from "~/utils/email/email-server";
 import { prismaClient } from "~/utils/db/prisma";
 
 type AuthResponseBody = Record<string, unknown> & {

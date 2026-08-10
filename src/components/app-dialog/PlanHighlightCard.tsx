@@ -7,7 +7,7 @@ import type { User } from '~/prisma-generated/browser'
 const PREMIUM_BENEFITS = [
   { title: 'Full puzzle archive', desc: 'play every past daily puzzle' },
   { title: '7 & 8 letter modes', desc: 'unlock the harder game modes' },
-  { title: 'Leaderboards', desc: 'compete for the top ranks' },
+  { title: 'Score analysis', desc: 'get a detailed breakdown of your score' },
   { title: 'Cancel anytime', desc: 'no strings attached' },
 ]
 
@@ -17,7 +17,6 @@ type Props = {
   annualPerMonth: string | null
   annualTotal: string | null
   monthlyPrice: string | null
-  savePercent: number | null
   user: User | undefined
   loadingInterval: Interval | null
   onCheckout: (interval: Interval) => void
@@ -25,10 +24,10 @@ type Props = {
   upsellWordLength?: number | null
 }
 
-const labelCls = 'font-mono text-xxs font-semibold tracking-widest uppercase'
+const labelCls = 'text-xxs font-semibold tracking-widest uppercase'
 
 const tileBaseCls =
-  'group relative flex flex-col items-start gap-1 rounded-xl px-4 py-4 text-left cursor-pointer select-none no-underline transition-all active:translate-y-[2px]'
+  'group relative flex flex-col items-start gap-1 rounded-lg px-4 py-4 text-left cursor-pointer select-none no-underline transition-colors'
 
 function PlanTile({
   interval,
@@ -54,23 +53,26 @@ function PlanTile({
   onClose?: () => void
 }) {
   const surface = gold
-    ? 'bg-linear-to-b from-yellow-300 to-yellow-400 text-zinc-900 border-2 border-yellow-500 shadow-[0_4px_0_var(--color-yellow-600)] active:shadow-[0_2px_0_var(--color-yellow-600)]'
-    : 'bg-linear-to-b from-zinc-800 to-zinc-900 text-zinc-100 border-2 border-zinc-700 shadow-[0_4px_0_#000] active:shadow-[0_2px_0_#000]'
+    ? 'bg-yellow-300 text-zinc-900 border border-yellow-500 hover:bg-yellow-400 active:bg-yellow-400'
+    : 'bg-zinc-800 text-zinc-100 border border-zinc-700 hover:bg-zinc-700 active:bg-zinc-700'
   const mutedCls = gold ? 'text-zinc-700' : 'text-zinc-400'
 
   const content = (
     <>
       {badge && <div className="absolute top-0 left-3 -translate-y-1/2">{badge}</div>}
       <span className="text-sm font-bold">{label}</span>
-      <span className="text-2xl font-bold leading-none">{price}</span>
-      <span className={clsx('text-xxs', mutedCls)}>{sub}</span>
-      <div className={clsx('mt-auto pt-3 flex items-center gap-1 text-xxs font-semibold', mutedCls)}>
+      <span className="text-2xl font-bold leading-none">
+        {price}
+        <span className={clsx('text-sm font-semibold', mutedCls)}> /mo</span>
+      </span>
+      <span className={clsx('text-sm', mutedCls)}>{sub}</span>
+      <div className={clsx('mt-auto pt-3 flex items-center gap-1 text-sm font-semibold', mutedCls)}>
         {loading ? (
           <LoaderCircle className="h-4 w-4 animate-spin" />
         ) : (
           <>
             CONTINUE
-            <ChevronRight className="h-3.5 w-3.5" />
+            <ChevronRight className="h-4 w-4" />
           </>
         )}
       </div>
@@ -106,7 +108,6 @@ export default function PlanHighlightCard({
   annualPerMonth,
   annualTotal,
   monthlyPrice,
-  savePercent,
   user,
   loadingInterval,
   onCheckout,
@@ -115,7 +116,7 @@ export default function PlanHighlightCard({
 }: Props) {
   const heading = upsellWordLength
     ? `Access the ${upsellWordLength}-letter puzzle`
-    : 'Grammble Premium'
+    : 'grammble Premium'
   const formattedAnnualTotal =
     annualTotal?.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '') ?? null
 
@@ -133,15 +134,8 @@ export default function PlanHighlightCard({
           interval="annual"
           label="Annual"
           price={annualPerMonth ?? '—'}
-          sub={
-            [
-              formattedAnnualTotal ? `${formattedAnnualTotal}/yr` : null,
-              savePercent && savePercent > 0 ? `save ${savePercent}%` : null,
-            ]
-              .filter(Boolean)
-              .join(' · ') || 'per month'
-          }
-          badge={<Badge className="bg-linear-to-b from-yellow-300 to-yellow-500 text-zinc-900 border border-yellow-600 uppercase text-xxs h-auto py-0.5">Best Value</Badge>}
+          sub={formattedAnnualTotal ? `${formattedAnnualTotal} billed annually` : 'billed annually'}
+          badge={<Badge className="bg-yellow-400 text-zinc-900 border border-yellow-600 uppercase text-xxs h-auto py-0.5">Best Value</Badge>}
           gold
           loading={loadingInterval === 'annual'}
           user={user}
@@ -152,7 +146,7 @@ export default function PlanHighlightCard({
           interval="monthly"
           label="Monthly"
           price={monthlyPrice ?? '—'}
-          sub="per month"
+          sub="billed monthly"
           loading={loadingInterval === 'monthly'}
           user={user}
           onCheckout={onCheckout}

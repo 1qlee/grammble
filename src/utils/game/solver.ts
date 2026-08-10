@@ -18,9 +18,55 @@ import type {
 // list. Depends on the guess pool (word-list.ts) — do not import from client.
 
 // Cap on the answer-length survivor sample the per-guess slide lists. The opener can leave hundreds
-// standing; sending them all would bloat the payload and the UI, so we send an alphabetical prefix
-// and the true remaining total (GuessNarrowing.answerTotal) carries the full count.
+// standing; sending them all would bloat the payload and the UI, so we send a frequency-weighted
+// random sample (see sampleAnswers) and the true remaining total (GuessNarrowing.answerTotal) carries
+// the full count.
 const REMAINING_SAMPLE_CAP = 24;
+
+// Zipf frequency floor for the "possible answers" sample. Everyday words sit around 4-5, uncommon
+// words near 3, and anything below this is rare/obscure. When enough words clear the floor we drop
+// those beneath it, so the sample reads as familiar words rather than dictionary curiosities. If too
+// few clear it (a gram whose survivors are mostly rare), we fall back to the full survivor set so the
+// sample is never starved.
+const ANSWER_FREQ_FLOOR = 3.0;
+
+// Zipf lookup for every guess word, loaded lazily and cached (server-only, mirrors answer-list.ts).
+// Keys are uppercase; missing words are treated as frequency 0.
+let freqCache: Record<string, number> | null = null;
+async function getFrequencies(): Promise<Record<string, number>> {
+  if (freqCache) return freqCache;
+  const data = await import("../../../scripts/word-frequencies.json");
+  freqCache = data.default as Record<string, number>;
+  return freqCache;
+}
+
+// The sample of still-valid possible answers shown on a slide. Two goals: surface commonplace words
+// (a player recognises "STREET" over "STRAKE"), and vary which words appear across reopens instead of
+// always listing the alphabetical head. We first drop rare words when enough common ones remain (the
+// frequency floor), then draw a weighted-random sample favouring higher-frequency words via the
+// Efraimidis-Spirakis A-Res scheme (key = random^(1/weight); take the largest keys). Common words are
+// more likely to be picked but the set still shuffles run to run. The chosen words are returned in
+// alphabetical order for a tidy display.
+function sampleAnswers(
+  survivors: string[],
+  freq: Record<string, number>,
+  cap: number,
+): string[] {
+  const common = survivors.filter((w) => (freq[w] ?? 0) >= ANSWER_FREQ_FLOOR);
+  const pool = common.length >= cap ? common : survivors;
+  if (pool.length <= cap) return [...pool].sort();
+  const chosen = pool
+    .map((w) => {
+      // Floor the weight so a zero-frequency word still has a small chance rather than never
+      // appearing, and so 1/weight stays finite.
+      const weight = Math.max(0.5, freq[w] ?? 0);
+      return { w, key: Math.random() ** (1 / weight) };
+    })
+    .sort((a, b) => b.key - a.key)
+    .slice(0, cap)
+    .map((e) => e.w);
+  return chosen.sort();
+}
 
 // Cap on the "useful guesses" probe list. These are ranked, not a prefix, so a short list is enough
 // to surface the strongest few moves without turning the sub-section into a wall of words.
@@ -245,6 +291,7 @@ export async function computeNarrowing(input: {
   // as guesses are replayed. Gram letters are always in the answer, so they never enter this set.
   const answerUpper = input.answer.toUpperCase();
   const deadLetters = new Set<string>();
+  const frequencies = await getFrequencies();
 
   for (let i = 0; i < guesses.length; i++) {
     const fb = input.feedback[i];
@@ -274,7 +321,11 @@ export async function computeNarrowing(input: {
       ...answerSurvivors,
       ...guesses.slice(0, i + 1).map((g) => g.toUpperCase()),
     ]);
-    const answers = [...answerSurvivors].sort().slice(0, REMAINING_SAMPLE_CAP);
+    const answers = sampleAnswers(
+      answerSurvivors,
+      frequencies,
+      REMAINING_SAMPLE_CAP,
+    );
     const probes = rankProbes(
       probeUniverse.filter((w) => !excluded.has(w)),
       answerSurvivors,
@@ -319,7 +370,7 @@ export async function computeNarrowing(input: {
  * Answer-length candidate count ENTERING each guess: out[i] is how many words could still be the
  * answer given the feedback from guesses 0..i-1, before guess i was played (the true answer is always
  * among them until it is guessed). This is the lean count-only sibling of computeNarrowing, used by
- * the scorer's exploration relief: when out[i] === 1 only the answer still fits, so any further probe
+ * the scorer's stuck-strong breadth buff: when out[i] === 1 only the answer still fits, so any further probe
  * is forced clue-gathering rather than narrowing. Shorter valid guesses are narrowing tools, never
  * possible answers, so only answer-length candidates are counted (mirroring computeNarrowing).
  */

@@ -13,11 +13,15 @@ interface Props {
   hidden?: boolean;
   index?: number;
   editable?: boolean;
-  // Empty slot ahead of the cursor: clicking it moves the cursor here (padding
-  // the gap with blanks) so the next keystroke lands on this tile.
+  // Empty slot ahead of the cursor: clicking it fills the gap (and this slot)
+  // with blanks and opens editing here, so the next keystroke replaces this
+  // tile's blank in place.
   movable?: boolean;
   active?: boolean;
   revealDelay?: number;
+  // Recap note highlight: "hit" rings the tile as belonging to the hovered/tapped score note, "dim"
+  // fades it as context. Undefined leaves the tile at its normal appearance.
+  note?: "hit" | "dim";
 }
 
 interface TileCharProps {
@@ -76,6 +80,7 @@ export function GuessTile({
   movable,
   active,
   revealDelay,
+  note,
 }: Props) {
   const editing = useGameStore((s) => s.editing);
   const editKey = useGameStore((s) => s.editKey);
@@ -107,8 +112,9 @@ export function GuessTile({
     editKey(index, !isEditing);
   };
 
-  // Do not stop propagation: let the document-level outside-click handler in
-  // useKeyboardInput close any open edit as the cursor moves.
+  // Fill up to the clicked slot and open editing on it (handled in the store).
+  // Movable tiles only render when no edit is open, so there is nothing to
+  // dismiss here; the store toggles the new edit on directly.
   const handleMovePointerDown = () => {
     if (index === undefined) return;
     moveCursorTo(index);
@@ -136,6 +142,10 @@ export function GuessTile({
         movable &&
           "cursor-pointer hover:border-2 hover:border-zinc-300 dark:hover:border-zinc-600",
         active && "border-zinc-400 dark:border-zinc-100",
+        note && "transition-[opacity,outline-color] duration-200",
+        note === "hit" &&
+          "relative z-10 outline outline-2 outline-offset-1 outline-zinc-900 dark:outline-zinc-100",
+        note === "dim" && "opacity-30",
       )}
     >
       {renderChar && (

@@ -2,6 +2,9 @@ import * as v from "valibot";
 import { createServerFn } from "@tanstack/react-start";
 
 const THEME_COOKIE = "_preferred-theme";
+const CONFIRM_GUESSES_COOKIE = "_confirm-all-guesses";
+const COLOR_BLIND_COOKIE = "_color-blind-mode";
+const REDUCE_MOTION_COOKIE = "_reduce-motion";
 
 const modeSchema = v.picklist(["SIX", "SEVEN", "EIGHT"] as const);
 
@@ -31,6 +34,9 @@ export const getInitialAppDataServerFn = createServerFn({ method: "GET" })
     let rootUser: RootUser | null = null;
     let theme: "light" | "dark" =
       (getCookie(THEME_COOKIE) as "light" | "dark" | undefined) || "light";
+    let confirmAllGuesses = getCookie(CONFIRM_GUESSES_COOKIE) === "true";
+    let colorBlindMode = getCookie(COLOR_BLIND_COOKIE) === "true";
+    let reduceMotion = getCookie(REDUCE_MOTION_COOKIE) === "true";
 
     try {
       const session = await auth.api.getSession({ headers });
@@ -70,11 +76,24 @@ export const getInitialAppDataServerFn = createServerFn({ method: "GET" })
 
         const settings = await prismaClient.settings.findUnique({
           where: { userId: session.user.id },
-          select: { theme: true },
+          select: {
+            theme: true,
+            confirmAllGuesses: true,
+            colorBlindMode: true,
+            reduceMotion: true,
+          },
         });
         if (settings?.theme) {
           theme = settings.theme === "dark" ? "dark" : "light";
           setCookie(THEME_COOKIE, theme);
+        }
+        if (settings) {
+          confirmAllGuesses = settings.confirmAllGuesses;
+          setCookie(CONFIRM_GUESSES_COOKIE, confirmAllGuesses ? "true" : "false");
+          colorBlindMode = settings.colorBlindMode;
+          setCookie(COLOR_BLIND_COOKIE, colorBlindMode ? "true" : "false");
+          reduceMotion = settings.reduceMotion;
+          setCookie(REDUCE_MOTION_COOKIE, reduceMotion ? "true" : "false");
         }
       }
     } catch (err) {
@@ -94,7 +113,14 @@ export const getInitialAppDataServerFn = createServerFn({ method: "GET" })
       dailies = await caller.game.getAllDaily();
     }
 
-    return { user: rootUser, theme, dailies };
+    return {
+      user: rootUser,
+      theme,
+      confirmAllGuesses,
+      colorBlindMode,
+      reduceMotion,
+      dailies,
+    };
   },
 );
 

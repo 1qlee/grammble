@@ -44,6 +44,10 @@ interface GameState {
   loading: boolean;
   toast: Toast | null;
   skipGramAnimation: boolean;
+  // True when "Confirm All Guesses" is on and the current row has been armed by
+  // a first Enter press, awaiting a second press to actually submit. Cleared by
+  // any edit to the row and on submit.
+  confirmPending: boolean;
 }
 
 interface GameActions {
@@ -86,6 +90,7 @@ interface GameActions {
   setToast: (toast: Toast | null) => void;
   editKey: (key: number, toggled?: boolean) => void;
   setSkipGramAnimation: (value: boolean) => void;
+  setConfirmPending: (value: boolean) => void;
 }
 
 const initialState: GameState = {
@@ -105,6 +110,7 @@ const initialState: GameState = {
   loading: false,
   toast: null,
   skipGramAnimation: false,
+  confirmPending: false,
 };
 
 export const useGameStore = create<GameState & GameActions>()(
@@ -119,7 +125,7 @@ export const useGameStore = create<GameState & GameActions>()(
           if (currentGuess.length >= state.wordLength) return state;
           const newGuesses = [...state.guesses];
           newGuesses[state.currentGuessIndex] = currentGuess + char;
-          return { guesses: newGuesses };
+          return { guesses: newGuesses, confirmPending: false };
         }),
 
       backspace: () =>
@@ -131,14 +137,14 @@ export const useGameStore = create<GameState & GameActions>()(
             0,
             -1,
           );
-          return { guesses: newGuesses };
+          return { guesses: newGuesses, confirmPending: false };
         }),
 
       clearGuess: () =>
         set((state) => {
           const newGuesses = [...state.guesses];
           newGuesses[state.currentGuessIndex] = "";
-          return { guesses: newGuesses };
+          return { guesses: newGuesses, confirmPending: false };
         }),
 
       setGuess: (value) =>
@@ -156,7 +162,7 @@ export const useGameStore = create<GameState & GameActions>()(
             currentGuess.slice(0, index) + char + currentGuess.slice(index + 1);
           const newGuesses = [...state.guesses];
           newGuesses[state.currentGuessIndex] = newGuess;
-          return { guesses: newGuesses };
+          return { guesses: newGuesses, confirmPending: false };
         }),
 
       removeCharAt: (index) =>
@@ -167,15 +173,15 @@ export const useGameStore = create<GameState & GameActions>()(
             currentGuess.slice(0, index) + currentGuess.slice(index + 1);
           const newGuesses = [...state.guesses];
           newGuesses[state.currentGuessIndex] = newGuess;
-          return { guesses: newGuesses };
+          return { guesses: newGuesses, confirmPending: false };
         }),
 
       moveCursorTo: (index) =>
         set((state) => {
           const currentGuess = state.guesses[state.currentGuessIndex] ?? "";
-          // Move the active cursor forward onto a clicked empty slot by padding
-          // the gap with blanks, keeping the guess a contiguous string. The
-          // cursor is always guess.length, so it lands on the clicked slot.
+          // Fill the gap up to and INCLUDING the clicked slot with blanks,
+          // keeping the guess a contiguous string, then open editing on the
+          // clicked slot so the next keystroke replaces its blank in place.
           // Ignore clicks on the current slot / filled tiles and anything past
           // the last typeable slot.
           if (index <= currentGuess.length || index >= state.wordLength) {
@@ -183,8 +189,11 @@ export const useGameStore = create<GameState & GameActions>()(
           }
           const newGuesses = [...state.guesses];
           newGuesses[state.currentGuessIndex] =
-            currentGuess + " ".repeat(index - currentGuess.length);
-          return { guesses: newGuesses };
+            currentGuess + " ".repeat(index - currentGuess.length + 1);
+          return {
+            guesses: newGuesses,
+            editing: { toggled: true, key: index },
+          };
         }),
 
       submitGuess: (feedback, status, word, score) =>
@@ -194,6 +203,7 @@ export const useGameStore = create<GameState & GameActions>()(
           currentGuessIndex: state.currentGuessIndex + 1,
           revealedWord: word ?? state.revealedWord,
           score: score ?? state.score,
+          confirmPending: false,
         })),
 
       setDailyPuzzle: (date, gram, mode, isArchive = false) =>
@@ -222,6 +232,7 @@ export const useGameStore = create<GameState & GameActions>()(
           revealedWord: null,
           score: null,
           editing: { toggled: false, key: 0 },
+          confirmPending: false,
         }),
 
       hydrateSession: (data) =>
@@ -239,6 +250,7 @@ export const useGameStore = create<GameState & GameActions>()(
       setLoading: (loading) => set({ loading }),
       setToast: (toast) => set({ toast }),
       setSkipGramAnimation: (value) => set({ skipGramAnimation: value }),
+      setConfirmPending: (value) => set({ confirmPending: value }),
       editKey: (key, toggled) =>
         set((state) => ({
           editing: { toggled: toggled ?? !state.editing.toggled, key },

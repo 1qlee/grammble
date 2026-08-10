@@ -130,9 +130,6 @@ export default function PremiumUpsellPanel({ user, billing, prices, onClose, ups
   const annualPerMonth = prices ? formatPrice(prices.annual.amount / 12, prices.annual.currency) : null
   const annualTotal = prices ? formatPrice(prices.annual.amount, prices.annual.currency, 2) : null
   const monthlyPrice = prices ? formatPrice(prices.monthly.amount, prices.monthly.currency) : null
-  const savePercent = prices
-    ? Math.round((1 - prices.annual.amount / (prices.monthly.amount * 12)) * 100)
-    : null
 
   return (
     <div className="space-y-3 rounded-lg">
@@ -140,7 +137,6 @@ export default function PremiumUpsellPanel({ user, billing, prices, onClose, ups
         annualPerMonth={annualPerMonth}
         annualTotal={annualTotal}
         monthlyPrice={monthlyPrice}
-        savePercent={savePercent}
         user={user}
         loadingInterval={loadingInterval}
         onCheckout={handleCheckout}

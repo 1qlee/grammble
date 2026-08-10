@@ -25,14 +25,14 @@ function toneFor(tier: LuckTier): string {
   return "text-zinc-600 dark:text-zinc-300";
 }
 
-// Fill for the lit segment, keyed to the same green/zinc/amber split as the headline. A left-to-right
-// linear gradient (matching the 400->500 stops of the score pillars) since the segments are horizontal.
+// Fill for the lit segment, keyed to the same green/zinc/amber split as the headline. Solid color
+// (matching the flat score pillars).
 function activeFill(tier: LuckTier): string {
   if (tier === "very-lucky" || tier === "lucky")
-    return "bg-gradient-to-r from-green-400 to-green-500";
+    return "bg-green-500";
   if (tier === "very-unlucky" || tier === "unlucky")
-    return "bg-gradient-to-r from-amber-400 to-amber-500";
-  return "bg-gradient-to-r from-zinc-400 to-zinc-500";
+    return "bg-amber-500";
+  return "bg-zinc-500";
 }
 
 /**
@@ -49,7 +49,7 @@ export function FortunePanel({ luck }: { luck: LuckResult }) {
   const activeIndex = TIER_ORDER.indexOf(luck.tier);
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="flex flex-col gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
       <div className="flex items-baseline justify-between gap-2">
         <span className="section-label">Fortune</span>
         <span className="text-xs text-zinc-400 dark:text-zinc-500">

@@ -82,6 +82,10 @@ interface Props {
   // tighter grid. `--row-pad` (0 when off) keeps the gram overlay aligned, since
   // its offsets are measured from the padding edge.
   padded?: boolean;
+  // Recap note highlight: the columns in this row a hovered/tapped score note refers to. When
+  // provided, those tiles are emphasised and every other tile in the row is dimmed. Undefined (the
+  // default, and always so on the live board) leaves every tile at its normal appearance.
+  highlightCols?: number[];
 }
 
 export function GuessRow({
@@ -95,6 +99,7 @@ export function GuessRow({
   revealRow,
   animateIn = false,
   padded = true,
+  highlightCols,
 }: Props) {
   const setGuess = useGameStore((s) => s.setGuess);
   const status = useGameStore((s) => s.status);
@@ -163,6 +168,22 @@ export function GuessRow({
       ? undefined
       : revealRow * REVEAL_ROW_STAGGER_MS + colIndex * REVEAL_COL_STAGGER_MS;
 
+  // A recap note is active for this row when `highlightCols` is provided: matched columns read as
+  // "hit", every other tile dims. Undefined leaves the row untouched (the live board's normal state).
+  const noteActive = highlightCols !== undefined;
+  const noteFor = (colIndex: number): "hit" | "dim" | undefined =>
+    noteActive
+      ? highlightCols!.includes(colIndex)
+        ? "hit"
+        : "dim"
+      : undefined;
+  const gramNote = noteActive
+    ? highlightCols!.includes(gramStart) ||
+      highlightCols!.includes(gramStart + 1)
+      ? "hit"
+      : "dim"
+    : undefined;
+
   const tiles: React.ReactNode[] = [];
   for (let colIndex = 0; colIndex < numCols; colIndex++) {
     const hiddenByGram =
@@ -192,6 +213,7 @@ export function GuessRow({
         movable={isMovable}
         active={isActive}
         revealDelay={revealDelayFor(colIndex)}
+        note={noteFor(colIndex)}
       />,
     );
   }
@@ -232,6 +254,7 @@ export function GuessRow({
         rightIndex={gramStart + 1}
         editable={isCurrentRow}
         revealDelay={revealDelayFor(gramStart)}
+        note={gramNote}
       />
     </div>
   );

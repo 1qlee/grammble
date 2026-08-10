@@ -94,7 +94,7 @@ export default function Guesses({
           style={{ gap: `${ROW_PADDING * 2}px` }}
         >
           <div
-            className="scoreboard-scope bg-default shadow-lg rounded-lg p-1"
+            className="scoreboard-scope bg-default border border-zinc-200 dark:border-zinc-700 rounded-lg p-1"
             style={{ width: cardWidth }}
           >
             <Scoreboard
@@ -107,7 +107,7 @@ export default function Guesses({
             />
           </div>
           <div
-            className="flex flex-col bg-default justify-center shadow-lg rounded-lg p-1"
+            className="flex flex-col bg-default justify-center border border-zinc-200 dark:border-zinc-700 rounded-lg p-1"
             style={{ width: cardWidth }}
           >
             {Array.from({ length: MAX_GUESSES }, (_, rowIndex) => (

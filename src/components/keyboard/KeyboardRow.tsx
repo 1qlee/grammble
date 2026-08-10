@@ -1,4 +1,4 @@
-import { Delete } from "lucide-react";
+import { Check, Delete } from "lucide-react";
 import clsx from "clsx";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import type { Key } from "./Keyboard.types";
@@ -26,6 +26,7 @@ interface KeyboardRowProps {
   keyFeedback: Record<string, KeyFeedback>;
   gramFeedback: KeyFeedback | null;
   gram: string;
+  confirmPending: boolean;
   keyButtonRefs: RefObject<(HTMLButtonElement | null)[]>;
   setFocusedKeyIndex: Dispatch<SetStateAction<number | null>>;
 }
@@ -38,6 +39,7 @@ export function KeyboardRow({
   keyFeedback,
   gramFeedback,
   gram,
+  confirmPending,
   keyButtonRefs,
   setFocusedKeyIndex,
 }: KeyboardRowProps) {
@@ -68,6 +70,18 @@ export function KeyboardRow({
           return (
             <KeyButton key={reactKey} {...sharedProps}>
               <Delete size="1.25em" />
+            </KeyButton>
+          );
+        }
+
+        if (key === "Enter") {
+          return (
+            <KeyButton
+              key={reactKey}
+              {...sharedProps}
+              feedbackClass={confirmPending ? "keyboard-key-confirm" : undefined}
+            >
+              {confirmPending ? <Check size="1.25em" /> : "Enter"}
             </KeyButton>
           );
         }

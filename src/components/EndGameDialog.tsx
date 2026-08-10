@@ -5,7 +5,7 @@ import { useRouteContext } from "@tanstack/react-router";
 import Dialog from "~/components/ui/Dialog";
 import { useGameStore } from "~/stores/game-store";
 import { useStatsStore } from "~/stores/stats-store";
-import { useEndGameDialog } from "~/hooks/useEndGameDialog";
+import { useEndGameDialogStore } from "~/hooks/useEndGameDialog";
 import {
   GAME_MODES,
   MAX_GUESSES,
@@ -15,6 +15,7 @@ import {
 import { buildShareText, type Difficulty } from "~/utils/game/share";
 import { renderGridImage } from "~/utils/game/grid-image";
 import { useTheme } from "~/utils/providers/theme-provider";
+import { useSettings } from "~/utils/providers/settings-provider";
 import {
   EMPTY_STATS,
   derivePreviousStats,
@@ -54,7 +55,8 @@ export default function EndGameDialog({
   isPremium,
   initialStats,
 }: EndGameDialogProps) {
-  const { isOpen, setIsOpen } = useEndGameDialog();
+  const isOpen = useEndGameDialogStore((s) => s.isOpen);
+  const setIsOpen = useEndGameDialogStore((s) => s.setIsOpen);
   // Warm the recap cache the moment the dialog opens (premium only), so tapping the Coach CTA
   // renders the carousel instantly instead of flashing a loading state that resizes the modal.
   usePrefetchGameRecap(isPremium && isOpen);
@@ -134,6 +136,8 @@ export default function EndGameDialog({
   );
 
   const { theme } = useTheme();
+  const { colorBlindMode } = useSettings();
+  const isInProgress = status === "IN_PROGRESS";
   const won = status === "WON";
   const wordLength = WORD_LENGTH_BY_MODE[mode];
   const guessCount = won
@@ -145,7 +149,7 @@ export default function EndGameDialog({
   // mount when `isOpen` flips true, so this must be resolved during render.
   const animateDecisionRef = useRef<boolean | null>(null);
   let animateCascade = false;
-  if (isOpen) {
+  if (isOpen && !isInProgress) {
     if (animateDecisionRef.current === null) {
       animateDecisionRef.current = !animatedModes.has(mode);
     }
@@ -154,8 +158,8 @@ export default function EndGameDialog({
     animateDecisionRef.current = null;
   }
   useEffect(() => {
-    if (isOpen && animateCascade) animatedModes.add(mode);
-  }, [isOpen, animateCascade, mode]);
+    if (isOpen && !isInProgress && animateCascade) animatedModes.add(mode);
+  }, [isOpen, isInProgress, animateCascade, mode]);
 
   useEffect(() => {
     setShowAnalysis(false);
@@ -171,8 +175,9 @@ export default function EndGameDialog({
       feedback,
       difficulty,
       score,
+      colorBlind: colorBlindMode,
     }),
-    [puzzleNumber, gram, guessCount, won, feedback, difficulty, score],
+    [puzzleNumber, gram, guessCount, won, feedback, difficulty, score, colorBlindMode],
   );
   // Full version (with emoji grid) for the text-only fallback.
   const shareText = useMemo(() => buildShareText(shareParams), [shareParams]);
@@ -296,6 +301,7 @@ export default function EndGameDialog({
           wordLength,
           theme,
           shareCaption.split("\n"),
+          colorBlindMode,
         ).then((blob) => {
           if (!blob) throw new Error("Failed to render grid image");
           return blob;
@@ -313,8 +319,6 @@ export default function EndGameDialog({
     // Fallback: text + emoji version (insecure contexts fall back to execCommand).
     await copyTextFallback();
   };
-
-  if (status === "IN_PROGRESS") return null;
 
   return (
     <Dialog
@@ -383,13 +387,16 @@ export default function EndGameDialog({
               revealedWord={revealedWord ?? ""}
               score={score}
               animate={animateCascade}
+              inProgress={isInProgress}
               onCopy={handleCopy}
             />
 
-            <AnalyzeEntry
-              isPremium={isPremium}
-              onOpen={() => setShowAnalysis(true)}
-            />
+            {!isInProgress && (
+              <AnalyzeEntry
+                isPremium={isPremium}
+                onOpen={() => setShowAnalysis(true)}
+              />
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <DistributionChart

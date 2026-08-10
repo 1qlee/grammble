@@ -23,6 +23,7 @@ import { useEndGameDialogStore } from "~/hooks/useEndGameDialog";
 
 import type { User } from "~/prisma-generated/browser";
 import { ThemeProvider } from "~/utils/providers/theme-provider";
+import { SettingsProvider } from "~/utils/providers/settings-provider";
 import { useAnonymousSessionSync } from "~/hooks/useAnonymousSessionSync";
 import Toast from "~/components/ui/Toast";
 
@@ -41,9 +42,10 @@ export const Route = createRootRoute({
     // navigation. The cache is client-only; the server always fetches fresh.
     const cached = isGamePath ? readDailiesCache(date) : null;
 
-    const { user, theme, dailies } = await getInitialAppDataServerFn({
-      data: { needsDailies: isGamePath && !cached },
-    });
+    const { user, theme, confirmAllGuesses, colorBlindMode, reduceMotion, dailies } =
+      await getInitialAppDataServerFn({
+        data: { needsDailies: isGamePath && !cached },
+      });
     const userId = (user?.id as string | undefined) ?? null;
 
     let resolvedDailies = dailies;
@@ -69,6 +71,9 @@ export const Route = createRootRoute({
     return {
       user: (user ?? undefined) as User | undefined,
       theme,
+      confirmAllGuesses,
+      colorBlindMode,
+      reduceMotion,
       dailies: resolvedDailies,
     };
   },
@@ -114,6 +119,25 @@ export const Route = createRootRoute({
   
   // Apply theme immediately to prevent flash
   document.documentElement.setAttribute('data-theme', theme);
+
+  // Color-blind mode: apply pre-paint so tiles never flash the standard
+  // green/yellow before the color-safe palette takes over.
+  document.documentElement.setAttribute(
+    'data-colorblind',
+    getCookie('_color-blind-mode') === 'true' ? 'true' : 'false'
+  );
+
+  // Reduce motion: honor an explicit cookie, otherwise fall back to the OS
+  // prefers-reduced-motion signal so the first-load board reveal is suppressed
+  // for users who asked for it at the system level. Applied pre-paint.
+  let reduceMotion = getCookie('_reduce-motion');
+  if (reduceMotion !== 'true' && reduceMotion !== 'false') {
+    reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 'true'
+      : 'false';
+    document.cookie = '_reduce-motion=' + reduceMotion + ';path=/;max-age=' + (60 * 60 * 24 * 365);
+  }
+  document.documentElement.setAttribute('data-reduce-motion', reduceMotion);
 })();
 `,
       },
@@ -175,7 +199,8 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  const { theme, user, dailies } = Route.useRouteContext();
+  const { theme, confirmAllGuesses, colorBlindMode, reduceMotion, user, dailies } =
+    Route.useRouteContext();
   // Guard against interaction until the app has hydrated.
   const [isHydrated, setIsHydrated] = React.useState(false);
 
@@ -204,7 +229,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <html data-theme={theme} suppressHydrationWarning>
+    <html
+      data-theme={theme}
+      data-colorblind={colorBlindMode ? "true" : "false"}
+      data-reduce-motion={reduceMotion ? "true" : "false"}
+      suppressHydrationWarning
+    >
       <head>
         <HeadContent />
       </head>
@@ -212,6 +242,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <div inert={!isHydrated}>
           <QueryClientProvider client={queryClient}>
             <ThemeProvider theme={theme}>
+              <SettingsProvider
+                confirmAllGuesses={confirmAllGuesses}
+                colorBlindMode={colorBlindMode}
+                reduceMotion={reduceMotion}
+              >
               <Toast />
               <div className="toggle-theme-color w-full min-h-screen py-4">
                 <div className="max-w-[360px] mx-auto">
@@ -225,6 +260,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                   {children}
                 </div>
               </div>
+              </SettingsProvider>
             </ThemeProvider>
           </QueryClientProvider>
         </div>

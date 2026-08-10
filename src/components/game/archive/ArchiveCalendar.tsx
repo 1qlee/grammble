@@ -74,7 +74,7 @@ export default function ArchiveCalendar({
         {DOW.map((d, i) => (
           <span
             key={i}
-            className="text-center font-mono text-[10.5px] font-semibold tracking-wider text-zinc-400"
+            className="text-center text-[10.5px] font-semibold tracking-wider text-zinc-400"
           >
             {d}
           </span>

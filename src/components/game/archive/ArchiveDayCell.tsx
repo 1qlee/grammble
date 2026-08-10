@@ -1,4 +1,3 @@
-import { Check } from "lucide-react";
 import type { CalendarCell } from "./useArchiveCalendar";
 import type { ArchiveDayStatus } from "~/trpc/router";
 import {
@@ -37,7 +36,7 @@ export default function ArchiveDayCell({
   onPrefetch,
 }: ArchiveDayCellProps) {
   const base =
-    "relative grid aspect-square w-full place-items-center rounded-[14px_/_11px] border font-mono text-sm font-semibold tabular-nums";
+    "relative grid aspect-square w-full place-items-center rounded-[14px_/_11px] border text-sm font-semibold tabular-nums";
 
   // Future dates are always inert and dashed; their state is known without the
   // fetch, so they never show the loading skeleton.
@@ -95,7 +94,7 @@ export default function ArchiveDayCell({
       aria-pressed={isSelected}
       className={`${base} cursor-pointer transition-all duration-100 ${emphasisBorder} ${STATUS_SURFACE[status]} ${wonBold} ${isSelected
         ? `${STATUS_SELECTED[status]}`
-        : `hover:-translate-y-px active:translate-y-px ${ACTIVE_DEPRESSED_CLASS[status]}`
+        : `${ACTIVE_DEPRESSED_CLASS[status]}`
         }`}
     >
       <span className={shiftNum ? "-translate-y-[3px]" : undefined}>
@@ -105,15 +104,14 @@ export default function ArchiveDayCell({
       {status === "IN_PROGRESS" && (
         <span className="absolute bottom-[5px] left-1/2 size-2 -translate-x-1/2 rounded-full bg-yellow-500 dark:bg-yellow-400" />
       )}
-      {status === "WON" && (
-        <Check
-          className="absolute bottom-[3px] left-1/2 size-3.5 -translate-x-1/2 text-green-700 dark:text-green-300"
-          strokeWidth={3}
-        />
+      {status === "WON" && cell.data!.score !== null && (
+        <span className="absolute bottom-[3px] left-1/2 -translate-x-1/2 text-[11px] font-bold leading-none tabular-nums text-green-700 dark:text-green-300">
+          {cell.data!.score}
+        </span>
       )}
-      {status === "LOST" && (
-        <span className="absolute bottom-[2px] left-1/2 -translate-x-1/2 text-base font-extrabold leading-none text-red-700 dark:text-red-300">
-          ×
+      {status === "LOST" && cell.data!.score !== null && (
+        <span className="absolute bottom-[3px] left-1/2 -translate-x-1/2 text-[11px] font-bold leading-none tabular-nums text-red-700 dark:text-red-300">
+          {cell.data!.score}
         </span>
       )}
     </button>

@@ -10,11 +10,27 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Jost";
+  src: url("/fonts/Jost-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @variant dark (&:where([data-theme="dark"] *));
 @variant filled (&:not(:placeholder-shown));
 
+/* Registered so the snaking gram border (.gram-border::before) can interpolate
+   its conic-gradient angle; unregistered custom-property angles don't animate. */
+@property --gram-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
 @theme {
-  --font-sans: "Switzer", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Jost", ui-sans-serif, system-ui, sans-serif;
   --font-weight-bold: 600;
 }
 
@@ -64,13 +80,14 @@
        large screens) before deferring to the height budget, and only shrink once
        the row can't fit. Width chrome budget = card padding (8px) + row padding
        (8px) + inter-tile gaps. The height budget divides by 10 T-scaled rows (6
-       guess + 4 keyboard) and reserves 252px for the rest (nav, page/card/row
-       padding, gaps, and the ~56px scoreboard); keep it >= scoreboard + 192px or
+       guess + 4 keyboard) and reserves 232px for the rest (nav, page/card/row
+       padding, gaps, and the ~56px scoreboard); keep it >= scoreboard + 172px or
        the keyboard's bottom edge overflows the viewport. Floor mirrors
-       MIN_TILE_SIZE in board.constants.ts. */
+       MIN_TILE_SIZE in board.constants.ts. The nav uses small text buttons
+       (~20px) plus an 8px bottom margin. */
     --tile-size-6: clamp(22px,
         min(calc((95vw - 16px - (6 - 1) * var(--tile-gap)) / 6),
-          calc((100svh - 252px) / 10)),
+          calc((100svh - 232px) / 10)),
         var(--tile-size-max));
     --tile-size: var(--tile-size-6);
     --tile-font-size: max(10px, calc(var(--tile-size) * 0.46));
@@ -93,7 +110,7 @@
     margin-left: calc(50% - min(95vw, var(--board-width)) / 2);
     --tile-size: clamp(22px,
         min(calc((95vw - 16px - (var(--cols) - 1) * var(--tile-gap)) / var(--cols)),
-          calc((100svh - 252px) / 10)),
+          calc((100svh - 232px) / 10)),
         var(--tile-size-max));
     /* Re-derive the font vars from the scoped --tile-size; otherwise they keep
        the :root values computed against --cols: 6 and look oversized once 7/8
@@ -204,44 +221,56 @@
 
   /* Small uppercase section label (end-game stat cards) */
   .section-label {
-    @apply font-mono text-xxs font-semibold tracking-widest text-zinc-500 uppercase dark:text-zinc-400;
+    @apply text-xxs font-semibold tracking-widest text-zinc-500 uppercase dark:text-zinc-400;
   }
 
   /* Input status styles */
   .input-default {
-    @apply w-full rounded-lg border border-zinc-200 bg-gradient-to-b from-zinc-100/80 to-white inset-shadow-sm transition-all duration-200;
-    @apply dark:border-zinc-700/50 dark:from-zinc-900/80 dark:to-zinc-800;
+    @apply w-full rounded-lg border border-zinc-300 bg-zinc-50 transition-colors duration-200;
+    @apply dark:border-zinc-700 dark:bg-zinc-800;
   }
 
   .input-default:focus,
   .input-default:not(:placeholder-shown) {
-    @apply from-white dark:from-zinc-800;
+    @apply bg-white dark:bg-zinc-800;
   }
 
   .input-error {
-    @apply rounded-lg border border-red-200 bg-gradient-to-b from-red-100/80 to-red-50 inset-shadow-sm focus:from-red-50 focus:dark:from-red-900;
-    @apply dark:border-red-900 dark:from-red-950/80 dark:to-red-900 dark:text-red-100;
+    @apply rounded-lg border border-red-300 bg-red-50 focus:bg-white;
+    @apply dark:border-red-800 dark:bg-red-950 dark:text-red-100 dark:focus:bg-red-900;
   }
 
-  /* Button base styles. Layout only; the surface (gradient/border/shadow) comes
-     from a surface-* utility applied by the Button variant (see Button.tsx). */
+  /* Button base styles. Layout only; the surface (flat fill/border) comes from a
+     surface-* utility applied by the Button variant (see Button.tsx). */
   .btn {
-    @apply relative isolate flex cursor-pointer items-center justify-center gap-1 pb-[1px] whitespace-nowrap transition-all duration-200 select-none;
+    @apply relative isolate flex cursor-pointer items-center justify-center gap-1 whitespace-nowrap transition-colors duration-150 select-none;
     border-radius: 8px;
+    /* Squeeze-and-bounce: transform springs back with an overshoot easing on
+       release, giving a subtle bounce after the press scale-down. */
+    transition:
+      color 150ms,
+      background-color 150ms,
+      border-color 150ms,
+      transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  /* Hover darkening: a translucent linear-gradient overlay layered above the
-     surface-* gradient (z-index -1 keeps it below the button's text/icons).
-     Works for every variant since it tints whatever surface sits underneath. */
+  .btn:active {
+    transform: scale(0.94);
+    transition-duration: 80ms;
+  }
+
+  /* Flat hover/active tint: a translucent solid overlay layered above the
+     surface-* fill (z-index -1 keeps it below the button's text/icons). Works
+     for every variant since it tints whatever surface sits underneath. */
   .btn::before {
     content: "";
     position: absolute;
     inset: 0;
     z-index: -1;
     border-radius: inherit;
-    background-image: linear-gradient(to bottom, rgb(0 0 0 / 0.06), rgb(0 0 0 / 0.14));
+    background-color: rgb(0 0 0 / 0.06);
     opacity: 0;
-    transition: opacity 200ms;
+    transition: opacity 150ms;
     pointer-events: none;
   }
 
@@ -249,28 +278,28 @@
     opacity: 1;
   }
 
-  .btn:active {
-    @apply translate-y-[1px];
-    box-shadow: none !important;
+  .btn:active::before {
+    opacity: 1;
+    background-color: rgb(0 0 0 / 0.12);
   }
 
   /* Generic toggle (reused by ThemeToggle and interval switches) */
   .switch-track {
-    @apply inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full data-disabled:cursor-not-allowed data-disabled:opacity-50;
-    @apply border border-zinc-200/50 border-t-zinc-300/80 bg-zinc-100 shadow-[inset_0px_2px_8px_#ddd];
-    @apply dark:border-zinc-700/80 dark:border-t-zinc-500/50 dark:bg-zinc-800 dark:shadow-[inset_0px_2px_8px_#111];
+    @apply inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 data-disabled:cursor-not-allowed data-disabled:opacity-50;
+    @apply border border-zinc-300 bg-zinc-200 data-checked:border-green-500 data-checked:bg-green-500;
+    @apply dark:border-zinc-600 dark:bg-zinc-700 dark:data-checked:border-green-600 dark:data-checked:bg-green-600;
   }
 
   .switch-thumb {
-    @apply inline-block h-4 w-4 translate-x-[4px] rounded-full border border-zinc-300 bg-white transition-all duration-200 ease-in-out group-data-checked:translate-x-[20px] group-data-checked:border-green-600 group-data-checked:bg-green-500 dark:border-zinc-800 dark:bg-zinc-700;
+    @apply inline-block h-4 w-4 translate-x-[4px] rounded-full bg-white transition-transform duration-200 ease-in-out group-data-checked:translate-x-[20px];
   }
 
-  /* Keyboard key button styles */
+  /* Keyboard key button styles. Flat: the key char fills the key with a solid
+     fill and border, no raised keycap edge or press-down translate. */
   .keyboard-key {
-    @apply flex min-w-[16px] grow cursor-pointer items-center justify-center rounded-lg transition-all duration-100 outline-none select-none [&:not(:last-child)]:mr-1;
+    @apply flex min-w-[16px] grow cursor-pointer items-center justify-center rounded-lg outline-none select-none [&:not(:last-child)]:mr-1;
     height: calc(var(--tile-size, 52px) * 1);
     font-size: var(--keys-font-size);
-    @apply border border-zinc-300;
   }
 
   .keyboard-key:focus>.keyboard-key-char {
@@ -278,68 +307,31 @@
   }
 
   .keyboard-key-char {
-    @apply flex h-full w-full -translate-y-[4px] items-center justify-center rounded-lg transition-all duration-100 ease-in-out;
-    @apply bg-white dark:bg-zinc-900;
-    box-shadow:
-      0 4px 8px var(--color-zinc-100),
-      0 4px 0px var(--color-zinc-300);
-
-    [data-theme="dark"] & {
-      box-shadow:
-        0 4px 8px var(--color-zinc-950),
-        0 4px 0px var(--color-zinc-950);
-    }
+    @apply flex h-full w-full items-center justify-center rounded-lg border transition-colors duration-100 ease-in-out;
+    @apply border-zinc-300 bg-zinc-100 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100;
   }
 
+  /* Pressed state (key held): a subtle darker fill in place of the old push-down. */
   .keyboard-key-char[data-active] {
-    @apply translate-y-0 shadow-none;
+    @apply brightness-95 dark:brightness-110;
   }
 
   .keyboard-key-correct {
-    @apply bg-green-200 text-green-900 dark:bg-green-700 dark:text-green-100;
-    box-shadow:
-      0 4px 8px rgba(0, 0, 0, 0.1),
-      0 4px 0px var(--color-green-300);
-
-    [data-theme="dark"] & {
-      box-shadow:
-        0 4px 8px var(--color-zinc-800),
-        0 4px 0px var(--color-green-900);
-    }
+    @apply border-green-300 bg-green-200 text-green-900 dark:border-green-600 dark:bg-green-700 dark:text-green-100;
   }
 
   .keyboard-key-misplaced {
-    @apply bg-yellow-200 text-yellow-900 dark:bg-yellow-700 dark:text-yellow-100;
-    box-shadow:
-      0 4px 8px rgba(0, 0, 0, 0.1),
-      0 4px 0px var(--color-yellow-300);
-
-    [data-theme="dark"] & {
-      box-shadow:
-        0 4px 8px var(--color-zinc-800),
-        0 4px 0px var(--color-yellow-900);
-    }
+    @apply border-yellow-300 bg-yellow-200 text-yellow-900 dark:border-yellow-600 dark:bg-yellow-700 dark:text-yellow-100;
   }
 
   .keyboard-key-absent {
-    @apply bg-zinc-200 text-zinc-700 dark:bg-zinc-600 dark:text-zinc-200;
-    box-shadow:
-      0 4px 8px rgba(0, 0, 0, 0.1),
-      0 4px 0px var(--color-zinc-300);
-
-    [data-theme="dark"] & {
-      box-shadow:
-        0 4px 8px var(--color-zinc-800),
-        0 4px 0px var(--color-zinc-800);
-    }
+    @apply border-zinc-300 bg-zinc-200 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-600 dark:text-zinc-200;
   }
 
-  .keyboard-key[data-state="active"] {
-    @apply border-zinc-100 border-t-zinc-200 border-b-zinc-400/25 dark:border-zinc-600 dark:border-t-zinc-800 dark:border-b-zinc-700/25;
-  }
-
-  .keyboard-key[data-state="inactive"] {
-    @apply border-zinc-200 border-t-zinc-300 border-b-zinc-300/75 dark:border-zinc-900 dark:border-t-zinc-500 dark:border-b-zinc-700/75;
+  /* Enter key armed by the first press when "Confirm All Guesses" is on: a
+     solid green fill signals the key is awaiting a second, confirming press. */
+  .keyboard-key-confirm {
+    @apply border-green-500 bg-green-500 text-white dark:border-green-600 dark:bg-green-600 dark:text-white;
   }
 
   .row {
@@ -373,12 +365,10 @@
   }
 
   .tile-blank {
-    @apply bg-zinc-100;
-    box-shadow: inset 0 1px 2px 1px var(--color-zinc-300);
+    @apply border border-zinc-200 bg-zinc-100;
 
     [data-theme="dark"] & {
-      @apply bg-zinc-700;
-      box-shadow: inset 0 1px 2px 1px var(--color-zinc-950);
+      @apply border-zinc-700 bg-zinc-900;
     }
   }
 
@@ -426,13 +416,11 @@
      letter tiles keep `.tile-blank` underneath: shows the well before the gram
      face washes in, then the face (which fills the whole wide area) covers it. */
   .row-reveal .tile-wide {
-    @apply bg-zinc-100;
-    box-shadow: inset 0 1px 2px 1px var(--color-zinc-300);
+    @apply border border-zinc-200 bg-zinc-100;
   }
 
   [data-theme="dark"] .row-reveal .tile-wide {
-    @apply bg-zinc-700;
-    box-shadow: inset 0 1px 2px 1px var(--color-zinc-950);
+    @apply border-zinc-700 bg-zinc-800;
   }
 
   /* Route entrance: the board (scoreboard + guesses) drops in from above.
@@ -543,143 +531,171 @@
   }
 }
 
-/* Raised neutral surface: vertical gradient + inset bottom highlight + border.
+/* Flat neutral surface: solid fill + 1px border, no gradient or bevel.
    Reused by tiles, the gram badge, the archive button, and the toast. */
 @utility surface-raised {
-  @apply border border-zinc-100 pb-[2px] border-x-zinc-200 bg-linear-to-b from-white to-zinc-100 text-zinc-900 shadow-[inset_0_-2px_2px_var(--color-zinc-300)] dark:border-zinc-950 dark:from-zinc-700 dark:to-zinc-900 dark:text-zinc-100 dark:shadow-[inset_0_-2px_4px_var(--color-zinc-950)];
+  @apply border border-zinc-200 bg-white text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100;
 }
 
-/* Color-coded raised surfaces: vertical gradient + colored border + inset
-   bottom highlight, mirroring the feedback-tile pattern. Defined with @utility
-   so they can be @applied by the .tile-* rules and reused anywhere (e.g. the
-   error toast). */
+/* Color-coded flat surfaces: solid fill + matching border. Defined with
+   @utility so they can be @applied by the .tile-* rules and reused anywhere
+   (e.g. the error toast). */
 @utility surface-green {
-  @apply border-green-100 border-x-green-200 bg-linear-to-b from-green-100 to-green-300 text-green-900 shadow-[inset_0_-2px_2px_var(--color-green-500)];
-  @apply dark:border-green-950 dark:border-x-green-950 dark:from-green-600 dark:to-green-800 dark:text-green-100 dark:shadow-[inset_0_-2px_4px_var(--color-green-950)];
+  @apply border border-green-300 bg-green-200 text-green-900;
+  @apply dark:border-green-600 dark:bg-green-700 dark:text-green-100;
 }
 
 @utility surface-yellow {
-  @apply border-yellow-100 border-x-yellow-200 bg-linear-to-b from-yellow-100 to-yellow-300 text-yellow-900 shadow-[inset_0_-2px_2px_var(--color-yellow-500)];
-  @apply dark:border-yellow-950 dark:border-x-yellow-950 dark:from-yellow-600 dark:to-yellow-800 dark:text-yellow-100 dark:shadow-[inset_0_-2px_4px_var(--color-yellow-950)];
+  @apply border border-yellow-300 bg-yellow-200 text-yellow-900;
+  @apply dark:border-yellow-600 dark:bg-yellow-700 dark:text-yellow-100;
 }
 
 @utility surface-red {
-  @apply border-red-100 border-x-red-200 bg-linear-to-b from-red-100 to-red-300 text-red-900 shadow-[inset_0_-2px_2px_var(--color-red-500)];
-  @apply dark:border-red-900 dark:border-x-red-950 dark:from-red-600 dark:to-red-800 dark:text-red-100 dark:shadow-[inset_0_-2px_4px_var(--color-red-950)];
+  @apply border border-red-300 bg-red-200 text-red-900;
+  @apply dark:border-red-700 dark:bg-red-700 dark:text-red-100;
 }
 
 @utility surface-absent {
-  @apply border-zinc-100 border-x-zinc-200 bg-linear-to-b from-zinc-100 to-zinc-300 text-zinc-900 shadow-[inset_0_-2px_2px_var(--color-zinc-400)];
-  @apply dark:border-zinc-900 dark:border-x-zinc-950 dark:from-zinc-500 dark:to-zinc-700 dark:text-zinc-100 dark:shadow-[inset_0_-2px_4px_var(--color-zinc-900)];
+  @apply border border-zinc-300 bg-zinc-200 text-zinc-700;
+  @apply dark:border-zinc-600 dark:bg-zinc-600 dark:text-zinc-100;
 }
 
-/* Premium gold surface: keeps its bright gradient in dark mode (rather than
-   darkening like surface-yellow) so it reads as the premium "gold" accent. */
+/* Premium gold surface: flat solid gold fill that stays bright in dark mode
+   (rather than darkening like surface-yellow) so it reads as the premium accent. */
 @utility surface-gold {
-  @apply border border-yellow-200 bg-linear-to-b from-yellow-100 to-yellow-300 text-zinc-900 shadow-[inset_0_-1px_1px_var(--color-yellow-300)];
-  @apply dark:border-yellow-800 dark:shadow-[inset_0_-2px_4px_var(--color-yellow-800)];
+  @apply border border-yellow-300 bg-yellow-200 text-zinc-900;
+  @apply dark:border-yellow-500 dark:bg-yellow-400;
 }
 
-/* Depressed (pressed-in) companions to the surfaces above. Apply alongside the
-   matching surface-* class to swap its raised bottom highlight for a recessed
-   inset shadow in the same color family. `!` overrides the surface box-shadow
-   regardless of utility source order. */
+/* Pressed companions: a subtle darker fill in the same color family, replacing
+   the old recessed inset shadow. Apply alongside the matching surface-* class.
+   `!` wins over the surface fill regardless of utility source order. */
 @utility surface-raised-depressed {
-  box-shadow: inset 0 2px 4px var(--color-zinc-400) !important;
-
-  [data-theme="dark"] & {
-    box-shadow: inset 0 2px 4px var(--color-zinc-950) !important;
-  }
+  @apply bg-zinc-200! dark:bg-zinc-700!;
 }
 
 @utility surface-green-depressed {
-  box-shadow: inset 0 2px 4px var(--color-green-600) !important;
-
-  [data-theme="dark"] & {
-    box-shadow: inset 0 2px 4px var(--color-green-950) !important;
-  }
+  @apply bg-green-300! dark:bg-green-800!;
 }
 
 @utility surface-yellow-depressed {
-  box-shadow: inset 0 2px 4px var(--color-yellow-600) !important;
-
-  [data-theme="dark"] & {
-    box-shadow: inset 0 2px 4px var(--color-yellow-950) !important;
-  }
+  @apply bg-yellow-300! dark:bg-yellow-800!;
 }
 
 @utility surface-red-depressed {
-  box-shadow: inset 0 2px 4px var(--color-red-600) !important;
-
-  [data-theme="dark"] & {
-    box-shadow: inset 0 2px 4px var(--color-red-950) !important;
-  }
+  @apply bg-red-300! dark:bg-red-800!;
 }
 
-/* Selected companions: the pressed-in inset of the *-depressed utilities plus an
-   outer ring in the surface's own color family (a soft light tint at ~200 in
-   light mode, a deep shade at ~900 in dark mode), combined into one box-shadow.
-   A single declaration is required because `outline` is force-cleared by
-   `.using-mouse *` and a `ring` utility's box-shadow loses to the depressed
-   `!important`. Used for the active tab / selected day so it reads as both
-   pushed-in and clearly chosen in its own status color. */
+/* Selected companions: the darker pressed fill plus a 2px ring in the surface's
+   own color family, so the active tab / selected day reads as clearly chosen.
+   A single box-shadow declaration is required because `outline` is force-cleared
+   by `.using-mouse *`. The `!` on the fill wins over the surface utility. */
 @utility surface-raised-selected {
-  box-shadow:
-    inset 0 2px 4px var(--color-zinc-400),
-    0 0 0 1px var(--color-zinc-200) !important;
+  @apply bg-zinc-200! dark:bg-zinc-700!;
+  box-shadow: 0 0 0 2px var(--color-zinc-400) !important;
 
   [data-theme="dark"] & {
-    box-shadow:
-      inset 0 2px 4px var(--color-zinc-950),
-      0 0 0 1px var(--color-zinc-900) !important;
+    box-shadow: 0 0 0 2px var(--color-zinc-500) !important;
   }
 }
 
 @utility surface-green-selected {
-  box-shadow:
-    inset 0 2px 4px var(--color-green-600),
-    0 0 0 1px var(--color-green-200) !important;
+  @apply bg-green-300! dark:bg-green-800!;
+  box-shadow: 0 0 0 2px var(--color-green-500) !important;
 
   [data-theme="dark"] & {
-    box-shadow:
-      inset 0 2px 4px var(--color-green-950),
-      0 0 0 1px var(--color-green-900) !important;
+    box-shadow: 0 0 0 2px var(--color-green-500) !important;
   }
 }
 
 @utility surface-yellow-selected {
-  box-shadow:
-    inset 0 2px 4px var(--color-yellow-600),
-    0 0 0 1px var(--color-yellow-200) !important;
+  @apply bg-yellow-300! dark:bg-yellow-800!;
+  box-shadow: 0 0 0 2px var(--color-yellow-500) !important;
 
   [data-theme="dark"] & {
-    box-shadow:
-      inset 0 2px 4px var(--color-yellow-950),
-      0 0 0 1px var(--color-yellow-900) !important;
+    box-shadow: 0 0 0 2px var(--color-yellow-500) !important;
   }
 }
 
 @utility surface-red-selected {
-  box-shadow:
-    inset 0 2px 4px var(--color-red-600),
-    0 0 0 1px var(--color-red-200) !important;
+  @apply bg-red-300! dark:bg-red-800!;
+  box-shadow: 0 0 0 2px var(--color-red-500) !important;
 
   [data-theme="dark"] & {
-    box-shadow:
-      inset 0 2px 4px var(--color-red-950),
-      0 0 0 1px var(--color-red-900) !important;
+    box-shadow: 0 0 0 2px var(--color-red-500) !important;
   }
 }
 
 /* Registered as a @utility (not a plain .class in @layer utilities) so it can be
-   referenced via @apply in other rules, e.g. .endgame-section below. */
+   referenced via @apply in other rules, e.g. .endgame-section below. Flat: a
+   plain border instead of the old recessed inset shadow. */
 @utility inset-shadow-default {
-  @apply shadow-[inset_0px_2px_8px_#ddd] dark:shadow-[inset_0px_2px_8px_#000];
+  @apply border border-zinc-200 dark:border-zinc-700;
 }
 
 @layer utilities {
   .toggle-theme-color {
-    @apply bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100;
+    @apply text-zinc-900 dark:text-zinc-100;
+    /* Diagonal-hatch texture. A single repeating-linear-gradient at 45deg draws
+       an evenly spaced zinc-200 line every 14px behind card content. */
+    background-color: #fbfaf7;
+    background-image:
+      repeating-linear-gradient(45deg, var(--color-zinc-200) 0 1.5px, transparent 1.5px 14px);
+    background-attachment: fixed;
+  }
+
+  [data-theme="dark"] .toggle-theme-color {
+    background-color: #0a0a0b;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(228, 228, 231, 0.14) 0 1.5px, transparent 1.5px 14px);
+    background-attachment: fixed;
+  }
+
+  /* Animated snaking border for the main-menu gram pill. A rotating
+     conic-gradient (a red/yellow/blue arc with a transparent tail) is masked to
+     just the padding ring, so the colored segment travels around the perimeter.
+     --gram-angle animates via @property (declared below) since custom-property
+     angles can't otherwise be interpolated. */
+  .gram-border {
+    position: relative;
+    padding: 4px;
+  }
+
+  .gram-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 4px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from var(--gram-angle),
+      transparent 0deg,
+      #60a5fa 86deg,
+      #facc15 172deg,
+      #f87171 258deg,
+      transparent 345deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: gram-border-move 4s linear infinite;
+  }
+
+  @keyframes gram-border-move {
+    to {
+      --gram-angle: 360deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gram-border::before {
+      animation: none;
+    }
   }
 
   .text-accent {
@@ -706,14 +722,41 @@
     @apply dark:bg-zinc-800/50 dark:border-zinc-700;
   }
 
-  /* Raised variant of .endgame-section used by the Coach entry so it reads as
-     the interactive, premium section among the flat stat cards. */
+  /* Interactive variant of .endgame-section used by the Coach entry. Flat: a
+     solid accent border (rather than a gradient/shadow) sets it apart from the
+     plain stat cards. */
   .endgame-section-raised {
-    @apply p-4 border border-zinc-200 rounded-lg shadow-sm bg-gradient-to-b from-white to-zinc-100 dark:border-zinc-700 dark:from-zinc-800 dark:to-zinc-900;
+    @apply p-4 rounded-lg border border-zinc-300 bg-zinc-50 transition-colors dark:border-zinc-600 dark:bg-zinc-800;
+  }
+
+  .endgame-section-raised:hover {
+    @apply bg-zinc-100 dark:bg-zinc-700;
   }
 
   .endgame-section-raised:active {
-    @apply translate-y-[2px] shadow-none;
+    @apply bg-zinc-200 dark:bg-zinc-600;
+  }
+
+  /* Gold-gradient variant of .endgame-section-raised used by the Coach entry to
+     read as the premium accent. Text/icons switch to dark tones for contrast on
+     the gold fill (see AnalyzeEntry). Dark mode keeps the gold bright rather than
+     darkening, matching @utility surface-gold. */
+  .endgame-section-gold {
+    @apply rounded-lg border border-yellow-400 p-4 text-zinc-900 transition-[filter];
+    background-image: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
+  }
+
+  [data-theme="dark"] .endgame-section-gold {
+    @apply border-yellow-500;
+    background-image: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+  }
+
+  button.endgame-section-gold:hover {
+    filter: brightness(1.04);
+  }
+
+  button.endgame-section-gold:active {
+    filter: brightness(0.96);
   }
 
   /* Padded yellow tile behind the Coach entry icon. */
@@ -723,7 +766,7 @@
   }
 
   .bg-default-shadow {
-    @apply bg-white shadow-lg shadow-zinc-400/20 dark:bg-zinc-900 dark:shadow-black/40;
+    @apply bg-white border border-zinc-200 dark:bg-zinc-900 dark:border-zinc-700;
   }
 
   .bg-default-interactive {
@@ -731,10 +774,50 @@
   }
 
   .bg-default-gradient {
-    @apply bg-gradient-to-br from-white to-zinc-200 dark:from-zinc-700 dark:to-zinc-900;
+    @apply bg-zinc-100 dark:bg-zinc-800;
   }
 
   .gradient-default {
-    @apply border border-zinc-200 bg-gradient-to-br from-white via-zinc-200 to-zinc-200 dark:border-zinc-800 dark:from-zinc-600 dark:via-zinc-900 dark:to-zinc-900;
+    @apply border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800;
   }
+}
+/* -------------------------------------------------------------------------
+   Accessibility: color-blind mode
+   -------------------------------------------------------------------------
+   Swaps the green/yellow feedback palette for a high-contrast orange/blue pair
+   (the same hues used by NYT Wordle's high-contrast mode), which stays
+   distinguishable under the common red-green color-vision deficiencies. Absent
+   tiles keep their neutral zinc fill. Kept unlayered so these win over the
+   @layer feedback classes for both tiles and keyboard keys, in light and dark. */
+[data-colorblind="true"] .tile-correct,
+[data-colorblind="true"] .keyboard-key-correct {
+  background-color: #f5793a;
+  border-color: #f5793a;
+  color: #ffffff;
+}
+
+[data-colorblind="true"] .tile-misplaced,
+[data-colorblind="true"] .keyboard-key-misplaced {
+  background-color: #85c0f9;
+  border-color: #85c0f9;
+  color: #1a1a2e;
+}
+
+/* -------------------------------------------------------------------------
+   Accessibility: reduce motion
+   -------------------------------------------------------------------------
+   Neutralizes CSS-driven animations and transitions (board reveal, tile
+   cascade, marching ants, the snaking gram border, view transitions). Anime.js
+   JS tweens are fast-forwarded separately via engine.speed in the settings
+   provider. Durations are near-zero rather than `none` so animation end states
+   still apply and `animationend`/`transitionend` handlers still fire. */
+[data-reduce-motion="true"] *,
+[data-reduce-motion="true"] *::before,
+[data-reduce-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
 }

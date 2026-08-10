@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import clsx from "clsx";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type {
   FinishInfo,
@@ -10,6 +11,7 @@ import type {
   PathStep,
   RecapSlide,
 } from "./useGameRecap";
+import type { NoteCell } from "~/utils/game/note-tiles";
 import { OverviewScorePanel } from "./OverviewScorePanel";
 import { FortunePanel } from "./FortunePanel";
 import { RecapBoard } from "./RecapBoard";
@@ -17,6 +19,7 @@ import { RecapIntroProvider } from "./useRecapAnimations";
 import { Odometer } from "../stats/Odometer";
 import { GramFace } from "~/components/guesses/GramFace";
 import { useGameStore } from "~/stores/game-store";
+import { useSettings } from "~/utils/providers/settings-provider";
 import Button from "~/components/buttons/Button";
 
 function signed(n: number): string {
@@ -27,7 +30,7 @@ function signed(n: number): string {
 // fortune cards, so a section reads as one card whichever slide it lives on.
 function SectionCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
       {children}
     </div>
   );
@@ -48,12 +51,16 @@ function ScoreSection({
   before,
   after,
   notes,
+  onTilesChange,
 }: {
   label: string;
   notesLabel: string;
   before: number;
   after: number;
   notes: NoteItem[];
+  // Called with the board cells of the note the player is hovering or has tapped (null when none), so
+  // the parent slide can highlight the matching tiles on its recap board.
+  onTilesChange?: (tiles: NoteCell[] | null) => void;
 }) {
   const delta = Math.round(after) - Math.round(before);
   return (
@@ -80,6 +87,7 @@ function ScoreSection({
         <ScoreNotes
           label={notesLabel}
           notes={notes}
+          onTilesChange={onTilesChange}
         />
       </div>
     </SectionCard>
@@ -112,31 +120,104 @@ function slideHeading(slide: RecapSlide, isLast: boolean): string {
 
 // The itemized score breakdown: each line names what happened and how many points it moved, the
 // label tinted green (gain) or amber (loss) and its signed value on the right. Hides when empty.
-function ScoreNotes({ label, notes }: { label: string; notes: NoteItem[] }) {
+// A note that maps to board tiles (see noteTiles) is interactive: hovering it (or tapping, on touch)
+// highlights those tiles on the slide's recap board via `onTilesChange`. Notes with no tiles (a
+// length shortfall, a neglect omission) stay plain text.
+function ScoreNotes({
+  label,
+  notes,
+  onTilesChange,
+}: {
+  label: string;
+  notes: NoteItem[];
+  onTilesChange?: (tiles: NoteCell[] | null) => void;
+}) {
+  // Hover (mouse) takes priority over a sticky tap selection, so a touch tap latches the highlight
+  // while a mouse can preview others without losing it. `active` is the effective note index.
+  const [hovered, setHovered] = useState<number | null>(null);
+  const [sticky, setSticky] = useState<number | null>(null);
+  const active = hovered ?? sticky;
+
+  const emit = onTilesChange;
+  useEffect(() => {
+    if (!emit) return;
+    const note = active != null ? notes[active] : undefined;
+    emit(note && note.tiles.length > 0 ? note.tiles : null);
+  }, [active, notes, emit]);
+
   if (notes.length === 0) return null;
   return (
     <div className="flex flex-col gap-2">
       <span className="section-label">{label}</span>
-      <ul className="flex flex-col gap-2">
-        {notes.map((note, i) => (
-          <li
-            key={i}
-            className="flex items-center justify-between gap-3 text-sm leading-snug"
-          >
-            <span className={deltaTone(note.points)}>{note.label}</span>
-            <span className="shrink-0 tabular-nums">
-              <span className={`font-bold ${deltaTone(note.points)}`}>
-                {signed(note.points)}
-              </span>
-              {note.max != null && (
-                <span className="text-zinc-400 dark:text-zinc-500">
-                  {" "}
-                  / {note.max}
-                </span>
+      <ul className="flex flex-col gap-1">
+        {notes.map((note, i) => {
+          const interactive = note.tiles.length > 0;
+          const toggleSticky = () => setSticky((s) => (s === i ? null : i));
+          return (
+            <li
+              key={i}
+              // Keyboard focus mirrors mouse hover: focusing an item previews its tile highlight,
+              // Enter/Space toggles the sticky selection just like a tap. Non-interactive notes
+              // (no tiles) stay plain text and out of the tab order.
+              role={interactive ? "button" : undefined}
+              tabIndex={interactive ? 0 : undefined}
+              aria-pressed={interactive ? sticky === i : undefined}
+              onPointerEnter={
+                interactive ? () => setHovered(i) : undefined
+              }
+              onPointerLeave={
+                interactive
+                  ? () => setHovered((h) => (h === i ? null : h))
+                  : undefined
+              }
+              onFocus={interactive ? () => setHovered(i) : undefined}
+              onBlur={
+                interactive
+                  ? () => setHovered((h) => (h === i ? null : h))
+                  : undefined
+              }
+              onClick={interactive ? toggleSticky : undefined}
+              onKeyDown={
+                interactive
+                  ? (e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleSticky();
+                      }
+                    }
+                  : undefined
+              }
+              className={clsx(
+                "-mx-1.5 flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-sm leading-snug transition-colors",
+                interactive &&
+                  "cursor-pointer border border-zinc-200 dark:border-zinc-800",
+                active === i && "bg-zinc-100 dark:bg-zinc-800"
               )}
-            </span>
-          </li>
-        ))}
+            >
+              <span className={deltaTone(note.points)}>{note.label}</span>
+              <span className="shrink-0 tabular-nums">
+                {note.percent != null ? (
+                  // A graded-opener line reads as its criterion percentage, not a raw point delta.
+                  <span className={`font-bold ${deltaTone(note.points)}`}>
+                    {note.percent}
+                  </span>
+                ) : (
+                  <>
+                    <span className={`font-bold ${deltaTone(note.points)}`}>
+                      {signed(note.points)}
+                    </span>
+                    {note.max != null && (
+                      <span className="text-zinc-400 dark:text-zinc-500">
+                        {" "}
+                        / {note.max}
+                      </span>
+                    )}
+                  </>
+                )}
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -243,9 +324,13 @@ function GramBarRow({
   isTop: boolean;
   word?: string;
 }) {
-  const fill = isTop
-    ? "bg-gradient-to-r from-green-200 to-green-300 shadow-[0px_0px_2px_var(--color-green-100)] dark:from-green-700 dark:to-green-600 dark:shadow-[0px_0px_2px_var(--color-green-800)]"
-    : "bg-gradient-to-r from-zinc-200 to-zinc-300 shadow-[0px_0px_2px_var(--color-zinc-300)] dark:from-zinc-800 dark:to-zinc-700 dark:shadow-[0px_0px_2px_var(--color-zinc-900)]";
+  const { colorBlindMode } = useSettings();
+  // Mirror the distribution chart: the most-probable placement fills with the
+  // "correct" color, swapped to the high-contrast orange in color-blind mode.
+  const topFill = colorBlindMode
+    ? "bg-[#f5793a] dark:bg-[#f5793a]"
+    : "bg-green-300 dark:bg-green-600";
+  const fill = isTop ? topFill : "bg-zinc-300 dark:bg-zinc-700";
   return (
     <div className="flex items-center gap-2 text-xs">
       <GramTileRow
@@ -253,7 +338,7 @@ function GramBarRow({
         isTop={isTop}
         word={word}
       />
-      <span className="h-4 flex-1 rounded-sm bg-zinc-100 shadow-[inset_0_1px_4px_var(--color-zinc-300)] dark:bg-zinc-800 dark:shadow-[inset_0_1px_2px_var(--color-zinc-950)]">
+      <span className="h-4 flex-1 rounded-sm border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800">
         <span
           className={`block h-full rounded-sm transition-[width] duration-500 ease-[cubic-bezier(.2,.7,.3,1)] ${fill}`}
           style={{ width: `${bar.pct}%` }}
@@ -274,15 +359,20 @@ function GramBody({ slide }: { slide: GramSlide }) {
   const maxFraction = Math.max(0, ...slide.bars.map((b) => b.fraction));
   const isTop = (bar: GramBar) =>
     bar.fraction > 0 && maxFraction - bar.fraction < 1e-9;
+  const [tiles, setTiles] = useState<NoteCell[] | null>(null);
   return (
     <div className="flex flex-col gap-2">
-      <RecapBoard revealCount={slide.guessNumber} />
+      <RecapBoard
+        revealCount={slide.guessNumber}
+        highlight={tiles}
+      />
       <ScoreSection
         label="Opener score"
         notesLabel="What earned the score"
         before={slide.scoreBefore}
         after={slide.scoreAfter}
         notes={slide.notes}
+        onTilesChange={setTiles}
       />
       <SectionCard>
         <div className="flex flex-col gap-2">
@@ -321,7 +411,7 @@ function WordChip({ word, gram }: { word: string; gram: string }) {
   const rest = "text-zinc-900 dark:text-zinc-100";
   const gramColor = "font-bold text-green-600 dark:text-green-400";
   return (
-    <span className="rounded border border-zinc-300 bg-white px-1.5 py-0.5 font-mono text-xs font-medium dark:border-zinc-600 dark:bg-zinc-900">
+    <span className="rounded border border-zinc-300 bg-white px-1.5 py-0.5 text-xs font-medium dark:border-zinc-600 dark:bg-zinc-900">
       {idx < 0 ? (
         <span className={rest}>{upper}</span>
       ) : (
@@ -535,10 +625,10 @@ function PathSection({ path }: { path: PathStep[] }) {
                 className="flex items-center justify-between gap-3 text-sm"
               >
                 <span className="flex items-center gap-2">
-                  <span className="text-accent w-4 font-mono text-xs">
+                  <span className="text-accent w-4 text-xs">
                     {i + 1}
                   </span>
-                  <span className="font-mono uppercase">{step.guess}</span>
+                  <span className="uppercase">{step.guess}</span>
                 </span>
                 <span
                   className={`text-xs tabular-nums ${didStall
@@ -559,15 +649,20 @@ function PathSection({ path }: { path: PathStep[] }) {
 }
 
 function GuessBody({ slide }: { slide: GuessSlide }) {
+  const [tiles, setTiles] = useState<NoteCell[] | null>(null);
   return (
     <div className="flex flex-col gap-2">
-      <RecapBoard revealCount={slide.guessNumber} />
+      <RecapBoard
+        revealCount={slide.guessNumber}
+        highlight={tiles}
+      />
       <ScoreSection
         label="Score"
         notesLabel="What changed the score"
         before={slide.scoreBefore}
         after={slide.scoreAfter}
         notes={slide.notes}
+        onTilesChange={setTiles}
       />
       {!slide.finish && (
         <RemainingWords
@@ -623,7 +718,11 @@ export function RecapCarousel({ slides }: { slides: RecapSlide[] }) {
             <h3 className="text-base font-bold">
               {slideHeading(slide, clamped === slides.length - 1)}
             </h3>
-            <SlideBody slide={slide} />
+            {/* Keyed by slide so a note's hover/tap highlight state never carries across pages. */}
+            <SlideBody
+              key={clamped}
+              slide={slide}
+            />
           </div>
         </RecapIntroProvider>
       </div>
