@@ -64,6 +64,21 @@ export function SettingsProvider({
   const [colorBlindMode, setColorBlind] = useState(initialColorBlind);
   const [reduceMotion, setReduce] = useState(initialReduceMotion);
 
+  // Adopt the pre-paint reduce-motion decision on mount. The server value comes
+  // from the cookie alone and cannot see an OS-level prefers-reduced-motion
+  // signal when no cookie exists yet; the head script folds that signal into the
+  // [data-reduce-motion] attribute (and cookie) before hydration. Without this,
+  // an OS reduce-motion user on their first load keeps engine.speed=1 and JS
+  // tweens run at full speed even though the CSS animations are suppressed.
+  useEffect(() => {
+    const attr = document.documentElement.getAttribute("data-reduce-motion");
+    if (attr !== null && (attr === "true") !== reduceMotion) {
+      setReduce(attr === "true");
+    }
+    // Run once on mount; the engine effect below reacts to the resulting change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Reconcile the Anime.js engine with the current preference on mount and
   // whenever it changes. The head script sets the [data-reduce-motion]
   // attribute pre-paint (covering CSS animations); this handles JS tweens.
@@ -71,24 +86,36 @@ export function SettingsProvider({
     engine.speed = reduceMotion ? REDUCED_MOTION_SPEED : 1;
   }, [reduceMotion]);
 
+  // Persist a preference to the server, then refresh route context so a
+  // logged-in user's DB-backed value stays in sync. A failed write leaves the
+  // local state and cookie already updated (so the UI is correct), but must not
+  // fail silently -- log it rather than letting the rejection go unhandled.
+  function persist(promise: Promise<unknown>, label: string) {
+    promise
+      .then(() => router.invalidate())
+      .catch((error) => {
+        console.error(`Failed to persist ${label} setting:`, error);
+      });
+  }
+
   function setConfirmAllGuesses(val: boolean) {
     setConfirm(val);
     writeCookie(CONFIRM_GUESSES_COOKIE, val);
-    setConfirmAllGuessesServerFn({ data: val }).then(() => router.invalidate());
+    persist(setConfirmAllGuessesServerFn({ data: val }), "confirm-all-guesses");
   }
 
   function setColorBlindMode(val: boolean) {
     setColorBlind(val);
     setHtmlFlag("data-colorblind", val);
     writeCookie(COLOR_BLIND_COOKIE, val);
-    setColorBlindModeServerFn({ data: val }).then(() => router.invalidate());
+    persist(setColorBlindModeServerFn({ data: val }), "color-blind-mode");
   }
 
   function setReduceMotion(val: boolean) {
     setReduce(val);
     setHtmlFlag("data-reduce-motion", val);
     writeCookie(REDUCE_MOTION_COOKIE, val);
-    setReduceMotionServerFn({ data: val }).then(() => router.invalidate());
+    persist(setReduceMotionServerFn({ data: val }), "reduce-motion");
   }
 
   return (
