@@ -1,18 +1,18 @@
-import { redirect, createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
+import { createFileRoute } from "@tanstack/react-router";
 import { signOut } from "~/utils/auth/auth-client";
-
-// const logoutFn = createServerFn().handler(async () => {
-//   const session = await useAppSession()
-
-//   session.clear()
-
-//   throw redirect({
-//     href: '/',
-//   })
-// })
+import { queryClient } from "~/utils/query-client";
 
 export const Route = createFileRoute("/logout")({
   preload: false,
-  loader: () => signOut(),
+  loader: async () => {
+    await signOut();
+    const { clearAnonymousStorage } = await import(
+      "~/utils/storage/clear-anonymous-storage"
+    );
+    clearAnonymousStorage();
+    // Query keys like ["gameRecap", mode, date] and ["userStats", mode] are not
+    // user-scoped, so a same-session account switch would otherwise resolve to
+    // the previous user's cached data. Drop the whole cache on sign-out.
+    queryClient.clear();
+  },
 });

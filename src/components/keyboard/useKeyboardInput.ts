@@ -1,8 +1,7 @@
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Key } from "./Keyboard.types";
-import { useGame } from "~/context/GameProvider";
+import { useGameStore } from "~/stores/game-store";
 import { validKeys } from "./Keyboard.data";
-import { ChangeGuessAction } from "~/context/GameProvider.types";
 
 const getNormalizedKey = (key: string): Key => {
   switch (key) {
@@ -23,26 +22,116 @@ const getNormalizedKey = (key: string): Key => {
   }
 };
 
-const changeGuess = (options: { key: Key; modifier?: boolean }): ChangeGuessAction => {
-  const { key, modifier } = options;
+function dispatchKey(key: Key, modifier: boolean) {
+  const { appendChar, backspace, clearGuess, setSkipGramAnimation } =
+    useGameStore.getState();
 
   switch (key) {
     case "Backspace":
-      return modifier ? { type: "clear" } : { type: "backspace" };
+      modifier ? clearGuess() : backspace();
+      break;
     case "Enter":
-      return { type: "submit" };
+      // Submit is handled externally (tRPC mutation), not here
+      break;
     case "Blank":
-      return { type: "append", char: " " as Key };
+      appendChar(" " as Key);
+      break;
+    case "Gram": {
+      const { gram, guesses, currentGuessIndex, wordLength } =
+        useGameStore.getState();
+      const currentGuess = guesses[currentGuessIndex] ?? "";
+      if (!gram) break;
+      const upperGram = gram.toUpperCase();
+      if (currentGuess.includes(upperGram)) break;
+      // If the guess tail already matches a prefix of the gram, only append
+      // the remainder so the existing letters complete the GramTile.
+      let overlap = 0;
+      for (let k = upperGram.length - 1; k > 0; k--) {
+        if (currentGuess.endsWith(upperGram.slice(0, k))) {
+          overlap = k;
+          break;
+        }
+      }
+      const toAppend = upperGram.slice(overlap);
+      if (currentGuess.length + toAppend.length > wordLength) break;
+      setSkipGramAnimation(true);
+      for (const c of toAppend) {
+        appendChar(c as Key);
+      }
+      break;
+    }
     default:
-      return { type: "append", char: key };
+      appendChar(key);
+      break;
   }
-};
+}
+
+function handleEditingKey(normalizedKey: Key): boolean {
+  const { editing, editKey, setCharAt, removeCharAt } = useGameStore.getState();
+  if (!editing.toggled) return false;
+  if (normalizedKey === "Enter") {
+    editKey(editing.key, false);
+    return true;
+  }
+  if (normalizedKey === "Backspace") {
+    removeCharAt(editing.key);
+    editKey(editing.key, false);
+    return true;
+  }
+  if (normalizedKey === "Blank") {
+    setCharAt(editing.key, " ");
+    return true;
+  }
+  if (/^[A-Z]$/.test(normalizedKey)) {
+    setCharAt(editing.key, normalizedKey);
+    return true;
+  }
+  return true;
+}
+
 export default function useKeyboardInput(
   focusedKeyIndex: number | null = null,
-  allKeys: Key[] = []
+  allKeys: Key[] = [],
+  onSubmit?: () => void,
 ) {
-  const { dispatch, state } = useGame();
+  const isPaused = useGameStore((s) => s.isPaused);
+  const editingToggled = useGameStore((s) => s.editing.toggled);
+  const editingKey = useGameStore((s) => s.editing.key);
   const [selectedKeys, setSelectedKeys] = useState<Key[]>([]);
+  const longPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const longPressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
+
+  const clearLongPressTimers = () => {
+    if (longPressTimeoutRef.current !== null) {
+      clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
+    }
+    if (longPressIntervalRef.current !== null) {
+      clearInterval(longPressIntervalRef.current);
+      longPressIntervalRef.current = null;
+    }
+  };
+
+  const isRepeatableKey = (key: Key) =>
+    key === "Backspace" || key === "Blank" || /^[A-Z]$/.test(key);
+
+  const startLongPressRepeat = (key: Key) => {
+    clearLongPressTimers();
+    longPressTimeoutRef.current = setTimeout(() => {
+      longPressIntervalRef.current = setInterval(() => {
+        const { isPaused: paused, status, editing } = useGameStore.getState();
+        if (paused || status !== "IN_PROGRESS" || editing.toggled) {
+          clearLongPressTimers();
+          return;
+        }
+        dispatchKey(key, false);
+      }, 60);
+    }, 500);
+  };
 
   const removeSelectedKey = (key: string) => {
     setSelectedKeys((prev) =>
@@ -62,20 +151,26 @@ export default function useKeyboardInput(
       return;
     }
 
+    if (handleEditingKey(normalizedKey)) {
+      addSelectedKey(normalizedKey);
+      return;
+    }
+
     const parsedKey = parseKey({ key, remove: false });
+    if (parsedKey === "Enter") {
+      onSubmit?.();
+      return;
+    }
+    dispatchKey(parsedKey, false);
 
-    const changeGuessAction = changeGuess({
-      key: parsedKey,
-    });
-
-    dispatch({
-      type: "changeGuess",
-      change: changeGuessAction,
-    });
+    if (isRepeatableKey(parsedKey)) {
+      startLongPressRepeat(parsedKey);
+    }
   };
 
   // handle pointer up or touch up on key button
   const handleKeyPointerUp = (key: Key) => {
+    clearLongPressTimers();
     removeSelectedKey(key);
   };
 
@@ -85,7 +180,15 @@ export default function useKeyboardInput(
     const activeElement = document.activeElement as HTMLElement;
 
     // Don't allow input if game is paused (e.g. when a dialog is open)
-    if (state.isPaused) {
+    // or if the game has finished
+    const { isPaused: paused, status } = useGameStore.getState();
+    if (paused || status !== "IN_PROGRESS") {
+      return;
+    }
+
+    if (key === "Escape") {
+      const { editing, editKey } = useGameStore.getState();
+      if (editing.toggled) editKey(editing.key, false);
       return;
     }
 
@@ -100,42 +203,29 @@ export default function useKeyboardInput(
       return;
     }
 
+    if (handleEditingKey(normalizedKey)) {
+      parseKey({ key: normalizedKey, remove: false });
+      return;
+    }
+
+    const modifier = event.shiftKey || event.ctrlKey || event.metaKey;
+
     // If Enter is pressed and a key is focused, append that key instead of submitting
     if (normalizedKey === "Enter" && focusedKeyIndex !== null && focusedKeyIndex >= 0 && focusedKeyIndex < allKeys.length) {
       const focusedKey = allKeys[focusedKeyIndex];
       if (focusedKey && focusedKey !== "Enter") {
-        const parsedKey = parseKey({
-          key: focusedKey,
-          remove: false,
-        });
-
-        const changeGuessAction = changeGuess({
-          key: parsedKey,
-          modifier: event.shiftKey || event.ctrlKey || event.metaKey,
-        });
-
-        dispatch({
-          type: "changeGuess",
-          change: changeGuessAction,
-        });
+        const parsedKey = parseKey({ key: focusedKey, remove: false });
+        dispatchKey(parsedKey, modifier);
         return;
       }
     }
 
-    const parsedKey = parseKey({
-      key: normalizedKey,
-      remove: false,
-    });
-
-    const changeGuessAction = changeGuess({
-      key: parsedKey,
-      modifier: event.shiftKey || event.ctrlKey || event.metaKey,
-    });
-
-    dispatch({
-      type: "changeGuess",
-      change: changeGuessAction,
-    });
+    const parsedKey = parseKey({ key: normalizedKey, remove: false });
+    if (parsedKey === "Enter") {
+      onSubmit?.();
+      return;
+    }
+    dispatchKey(parsedKey, modifier);
   };
 
   const handleKeyboardRelease = (event: KeyboardEvent) => {
@@ -169,6 +259,7 @@ export default function useKeyboardInput(
 
   useEffect(() => {
     const handlePointerUp = () => {
+      clearLongPressTimers();
       setSelectedKeys([]);
     };
 
@@ -180,8 +271,22 @@ export default function useKeyboardInput(
       document.removeEventListener("keydown", handleKeyboardPress);
       document.removeEventListener("keyup", handleKeyboardRelease);
       document.removeEventListener("pointerup", handlePointerUp);
+      clearLongPressTimers();
     };
-  }, [state.isPaused, focusedKeyIndex, allKeys]);
+  }, [isPaused, focusedKeyIndex, allKeys, onSubmit]);
+
+  useEffect(() => {
+    if (!editingToggled) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (target.closest("[data-editable-tile]")) return;
+      if (target.closest("[data-keyboard-container]")) return;
+      useGameStore.getState().editKey(editingKey, false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [editingToggled, editingKey]);
 
   return {
     selectedKeys,

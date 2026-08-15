@@ -1,158 +1,95 @@
-import { Delete } from "lucide-react";
+import { useCallback, useRef } from "react";
 import { KeyboardRows } from "./Keyboard.data";
-import clsx from "clsx";
-import { useRef, type Dispatch, type RefObject, type SetStateAction } from "react";
 import type { Key } from "./Keyboard.types";
 
 import useKeyboardInput from "./useKeyboardInput";
 import { useKeyboardNavigation } from "./useKeyboardNavigation";
-
-function Key({
-  active,
-  keyButtonRefs,
-  children,
-  keyIndex,
-  keyName,
-  setFocusedKeyIndex,
-}: {
-  keyIndex: number;
-  keyName: Key;
-  children: React.ReactNode;
-  active: boolean;
-  keyButtonRefs: RefObject<(HTMLButtonElement | null)[]>;
-  setFocusedKeyIndex: Dispatch<SetStateAction<number | null>>;
-}) {
-  return (
-    <button
-      ref={(el) => {
-        if (keyIndex >= 0) {
-          keyButtonRefs.current[keyIndex] = el;
-        }
-      }}
-      data-key-name={keyName}
-      data-key-index={keyIndex}
-      data-state={active ? "active" : "inactive"}
-      onFocus={() => setFocusedKeyIndex(keyIndex)}
-      onBlur={() => setFocusedKeyIndex(null)}
-      className="keyboard-key"
-    >
-      <span
-        data-key-name={keyName}
-        className={clsx(
-          "transition-all duration-100 ease-in-out flex items-center justify-center h-full w-full rounded-lg -translate-y-[4px]",
-          "bg-white dark:bg-zinc-700",
-          "shadow-[0_4px_8px_rgba(0,0,0,0.1),0_4px_0px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_8px_var(--color-zinc-800),0_4px_0px_var(--color-zinc-900)]",
-          active ? "translate-y-0 shadow-none" : ""
-        )}
-      >
-        {children}
-      </span>
-    </button>
-  );
-}
+import { useKeyFeedback } from "./useKeyFeedback";
+import { useSubmitGuess } from "~/hooks/useSubmitGuess";
+import { useGameStore } from "~/stores/game-store";
+import { useSettings } from "~/utils/providers/settings-provider";
+import { parseGuess } from "~/utils/game/guess-placement";
+import { GUESS_MIN_LENGTH_BY_MODE } from "~/utils/game/constants";
+import { KeyboardRow } from "./KeyboardRow";
 
 export default function Keyboard() {
   const keyButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const { allKeys, focusedKeyIndex, setFocusedKeyIndex } =
     useKeyboardNavigation(keyButtonRefs);
 
-  const {
-    selectedKeys,
-    setSelectedKeys,
-    handleKeyPointerDown,
-    handleKeyPointerUp,
-  } = useKeyboardInput(focusedKeyIndex, allKeys);
+  const gram = useGameStore((s) => s.gram);
+  const status = useGameStore((s) => s.status);
+  const confirmPending = useGameStore((s) => s.confirmPending);
+  const isGameOver = status !== "IN_PROGRESS";
+
+  const { confirmAllGuesses } = useSettings();
+  const { keyFeedback, gramFeedback } = useKeyFeedback();
+
+  const { submit } = useSubmitGuess();
+
+  // With "Confirm All Guesses" on, the first Enter on a submittable row arms it
+  // (surfacing the check icon) and the second submits. Without it, Enter submits
+  // straight through. Only arm on a guess that would actually pass validation
+  // (meets the minimum length and contains the gram); otherwise fall through to
+  // submit so the user gets the specific error toast instead of a silent arm.
+  const canArm = useCallback(() => {
+    const state = useGameStore.getState();
+    const parsed = parseGuess(
+      state.guesses[state.currentGuessIndex] ?? "",
+      state.wordLength,
+    );
+    if (!parsed.ok) return false;
+    const { word } = parsed.value;
+    if (word.length < GUESS_MIN_LENGTH_BY_MODE[state.mode]) return false;
+    if (state.gram && !word.includes(state.gram)) return false;
+    return true;
+  }, []);
+
+  const handleEnter = useCallback(() => {
+    const state = useGameStore.getState();
+    if (confirmAllGuesses && !state.confirmPending && canArm()) {
+      state.setConfirmPending(true);
+      return;
+    }
+    state.setConfirmPending(false);
+    submit();
+  }, [confirmAllGuesses, canArm, submit]);
+
+  const { selectedKeys, handleKeyPointerDown, handleKeyPointerUp } =
+    useKeyboardInput(focusedKeyIndex, allKeys, handleEnter);
+
+  const handlePointer =
+    (handler: (key: Key) => void) =>
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (isGameOver) return;
+      const target = e.target as HTMLElement;
+      const keyElement = target.closest("[data-key-name]") as HTMLElement | null;
+      const keyName = keyElement?.dataset?.keyName as Key | undefined;
+      if (keyName) handler(keyName);
+    };
 
   return (
     <div
       className="w-full py-1 select-none"
       data-keyboard-container
-      onPointerDown={(e) => {
-        const target = e.target as HTMLElement;
-        const keyElement = target.closest('[data-key-name]') as HTMLElement;
-
-        if (keyElement?.dataset?.keyName) {
-          handleKeyPointerDown(
-            keyElement.dataset.keyName as Key
-          );
-        }
-      }}
-      onPointerUp={(e) => {
-        const target = e.target as HTMLElement;
-        const keyElement = target.closest('[data-key-name]') as HTMLElement;
-
-        if (keyElement?.dataset?.keyName) {
-          handleKeyPointerUp(keyElement.dataset.keyName as Key);
-        }
-      }}
+      onPointerDown={handlePointer(handleKeyPointerDown)}
+      onPointerUp={handlePointer(handleKeyPointerUp)}
     >
-      {(() => {
-        return KeyboardRows.map((row, rowIndex) => (
-          <div
-            key={`row-${rowIndex}`}
-            className={clsx(
-              "mb-2 grid w-full touch-manipulation px-2",
-              [
-                "grid-cols-10",
-                "[grid-template-columns:0.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_0.5fr]",
-                "[grid-template-columns:1.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1.5fr]",
-                "[grid-template-columns:repeat(3,1fr)]",
-              ][rowIndex]
-            )}
-          >
-            {row.map((key, index) => {
-              const isActiveKey = selectedKeys.includes(key as Key);
-              const keyIndex = allKeys.indexOf(key);
-
-              if (key === "spacer") {
-                return <div key={`spacer-${rowIndex}-${index}`} />;
-              }
-
-              if (key === "Backspace") {
-                return (
-                  <Key
-                    key={`row-${rowIndex}-key-${index}-${key}`}
-                    active={isActiveKey}
-                    keyName={key}
-                    keyIndex={keyIndex}
-                    setFocusedKeyIndex={setFocusedKeyIndex}
-                    keyButtonRefs={keyButtonRefs}
-                  >
-                    <Delete className="w-5 h-5" />
-                  </Key>
-                );
-              }
-              if (key === "Gram") {
-                return (
-                  <Key
-                    key={`row-${rowIndex}-key-${index}-${key}`}
-                    active={isActiveKey}
-                    keyName={key}
-                    keyIndex={keyIndex}
-                    setFocusedKeyIndex={setFocusedKeyIndex}
-                    keyButtonRefs={keyButtonRefs}
-                  >
-                    ST
-                  </Key>
-                );
-              }
-
-              return (
-                <Key
-                  key={`row-${rowIndex}-key-${index}-${key}`}
-                  active={isActiveKey}
-                  keyName={key}
-                  keyIndex={keyIndex}
-                  setFocusedKeyIndex={setFocusedKeyIndex}
-                  keyButtonRefs={keyButtonRefs}
-                >
-                  {key}
-                </Key>
-              );
-            })}
-          </div>
-        ));
-      })()}
+      {KeyboardRows.map((row, rowIndex) => (
+        <KeyboardRow
+          key={`row-${rowIndex}`}
+          row={row}
+          rowIndex={rowIndex}
+          allKeys={allKeys}
+          selectedKeys={selectedKeys}
+          keyFeedback={keyFeedback}
+          gramFeedback={gramFeedback}
+          gram={gram}
+          confirmPending={confirmPending}
+          keyButtonRefs={keyButtonRefs}
+          setFocusedKeyIndex={setFocusedKeyIndex}
+        />
+      ))}
     </div>
   );
 }

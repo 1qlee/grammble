@@ -1,0 +1,60 @@
+# Grammble reverse proxy + edge config.
+# Reference copy; the live file lives at /etc/caddy/Caddyfile on the server.
+# Caddy terminates TLS (auto Let's Encrypt), sets security headers, compresses,
+# and proxies to the Node process on localhost:3000. The app itself sets NONE of
+# these headers by design -- they live here so they apply uniformly to every
+# response. If this file is missing or bare, the app ships with no security
+# headers at all.
+#
+# Reload after edits:  sudo systemctl reload caddy
+# Validate syntax:     caddy validate --config /etc/caddy/Caddyfile
+
+grammble.com {
+	# Forward everything to the app. Node binds localhost:3000 and speaks plain
+	# HTTP; Caddy is the only thing exposed to the internet.
+	reverse_proxy localhost:3000
+
+	# Response compression.
+	encode zstd gzip
+
+	header {
+		# HSTS: force HTTPS for a year. Add "preload" and submit to
+		# hstspreload.org only once you are sure every subdomain is HTTPS-only --
+		# it is hard to undo.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+		# Clickjacking: modern browsers honor CSP frame-ancestors below; keep this
+		# for older ones.
+		X-Frame-Options "DENY"
+
+		# Stop MIME sniffing.
+		X-Content-Type-Options "nosniff"
+
+		# Trim referrer sent cross-origin.
+		Referrer-Policy "strict-origin-when-cross-origin"
+
+		# Deny powerful features the game never uses.
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+
+		# Content Security Policy. The app is same-origin: tRPC, server functions,
+		# fonts, and images are all served from this host; Stripe Checkout and
+		# OAuth are full-page REDIRECTS, not embeds, so no third-party script or
+		# frame origins are needed.
+		#   script-src 'unsafe-inline'  -> required by the inline pre-paint theme /
+		#     reduce-motion script injected in the document head.
+		#   style-src  'unsafe-inline'  -> required by Tailwind's inline styles and
+		#     the inline styles Anime.js writes to elements.
+		#   img-src data: blob:         -> canvas-generated share images.
+		# If a real third-party embed is added later (e.g. Stripe.js, analytics),
+		# widen the matching directive here rather than in app code.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+
+		# Do not advertise the server software.
+		-Server
+	}
+}
+
+# --- Optional: redirect the apex/www variant to the canonical host ---
+# www.grammble.com {
+# 	redir https://grammble.com{uri} permanent
+# }

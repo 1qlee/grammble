@@ -1,11 +1,16 @@
-import clsx from "clsx";
+import type { FormEventHandler, ReactNode } from 'react'
 
-export default function AuthForm(
-  props: React.FormHTMLAttributes<HTMLFormElement>
-) {
+type AuthFormProps = {
+  children: ReactNode
+  onSubmit: FormEventHandler<HTMLFormElement>
+}
+
+export default function AuthForm({ children, onSubmit }: AuthFormProps) {
   return (
-    <div className="card-wrapper bg-default shadow-default">
-      <form className={clsx("card", props.className)} {...props}></form>
+    <div className="card-wrapper bg-default-shadow">
+      <form onSubmit={onSubmit}>
+        {children}
+      </form>
     </div>
-  );
+  )
 }

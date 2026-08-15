@@ -1,6 +1,6 @@
 import { adjectives, uniqueUsernameGenerator } from "unique-username-generator";
 import { animals } from "./data/animals";
-import { prismaClient } from "../prisma";
+import { prismaClient } from "../db/prisma";
 
 export function trimUsername(username: string) {
   // Allow only a-z, A-Z, period (.), dash (-), and underscore (_)

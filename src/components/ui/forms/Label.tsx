@@ -7,7 +7,7 @@ export default function Label(
   return (
     <HeadlessLabel
       {...props}
-      className={clsx("text-zinc-700 dark:text-zinc-300", props.className)}
+      className={clsx("cursor-pointer", props.className)}
     />
   );
 }

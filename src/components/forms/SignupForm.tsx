@@ -9,7 +9,7 @@ import {
   SignupSchema,
   usernameValidator,
 } from "./SignupForm.types";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { LoaderCircle } from "lucide-react";
 import { signUp } from "~/utils/auth/auth-client";
 import { useState } from "react";
@@ -17,9 +17,14 @@ import { withMinimumDelay } from "~/utils/helpers";
 
 const DEFAULT_DEBOUNCE_MS = 300;
 
-export default function SignupForm() {
+type Props = {
+  checkoutIntent?: 'monthly' | 'annual'
+}
+
+export default function SignupForm({ checkoutIntent }: Props) {
   const [formError, setFormError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const router = useRouter();
 
   const form = useAppForm({
     defaultValues: {
@@ -58,16 +63,12 @@ export default function SignupForm() {
       }, 1000);
 
       if (error) {
-        // Check if it's a known error code from the API
         if ("code" in error) {
           switch (error.code) {
-            case "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL":
-              form.setFieldMeta("email", (prev) => ({
-                ...prev,
-                errorMap: {
-                  onSubmit: [{ message: "Email already in use." }],
-                },
-              }));
+            case "ACCOUNT_ALREADY_EXISTS":
+              setFormError(
+                "An account with this email or username already exists."
+              );
               break;
             case "INAPPROPRIATE_USERNAME":
               form.setFieldMeta("username", (prev) => ({
@@ -77,18 +78,9 @@ export default function SignupForm() {
                 },
               }));
               break;
-            case "USERNAME_IS_ALREADY_TAKEN_PLEASE_TRY_ANOTHER":
-              form.setFieldMeta("username", (prev) => ({
-                ...prev,
-                errorMap: {
-                  onSubmit: [{ message: "Username is already taken." }],
-                },
-              }));
-              break;
             case "MULTIPLE_VALIDATION_ERRORS":
               if (error.message) {
                 const errors = error.message.split(". ");
-
                 errors.forEach((errorMsg) => {
                   const [field, message] = errorMsg.split(": ");
                   if (field && message) {
@@ -100,50 +92,40 @@ export default function SignupForm() {
                 });
               }
               break;
+            case "TOO_MANY_REQUESTS":
+              setFormError("Too many attempts. Please try again later.");
+              break;
             default:
-              // Use error.message if available, otherwise fall back to generic message
               setFormError(
                 error.message || "An error occurred. Please try again."
               );
               break;
           }
-
-          if (
-            "remainingAttempts" in error &&
-            typeof error.remainingAttempts === "number"
-          ) {
-            if (error.remainingAttempts === 0) {
-              if (
-                "retryAfter" in error &&
-                typeof error.retryAfter === "number"
-              ) {
-                // Format retry message
-                const rateLimitRetryMsg =
-                  error.retryAfter <= 60
-                    ? `Too many attempts! Please try again in ${error.retryAfter} second${error.retryAfter !== 1 ? "s" : ""}.`
-                    : error.retryAfter <= 3600
-                      ? `Too many attempts! Please try again in ${Math.ceil(error.retryAfter / 60)} minute${Math.ceil(error.retryAfter / 60) !== 1 ? "s" : ""}.`
-                      : `Too many attempts! Please try again in ${Math.ceil(error.retryAfter / 3600)} hour${Math.ceil(error.retryAfter / 3600) !== 1 ? "s" : ""}.`;
-                setFormError(rateLimitRetryMsg);
-              } else {
-                setFormError(
-                  "Too many attempts! Please try again in 10 minutes."
-                );
-              }
-            } else {
-              const rateLimitRemainingMsg =
-                error.remainingAttempts <= 2 && error.remainingAttempts > 0
-                  ? `You have ${error.remainingAttempts} attempts left before being locked out temporarily.`
-                  : "";
-              setFormError(rateLimitRemainingMsg);
-            }
-          }
         } else {
-          // Handle generic errors (network errors, etc.)
           setFormError(error.message || "An error occurred. Please try again.");
         }
       } else if (data) {
-        // Clear form error on successful submission
+        if (checkoutIntent) {
+          try {
+            const res = await fetch('/api/trpc/billing.createCheckout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ json: { interval: checkoutIntent } }),
+            });
+            const json = await res.json();
+            const url = json?.result?.data?.json?.url;
+            if (url) {
+              window.location.href = url;
+              return;
+            }
+          } catch {
+            // fall through to default navigation
+          }
+        }
+        // Re-resolve the router context (user + game state) under the new
+        // session cookie before navigating; without this the board renders the
+        // pre-auth anonymous state until a hard refresh.
+        await router.invalidate();
         navigate({ to: "/dashboard" });
       }
     },
@@ -186,8 +168,16 @@ export default function SignupForm() {
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">Sign up</h1>
         <p>
-          Create an account to save your stats and access other premium
-          features. <Link to="/signin">Sign in instead</Link>.
+          {checkoutIntent
+            ? "First create an account before subscribing to premium."
+            : "Create an account to save your stats and access other features."}{" "}
+          <Link
+            to="/signin"
+            search={checkoutIntent ? { checkout: checkoutIntent } : undefined}
+          >
+            Sign in instead
+          </Link>
+          .
         </p>
       </div>
       {/* Components are bound to `form` and `field` to ensure extreme type safety */}
@@ -215,7 +205,7 @@ export default function SignupForm() {
                 name={field.name}
                 value={field.state.value}
                 type="text"
-                autoComplete="off"
+                autoComplete="username"
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
                 placeholder="Min. 3 characters"
@@ -256,8 +246,8 @@ export default function SignupForm() {
                 id={field.name}
                 name={field.name}
                 value={field.state.value}
-                type="text"
-                autoComplete="off"
+                type="email"
+                autoComplete="email"
                 onBlur={field.handleBlur}
                 onChange={async (e) => field.handleChange(e.target.value)}
                 placeholder="player@grammble.com"
@@ -303,7 +293,7 @@ export default function SignupForm() {
                 autoComplete="new-password"
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="Min. 5 characters"
+                placeholder="Min. 8 characters"
                 status={hasError ? "error" : "default"}
               />
               {hasError && (

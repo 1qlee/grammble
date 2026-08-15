@@ -15,6 +15,7 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
+      "~/prisma-generated/*": ["./prisma-generated/*"],
       "~/*": ["./src/*"]
     },
     "noEmit": true

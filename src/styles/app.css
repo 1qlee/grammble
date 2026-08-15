@@ -1,9 +1,51 @@
 @import "tailwindcss";
 
-@source './src/**/*.{html,js,jsx,ts,tsx}';
+@source "./src/**/*.{html,js,jsx,ts,tsx}";
+
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/Switzer-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Jost";
+  src: url("/fonts/Jost-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 @variant dark (&:where([data-theme="dark"] *));
 @variant filled (&:not(:placeholder-shown));
+
+/* Registered so the snaking gram border (.gram-border::before) can interpolate
+   its conic-gradient angle; unregistered custom-property angles don't animate. */
+@property --gram-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@theme {
+  --font-sans: "Jost", ui-sans-serif, system-ui, sans-serif;
+  --font-weight-bold: 600;
+}
+
+@theme inline {
+  --text-xxs: max(8px, calc(var(--font-base) * 0.625));
+  --text-xs: max(8px, calc(var(--font-base) * 0.75));
+  --text-sm: max(8px, calc(var(--font-base) * 0.875));
+  --text-base: var(--font-base);
+  --text-lg: calc(var(--font-base) * 1.125);
+  --text-xl: calc(var(--font-base) * 1.25);
+  --text-2xl: calc(var(--font-base) * 1.5);
+  --text-3xl: calc(var(--font-base) * 1.875);
+  --text-4xl: calc(var(--font-base) * 2.25);
+  --text-5xl: calc(var(--font-base) * 3);
+}
 
 @layer base {
 
@@ -27,9 +69,74 @@
     /* Not supported in Chrome */
   }
 
+  :root {
+    --cols: 6;
+    --tile-gap: 2px;
+    /* Largest tile edge; mirrors MAX_TILE_SIZE in board.constants.ts. */
+    --tile-size-max: 56px;
+    /* 6-letter (default) tile size. .board-scope overrides --tile-size per mode;
+       the Scoreboard pins back to this so it keeps its 6-letter size in every
+       mode. Tiles fill the viewport width (so every mode reaches the max size on
+       large screens) before deferring to the height budget, and only shrink once
+       the row can't fit. Width chrome budget = card padding (8px) + row padding
+       (8px) + inter-tile gaps. The height budget divides by 10 T-scaled rows (6
+       guess + 4 keyboard) and reserves 232px for the rest (nav, page/card/row
+       padding, gaps, and the ~56px scoreboard); keep it >= scoreboard + 172px or
+       the keyboard's bottom edge overflows the viewport. Floor mirrors
+       MIN_TILE_SIZE in board.constants.ts. The nav uses small text buttons
+       (~20px) plus an 8px bottom margin. */
+    --tile-size-6: clamp(22px,
+        min(calc((95vw - 16px - (6 - 1) * var(--tile-gap)) / 6),
+          calc((100svh - 232px) / 10)),
+        var(--tile-size-max));
+    --tile-size: var(--tile-size-6);
+    --tile-font-size: max(10px, calc(var(--tile-size) * 0.46));
+    --keys-font-size: max(8px, calc(var(--tile-font-size) * 0.9));
+    --font-base: clamp(8px, calc(var(--tile-font-size) * 0.9), 16px);
+  }
+
+  /* `--cols` is overridden per game mode on the board wrapper (GameModeView).
+     var() substitution resolves in the scope where a custom property is
+     declared, so `--tile-size` must be re-declared here to pick up the
+     wrapper's `--cols` instead of the :root default of 6.
+
+     At full tile size 7/8-letter boards are wider than the root column
+     (max-w-[360px] in __root.tsx); the board escapes it and recenters on the
+     viewport. Percentage margins resolve against that column, which is itself
+     viewport-centered, so `50% - width/2` lands the board on the screen center. */
+  .board-scope {
+    --board-width: calc(var(--cols) * var(--tile-size-max) + (var(--cols) - 1) * var(--tile-gap) + 16px);
+    width: min(95vw, var(--board-width));
+    margin-left: calc(50% - min(95vw, var(--board-width)) / 2);
+    --tile-size: clamp(22px,
+        min(calc((95vw - 16px - (var(--cols) - 1) * var(--tile-gap)) / var(--cols)),
+          calc((100svh - 232px) / 10)),
+        var(--tile-size-max));
+    /* Re-derive the font vars from the scoped --tile-size; otherwise they keep
+       the :root values computed against --cols: 6 and look oversized once 7/8
+       tiles shrink. A lower 8px floor (vs 10px) lets the smaller 7/8 tiles on
+       tiny screens scale their text down; 6-col tiles never reach the floor. */
+    --tile-font-size: max(8px, calc(var(--tile-size) * 0.46));
+    --keys-font-size: max(8px, calc(var(--tile-font-size) * 0.9));
+    --font-base: clamp(8px, calc(var(--tile-font-size) * 0.9), 16px);
+  }
+
+  /* The Scoreboard scales off --tile-size but should keep its 6-letter size in
+     every mode, so it pins --cols/--tile-size back to the 6-letter values
+     rather than inheriting the board's shrunk ones (see .board-scope). --cols
+     also drives the card-width calc in Guesses.tsx. */
+  .scoreboard-scope {
+    --cols: 6;
+    --tile-size: var(--tile-size-6);
+  }
+
   body {
     min-height: 100vh;
     color: var(--color-zinc-900);
+  }
+
+  [data-theme="dark"] body {
+    color: var(--color-zinc-100);
   }
 
   /* Media responsive */
@@ -57,7 +164,7 @@
   }
 
   a:not(button) {
-    @apply transition-opacity duration-200 underline hover:opacity-80;
+    @apply underline;
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -67,35 +174,32 @@
     }
   }
 
-  [data-theme="dark"] body {
-    color: var(--color-zinc-100);
+  :focus-visible,
+  input:focus,
+  textarea:focus,
+  button:focus {
+    outline: 2px solid var(--color-zinc-900);
+    outline-offset: 2px;
+  }
+
+  [data-theme="dark"] :focus-visible,
+  [data-theme="dark"] input:focus,
+  [data-theme="dark"] textarea:focus,
+  [data-theme="dark"] button:focus {
+    outline-color: var(--color-zinc-100);
   }
 
   .using-mouse * {
     outline: none !important;
   }
 
-  input,
-  button,
-  textarea {
-    outline-color: var(--color-orange-600);
-  }
-
-  [data-theme="dark"] input,
-  [data-theme="dark"] button,
-  [data-theme="dark"] textarea {
-    outline-color: var(--color-zinc-100);
-  }
-
-  [data-theme="dark"] body {
-    color: var(--color-zinc-100);
-  }
-
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--color-white) inset !important;
+    -webkit-text-fill-color: var(--color-zinc-900) !important;
+    caret-color: var(--color-zinc-900);
     transition: background-color 5000s ease-in-out 0s;
   }
 
@@ -103,43 +207,617 @@
   [data-theme="dark"] input:-webkit-autofill:hover,
   [data-theme="dark"] input:-webkit-autofill:focus,
   [data-theme="dark"] input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 1px 2px 0 var(--color-zinc-800) inset !important;
-    /* matches Input.tsx: "inset-shadow-sm inset-shadow-zinc-900" */
+    -webkit-box-shadow: 0 0 0 1000px var(--color-zinc-800) inset !important;
     -webkit-text-fill-color: var(--color-zinc-100) !important;
-    /* Example: zinc-100 (light text) */
+    caret-color: var(--color-white);
     transition: background-color 5000s ease-in-out 0s;
   }
 }
 
 @layer components {
+  .card-wrapper {
+    @apply mx-auto max-w-[400px] rounded-lg p-8;
+  }
+
+  /* Small uppercase section label (end-game stat cards) */
+  .section-label {
+    @apply text-xxs font-semibold tracking-widest text-zinc-500 uppercase dark:text-zinc-400;
+  }
+
+  /* Input status styles */
+  .input-default {
+    @apply w-full rounded-lg border border-zinc-300 bg-zinc-50 transition-colors duration-200;
+    @apply dark:border-zinc-700 dark:bg-zinc-800;
+  }
+
+  .input-default:focus,
+  .input-default:not(:placeholder-shown) {
+    @apply bg-white dark:bg-zinc-800;
+  }
+
+  .input-error {
+    @apply rounded-lg border border-red-300 bg-red-50 focus:bg-white;
+    @apply dark:border-red-800 dark:bg-red-950 dark:text-red-100 dark:focus:bg-red-900;
+  }
+
+  /* Button base styles. Layout only; the surface (flat fill/border) comes from a
+     surface-* utility applied by the Button variant (see Button.tsx). */
+  .btn {
+    @apply relative isolate flex cursor-pointer items-center justify-center gap-1 whitespace-nowrap transition-colors duration-150 select-none;
+    border-radius: 8px;
+    /* Squeeze-and-bounce: transform springs back with an overshoot easing on
+       release, giving a subtle bounce after the press scale-down. */
+    transition:
+      color 150ms,
+      background-color 150ms,
+      border-color 150ms,
+      transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .btn:active {
+    transform: scale(0.94);
+    transition-duration: 80ms;
+  }
+
+  /* Flat hover/active tint: a translucent solid overlay layered above the
+     surface-* fill (z-index -1 keeps it below the button's text/icons). Works
+     for every variant since it tints whatever surface sits underneath. */
+  .btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-color: rgb(0 0 0 / 0.06);
+    opacity: 0;
+    transition: opacity 150ms;
+    pointer-events: none;
+  }
+
+  .btn:hover::before {
+    opacity: 1;
+  }
+
+  .btn:active::before {
+    opacity: 1;
+    background-color: rgb(0 0 0 / 0.12);
+  }
+
+  /* Generic toggle (reused by ThemeToggle and interval switches) */
+  .switch-track {
+    @apply inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 data-disabled:cursor-not-allowed data-disabled:opacity-50;
+    @apply border border-zinc-300 bg-zinc-200 data-checked:border-green-500 data-checked:bg-green-500;
+    @apply dark:border-zinc-600 dark:bg-zinc-700 dark:data-checked:border-green-600 dark:data-checked:bg-green-600;
+  }
+
+  .switch-thumb {
+    @apply inline-block h-4 w-4 translate-x-[4px] rounded-full bg-white transition-transform duration-200 ease-in-out group-data-checked:translate-x-[20px];
+  }
+
+  /* Keyboard key button styles. Flat: the key char fills the key with a solid
+     fill and border, no raised keycap edge or press-down translate. */
+  .keyboard-key {
+    @apply flex min-w-[16px] grow cursor-pointer items-center justify-center rounded-lg outline-none select-none [&:not(:last-child)]:mr-1;
+    height: calc(var(--tile-size, 52px) * 1);
+    font-size: var(--keys-font-size);
+  }
+
+  .keyboard-key:focus>.keyboard-key-char {
+    @apply ring-2 ring-zinc-900 dark:ring-zinc-100;
+  }
+
+  .keyboard-key-char {
+    @apply flex h-full w-full items-center justify-center rounded-lg border transition-colors duration-100 ease-in-out;
+    @apply border-zinc-300 bg-zinc-100 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100;
+  }
+
+  /* Pressed state (key held): a subtle darker fill in place of the old push-down. */
+  .keyboard-key-char[data-active] {
+    @apply brightness-95 dark:brightness-110;
+  }
+
+  .keyboard-key-correct {
+    @apply border-green-300 bg-green-200 text-green-900 dark:border-green-600 dark:bg-green-700 dark:text-green-100;
+  }
+
+  .keyboard-key-misplaced {
+    @apply border-yellow-300 bg-yellow-200 text-yellow-900 dark:border-yellow-600 dark:bg-yellow-700 dark:text-yellow-100;
+  }
+
+  .keyboard-key-absent {
+    @apply border-zinc-300 bg-zinc-200 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-600 dark:text-zinc-200;
+  }
+
+  /* Enter key armed by the first press when "Confirm All Guesses" is on: a
+     solid green fill signals the key is awaiting a second, confirming press. */
+  .keyboard-key-confirm {
+    @apply border-green-500 bg-green-500 text-white dark:border-green-600 dark:bg-green-600 dark:text-white;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 6), var(--tile-size, 52px));
+    gap: var(--tile-gap, 2px);
+  }
+
+  /* Guess grid tile styles */
+  .tile {
+    @apply relative flex cursor-pointer outline-none select-none dark:bg-zinc-900;
+    width: var(--tile-size, 52px);
+    height: var(--tile-size, 52px);
+    font-size: var(--tile-font-size, 1.25rem);
+    border-radius: calc(var(--tile-size, 52px) * 0.308) / calc(var(--tile-size, 52px) * 0.231);
+  }
+
+  .ants-svg {
+    @apply pointer-events-none absolute inset-0 h-full w-full text-zinc-900 dark:text-zinc-100;
+    overflow: visible;
+  }
+
+  .ants-svg rect {
+    animation: ants 1.2s linear infinite;
+  }
+
+  @keyframes ants {
+    to {
+      stroke-dashoffset: -44;
+    }
+  }
+
+  .tile-blank {
+    @apply border border-zinc-200 bg-zinc-100;
+
+    [data-theme="dark"] & {
+      @apply border-zinc-700 bg-zinc-900;
+    }
+  }
+
+  .tile-wide {
+    @apply absolute flex cursor-pointer outline-none select-none;
+    width: calc(var(--tile-size, 52px) * 2 + var(--tile-gap, 2px));
+    height: var(--tile-size, 52px);
+    top: var(--row-pad, 4px);
+    left: 0;
+    background: transparent;
+    font-size: var(--tile-font-size, 1.25rem);
+    border-radius: calc(var(--tile-size, 52px) * 0.308) / calc(var(--tile-size, 52px) * 0.231);
+  }
+
+  .tile-char {
+    @apply grid h-full w-full place-items-center surface-raised font-bold;
+    border-radius: calc(var(--tile-size, 52px) * 0.308) / calc(var(--tile-size, 52px) * 0.231);
+    transform-origin: center;
+    will-change: transform, opacity;
+  }
+
+  .tile-char-wide {
+    @apply grid h-full w-full place-items-center surface-raised font-bold;
+    @apply ease-out data-closed:opacity-0;
+    border-radius: calc(var(--tile-size, 52px) * 0.308) / calc(var(--tile-size, 52px) * 0.231);
+    grid-template-columns: var(--tile-size, 52px) var(--tile-size, 52px);
+    gap: var(--tile-gap, 2px);
+  }
+
+  /* Initial board reveal: the trigger lives on the pre-populated `.row`; only its
+     `.tile-char` / `.tile-char-wide` (gram) children fade and scale in (already
+     showing their feedback color). The `.tile` / `.tile-wide` wells are never
+     animated, so the full grid stays visible; per-child `--reveal-delay` (set
+     inline from REVEAL_*_STAGGER_MS) staggers the cascade row by row and left to
+     right. */
+  .row-reveal .tile-char,
+  .row-reveal .tile-char-wide {
+    animation: tile-reveal 300ms cubic-bezier(0.2, 0.8, 0.3, 1.1) both;
+    /* `--reveal-base` (set by `.board-enter`) holds the cascade back until the
+       board's drop-in has settled; `--reveal-delay` then staggers each tile. */
+    animation-delay: calc(var(--reveal-base, 0ms) + var(--reveal-delay, 0ms));
+  }
+
+  /* Blank-well backdrop for the gram's transparent wide slot, mirroring how the
+     letter tiles keep `.tile-blank` underneath: shows the well before the gram
+     face washes in, then the face (which fills the whole wide area) covers it. */
+  .row-reveal .tile-wide {
+    @apply border border-zinc-200 bg-zinc-100;
+  }
+
+  [data-theme="dark"] .row-reveal .tile-wide {
+    @apply border-zinc-700 bg-zinc-800;
+  }
+
+  /* Route entrance: the board (scoreboard + guesses) drops in from above.
+     `.board-enter` also publishes `--reveal-base` (a fraction of its own
+     duration) so the per-tile reveal cascade above waits for the drop-in to
+     settle before firing. */
+  .board-enter {
+    animation: board-enter var(--enter-dur, 420ms) cubic-bezier(0.2, 0.7, 0.3, 1) both;
+    /* Kick off the tile cascade at ~60% of the drop-in. The entrance uses an
+       ease-out curve, so the board reads as settled well before its full
+       duration; waiting the whole 420ms leaves a dead beat before the tiles. */
+    --reveal-base: calc(var(--enter-dur, 420ms) * 0.6);
+  }
+
+  @keyframes board-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-24px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Mirrors the typing pop-in (CHAR_IN in tileAnimations.constants.ts): opacity
+     resolves in the first 30% (90ms of 300ms), translateY 1px->0 and scale
+     0.95->1.02 over the first 70% (210ms), then scale settles to 1. */
+  @keyframes tile-reveal {
+    0% {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.95);
+    }
+
+    30% {
+      opacity: 1;
+    }
+
+    70% {
+      transform: translateY(0) scale(1.02);
+    }
+
+    100% {
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .tile-correct {
+    @apply surface-green;
+  }
+
+  .tile-misplaced {
+    @apply surface-yellow;
+  }
+
+  .tile-absent {
+    @apply surface-absent;
+  }
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--color-zinc-300);
+  border-radius: 9999px;
+}
+
+[data-theme="dark"] .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--color-zinc-600);
+}
+
+.premium-title-gradient {
+  background-image: linear-gradient(90deg,
+      #000000 0%,
+      rgba(248, 230, 113, 0.51) 100%);
+
+  [data-theme="dark"] & {
+    background-image: linear-gradient(90deg,
+        #facc15 0%,
+        rgba(248, 230, 113, 0.51) 100%);
+  }
+}
+
+.price-gold {
+  [data-theme="dark"] & {
+    text-shadow:
+      0 0 10px rgba(248, 113, 113, 0.5),
+      0 0 20px rgba(251, 146, 60, 0.45),
+      0 0 30px rgba(250, 204, 21, 0.45),
+      0 0 40px rgba(74, 222, 128, 0.35),
+      0 0 50px rgba(96, 165, 250, 0.35),
+      0 0 60px rgba(167, 139, 250, 0.35);
+  }
+}
+
+/* Flat neutral surface: solid fill + 1px border, no gradient or bevel.
+   Reused by tiles, the gram badge, the archive button, and the toast. */
+@utility surface-raised {
+  @apply border border-zinc-200 bg-white text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100;
+}
+
+/* Color-coded flat surfaces: solid fill + matching border. Defined with
+   @utility so they can be @applied by the .tile-* rules and reused anywhere
+   (e.g. the error toast). */
+@utility surface-green {
+  @apply border border-green-300 bg-green-200 text-green-900;
+  @apply dark:border-green-600 dark:bg-green-700 dark:text-green-100;
+}
+
+@utility surface-yellow {
+  @apply border border-yellow-300 bg-yellow-200 text-yellow-900;
+  @apply dark:border-yellow-600 dark:bg-yellow-700 dark:text-yellow-100;
+}
+
+@utility surface-red {
+  @apply border border-red-300 bg-red-200 text-red-900;
+  @apply dark:border-red-700 dark:bg-red-700 dark:text-red-100;
+}
+
+@utility surface-absent {
+  @apply border border-zinc-300 bg-zinc-200 text-zinc-700;
+  @apply dark:border-zinc-600 dark:bg-zinc-600 dark:text-zinc-100;
+}
+
+/* Premium gold surface: flat solid gold fill that stays bright in dark mode
+   (rather than darkening like surface-yellow) so it reads as the premium accent. */
+@utility surface-gold {
+  @apply border border-yellow-300 bg-yellow-200 text-zinc-900;
+  @apply dark:border-yellow-500 dark:bg-yellow-400;
+}
+
+/* Pressed companions: a subtle darker fill in the same color family, replacing
+   the old recessed inset shadow. Apply alongside the matching surface-* class.
+   `!` wins over the surface fill regardless of utility source order. */
+@utility surface-raised-depressed {
+  @apply bg-zinc-200! dark:bg-zinc-700!;
+}
+
+@utility surface-green-depressed {
+  @apply bg-green-300! dark:bg-green-800!;
+}
+
+@utility surface-yellow-depressed {
+  @apply bg-yellow-300! dark:bg-yellow-800!;
+}
+
+@utility surface-red-depressed {
+  @apply bg-red-300! dark:bg-red-800!;
+}
+
+/* Selected companions: the darker pressed fill plus a 2px ring in the surface's
+   own color family, so the active tab / selected day reads as clearly chosen.
+   A single box-shadow declaration is required because `outline` is force-cleared
+   by `.using-mouse *`. The `!` on the fill wins over the surface utility. */
+@utility surface-raised-selected {
+  @apply bg-zinc-200! dark:bg-zinc-700!;
+  box-shadow: 0 0 0 2px var(--color-zinc-400) !important;
+
+  [data-theme="dark"] & {
+    box-shadow: 0 0 0 2px var(--color-zinc-500) !important;
+  }
+}
+
+@utility surface-green-selected {
+  @apply bg-green-300! dark:bg-green-800!;
+  box-shadow: 0 0 0 2px var(--color-green-500) !important;
+
+  [data-theme="dark"] & {
+    box-shadow: 0 0 0 2px var(--color-green-500) !important;
+  }
+}
+
+@utility surface-yellow-selected {
+  @apply bg-yellow-300! dark:bg-yellow-800!;
+  box-shadow: 0 0 0 2px var(--color-yellow-500) !important;
+
+  [data-theme="dark"] & {
+    box-shadow: 0 0 0 2px var(--color-yellow-500) !important;
+  }
+}
+
+@utility surface-red-selected {
+  @apply bg-red-300! dark:bg-red-800!;
+  box-shadow: 0 0 0 2px var(--color-red-500) !important;
+
+  [data-theme="dark"] & {
+    box-shadow: 0 0 0 2px var(--color-red-500) !important;
+  }
+}
+
+/* Registered as a @utility (not a plain .class in @layer utilities) so it can be
+   referenced via @apply in other rules, e.g. .endgame-section below. Flat: a
+   plain border instead of the old recessed inset shadow. */
+@utility inset-shadow-default {
+  @apply border border-zinc-200 dark:border-zinc-700;
+}
+
+@layer utilities {
   .toggle-theme-color {
-    @apply dark:bg-zinc-900 bg-zinc-100 dark:text-zinc-100 text-zinc-900;
+    @apply text-zinc-900 dark:text-zinc-100;
+    /* Diagonal-hatch texture. A single repeating-linear-gradient at 45deg draws
+       an evenly spaced zinc-200 line every 14px behind card content. */
+    background-color: #fbfaf7;
+    background-image:
+      repeating-linear-gradient(45deg, var(--color-zinc-200) 0 1.5px, transparent 1.5px 14px);
+    background-attachment: fixed;
+  }
+
+  [data-theme="dark"] .toggle-theme-color {
+    background-color: #0a0a0b;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(228, 228, 231, 0.14) 0 1.5px, transparent 1.5px 14px);
+    background-attachment: fixed;
+  }
+
+  /* Animated snaking border for the main-menu gram pill. A rotating
+     conic-gradient (a red/yellow/blue arc with a transparent tail) is masked to
+     just the padding ring, so the colored segment travels around the perimeter.
+     --gram-angle animates via @property (declared below) since custom-property
+     angles can't otherwise be interpolated. */
+  .gram-border {
+    position: relative;
+    padding: 4px;
+  }
+
+  .gram-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 4px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from var(--gram-angle),
+      transparent 0deg,
+      #60a5fa 86deg,
+      #facc15 172deg,
+      #f87171 258deg,
+      transparent 345deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: gram-border-move 4s linear infinite;
+  }
+
+  @keyframes gram-border-move {
+    to {
+      --gram-angle: 360deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gram-border::before {
+      animation: none;
+    }
+  }
+
+  .text-accent {
+    @apply text-zinc-500 dark:text-zinc-400;
+  }
+
+  .text-inverted {
+    @apply text-zinc-100 dark:text-zinc-900;
   }
 
   .bg-default {
-    @apply bg-white dark:bg-zinc-900 shadow-zinc-700/20 border border-zinc-900 dark:border-zinc-700;
+    @apply bg-white dark:bg-zinc-900;
   }
 
-  .shadow-default {
-    @apply shadow-lg shadow-zinc-400/20 dark:shadow-zinc-800/40;
+  .bg-accent {
+    @apply bg-zinc-100 dark:bg-zinc-800;
   }
 
-  .card-wrapper {
-    @apply max-w-[400px] rounded-lg p-8 mx-auto;
+  /* Shared container for each EndGameDialog section (today banner, coach entry,
+     distribution, lifetime stats, countdown). Sections keep their own padding
+     and may override the radius (e.g. the countdown uses rounded-2xl). */
+  .endgame-section {
+    @apply rounded-lg p-4 bg-zinc-50 border border-zinc-200;
+    @apply dark:bg-zinc-800/50 dark:border-zinc-700;
   }
 
-  /* Keyboard key button styles */
-  .keyboard-key {
-    @apply flex h-[64px] min-w-[16px] outline-none grow items-center justify-center rounded-lg text-xl transition-all duration-100 cursor-pointer select-none [&:not(:last-child)]:mr-1;
-    @apply border border-b-2;
-    @apply focus:shadow-[0_0_16px_4px_#fff] focus:border-b-zinc-900 dark:focus:shadow-[0_0_16px_4px_var(--color-zinc-700)] dark:focus:border-b-zinc-100;
+  /* Interactive variant of .endgame-section used by the Coach entry. Flat: a
+     solid accent border (rather than a gradient/shadow) sets it apart from the
+     plain stat cards. */
+  .endgame-section-raised {
+    @apply p-4 rounded-lg border border-zinc-300 bg-zinc-50 transition-colors dark:border-zinc-600 dark:bg-zinc-800;
   }
 
-  .keyboard-key[data-state="active"] {
-    @apply border-b-zinc-400/25 border-t-zinc-200 border-zinc-100 dark:border-zinc-700 dark:border-t-zinc-800 dark:border-b-zinc-700/25;
+  .endgame-section-raised:hover {
+    @apply bg-zinc-100 dark:bg-zinc-700;
   }
 
-  .keyboard-key[data-state="inactive"] {
-    @apply border-b-zinc-400/75 border-t-zinc-300 border-zinc-200 dark:border-zinc-700 dark:border-t-zinc-500 dark:border-b-zinc-700/75;
+  .endgame-section-raised:active {
+    @apply bg-zinc-200 dark:bg-zinc-600;
   }
+
+  /* Gold-gradient variant of .endgame-section-raised used by the Coach entry to
+     read as the premium accent. Text/icons switch to dark tones for contrast on
+     the gold fill (see AnalyzeEntry). Dark mode keeps the gold bright rather than
+     darkening, matching @utility surface-gold. */
+  .endgame-section-gold {
+    @apply rounded-lg border border-yellow-400 p-4 text-zinc-900 transition-[filter];
+    background-image: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
+  }
+
+  [data-theme="dark"] .endgame-section-gold {
+    @apply border-yellow-500;
+    background-image: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+  }
+
+  button.endgame-section-gold:hover {
+    filter: brightness(1.04);
+  }
+
+  button.endgame-section-gold:active {
+    filter: brightness(0.96);
+  }
+
+  /* Padded yellow tile behind the Coach entry icon. */
+  .coach-icon {
+    @apply flex shrink-0 items-center justify-center rounded-lg p-2;
+    @apply bg-yellow-200 text-yellow-700 dark:bg-yellow-800 dark:text-yellow-100;
+  }
+
+  .bg-default-shadow {
+    @apply bg-white border border-zinc-200 dark:bg-zinc-900 dark:border-zinc-700;
+  }
+
+  .bg-default-interactive {
+    @apply border border-zinc-900 bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-800;
+  }
+
+  .bg-default-gradient {
+    @apply bg-zinc-100 dark:bg-zinc-800;
+  }
+
+  .gradient-default {
+    @apply border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800;
+  }
+}
+/* -------------------------------------------------------------------------
+   Accessibility: color-blind mode
+   -------------------------------------------------------------------------
+   Swaps the green/yellow feedback palette for a high-contrast orange/blue pair
+   (the same hues used by NYT Wordle's high-contrast mode), which stays
+   distinguishable under the common red-green color-vision deficiencies. Absent
+   tiles keep their neutral zinc fill. Kept unlayered so these win over the
+   @layer feedback classes for both tiles and keyboard keys, in light and dark. */
+[data-colorblind="true"] .tile-correct,
+[data-colorblind="true"] .keyboard-key-correct {
+  background-color: #f5793a;
+  border-color: #f5793a;
+  color: #ffffff;
+}
+
+[data-colorblind="true"] .tile-misplaced,
+[data-colorblind="true"] .keyboard-key-misplaced {
+  background-color: #85c0f9;
+  border-color: #85c0f9;
+  color: #1a1a2e;
+}
+
+/* -------------------------------------------------------------------------
+   Accessibility: reduce motion
+   -------------------------------------------------------------------------
+   Neutralizes CSS-driven animations and transitions (board reveal, tile
+   cascade, marching ants, the snaking gram border, view transitions). Anime.js
+   JS tweens are fast-forwarded separately via engine.speed in the settings
+   provider. Durations are near-zero rather than `none` so animation end states
+   still apply and `animationend`/`transitionend` handlers still fire. */
+[data-reduce-motion="true"] *,
+[data-reduce-motion="true"] *::before,
+[data-reduce-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
 }

@@ -1,9 +1,10 @@
 import AuthForm from "./AuthForm";
 import SocialSignin from "../ui/forms/SocialSignin";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { SigninSchema } from "./SigninForm.types";
 import { useAppForm } from "~/utils/form/form";
 import { signIn } from "~/utils/auth/auth-client";
+import { queryClient } from "~/utils/query-client";
 import { withMinimumDelay } from "~/utils/helpers";
 import { emailValidator } from "./SignupForm.types";
 import * as v from "valibot";
@@ -11,8 +12,13 @@ import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import Alert from "~/components/ui/Alert";
 
-export default function SigninForm() {
+type Props = {
+  checkoutIntent?: 'monthly' | 'annual'
+}
+
+export default function SigninForm({ checkoutIntent }: Props) {
   const navigate = useNavigate();
+  const router = useRouter();
 
   const [formError, setFormError] = useState<string | null>(null);
   const form = useAppForm({
@@ -61,12 +67,42 @@ export default function SigninForm() {
             case "USERNAME_TOO_SHORT":
               setFormError("Invalid username or password.");
               break;
+            case "TOO_MANY_REQUESTS":
+              setFormError("Too many attempts. Please try again later.");
+              break;
             default:
               setFormError("An unexpected error occurred.");
               break;
           }
         }
       } else if (data) {
+        if (checkoutIntent) {
+          try {
+            const res = await fetch('/api/trpc/billing.createCheckout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ json: { interval: checkoutIntent } }),
+            });
+            const json = await res.json();
+            const url = json?.result?.data?.json?.url;
+            if (url) {
+              window.location.href = url;
+              return;
+            }
+          } catch {
+            // fall through to default navigation
+          }
+        }
+        // The session cookie is now set, but the router still holds the
+        // pre-auth context (user undefined, anonymous dailies). Invalidate so
+        // the root beforeLoad re-resolves user + game state under the new
+        // session before navigating; otherwise the board shows stale anonymous
+        // state until a hard refresh.
+        // Also drop the TanStack Query cache: keys like ["gameRecap", mode,
+        // date] and ["userStats", mode] are not user-scoped, so a direct
+        // account switch would otherwise resolve to the prior user's data.
+        queryClient.clear();
+        await router.invalidate();
         navigate({ to: "/dashboard" });
       }
     },
@@ -87,7 +123,16 @@ export default function SigninForm() {
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">Sign in</h1>
         <p>
-          Don't have an account? <Link to="/signup">Sign up instead</Link>.
+          {checkoutIntent
+            ? "Sign in to your account to subscribe to premium. "
+            : "Don't have an account? "}
+          <Link
+            to="/signup"
+            search={checkoutIntent ? { checkout: checkoutIntent } : undefined}
+          >
+            Sign up instead
+          </Link>
+          .
         </p>
       </div>
       {/* Components are bound to `form` and `field` to ensure extreme type safety */}
@@ -105,7 +150,7 @@ export default function SigninForm() {
                 name={field.name}
                 value={field.state.value}
                 type="text"
-                autoComplete="off"
+                autoComplete="username"
                 onBlur={field.handleBlur}
                 onChange={(e) => {
                   setFormError(null);
@@ -139,7 +184,7 @@ export default function SigninForm() {
                 name={field.name}
                 value={field.state.value}
                 type="password"
-                autoComplete="new-password"
+                autoComplete="current-password"
                 onBlur={field.handleBlur}
                 onChange={(e) => {
                   setFormError(null);

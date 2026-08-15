@@ -1,32 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { auth } from "~/utils/auth/auth";
-import {
-  getCorsHeaders,
-  getCorsPreflightHeaders,
-  createCorsErrorResponse,
-  getAllowedOrigin,
-} from "~/utils/cors";
-import { trackRequestAndGetRemaining } from "~/utils/rate-limit";
 import { SignupSchema } from "~/components/forms/SignupForm.types";
 import { safeParse } from "valibot";
-import { validateUsernameAgainstBlacklist } from "~/utils/username-validation";
-import { sendVerificationEmail } from "~/utils/email";
-import { prismaClient } from "~/utils/prisma";
+import { validateUsernameAgainstBlacklist } from "~/utils/auth/username-validation";
+import { sendVerificationEmail } from "~/utils/email/email-server";
+import { prismaClient } from "~/utils/db/prisma";
 
 type AuthResponseBody = Record<string, unknown> & {
-  remainingAttempts?: number;
   code: string;
   message: string;
   retryAfter?: number;
 };
 
+function jsonResponse(
+  body: AuthResponseBody,
+  status: number,
+  extra?: HeadersInit
+): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json", ...extra },
+  });
+}
+
 /**
  * Customize rate limit error response with a user-friendly message
  */
-async function customizeRateLimitResponse(
+function customizeRateLimitResponse(
   response: Response,
   request: Request
-): Promise<Response> {
+): Response {
   const url = new URL(request.url);
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -36,80 +39,76 @@ async function customizeRateLimitResponse(
     `[Rate Limit] 429 Too Many Requests - Path: ${url.pathname}, IP: ${ip}`
   );
 
-  // Get retry-after header from original response
   const retryAfter =
     response.headers.get("Retry-After") ||
     response.headers.get("X-Retry-After") ||
     "60";
   const retryAfterNum = parseInt(retryAfter, 10);
 
-  // Track request and get remaining attempts
-  const rateLimitInfo = await trackRequestAndGetRemaining(request);
-
-  // Get CORS headers (security headers are handled globally in start.ts)
-  const corsHeaders = getCorsHeaders(request);
-
-  // Build response body
-  const responseBody: AuthResponseBody = {
-    code: "TOO_MANY_REQUESTS",
-    message: "Too many attempts! Please try again later.",
-    retryAfter: retryAfterNum,
-    remainingAttempts: rateLimitInfo?.remaining,
-  };
-
-  // Return custom error message
-  return new Response(JSON.stringify(responseBody), {
-    status: 429,
-    headers: {
-      "Content-Type": "application/json",
-      "Retry-After": retryAfter,
-      ...Object.fromEntries(response.headers.entries()),
-      ...corsHeaders,
-    },
-  });
+  return new Response(
+    JSON.stringify({
+      code: "TOO_MANY_REQUESTS",
+      message: "Too many attempts. Please try again later.",
+      retryAfter: retryAfterNum,
+    } satisfies AuthResponseBody),
+    {
+      status: 429,
+      headers: {
+        ...Object.fromEntries(response.headers.entries()),
+        "Content-Type": "application/json",
+        "Retry-After": retryAfter,
+      },
+    }
+  );
 }
 
-/**
- * Validate request size and return error response if too large
- * @param request - The incoming request
- * @param options - Options for the validation
- * @returns Response if request is too large, null if valid
- */
-async function validateRequestSize(request: Request): Promise<Response | null> {
+const MAX_REQUEST_BYTES = 100 * 1024;
+
+async function validateRequestSize(
+  request: Request
+): Promise<Response | null> {
+  const tooLarge = jsonResponse(
+    { code: "REQUEST_TOO_LARGE", message: "Request too large" },
+    413
+  );
+
+  // Fast path: reject when the declared length is over the cap.
   const contentLength = request.headers.get("content-length");
+  if (contentLength && parseInt(contentLength) > MAX_REQUEST_BYTES) {
+    return tooLarge;
+  }
 
-  if (contentLength && parseInt(contentLength) > 100 * 1024) {
-    // 100KB limit (security headers handled globally in start.ts)
-    const corsHeaders = getCorsHeaders(request);
+  // Content-Length is client-controlled and can be omitted (or the body sent
+  // chunked) to skip the check above, so also measure the actual bytes. A clone
+  // is read so the original body stays intact for the auth handler, and the
+  // read aborts as soon as the cap is exceeded, keeping buffered memory bounded.
+  const body = request.clone().body;
+  if (!body) return null;
 
-    // Track request and get remaining attempts even on validation errors
-    const rateLimitInfo = await trackRequestAndGetRemaining(request);
-
-    const responseBody: AuthResponseBody = {
-      code: "REQUEST_TOO_LARGE",
-      message: "Request too large",
-      remainingAttempts: rateLimitInfo?.remaining,
-    };
-
-    return new Response(JSON.stringify(responseBody), {
-      status: 413,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
-      statusText: "Request too large",
-    });
+  const reader = body.getReader();
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX_REQUEST_BYTES) {
+        await reader.cancel();
+        return tooLarge;
+      }
+    }
+  } catch (error) {
+    // A malformed/aborted body isn't oversized per se; let the auth handler
+    // deal with it. Log so the failure is visible.
+    console.warn("[Auth] Failed to measure request body size:", error);
   }
 
   return null;
 }
 
-/**
- * Validate Content-Type header for POST requests
- * @param request - The incoming request
- * @returns Response if Content-Type is unsupported, null if valid
- */
-async function validateContentType(request: Request): Promise<Response | null> {
+async function validateContentType(
+  request: Request
+): Promise<Response | null> {
   const contentType = request.headers.get("content-type");
   if (
     contentType &&
@@ -117,108 +116,19 @@ async function validateContentType(request: Request): Promise<Response | null> {
     !contentType.includes("application/x-www-form-urlencoded") &&
     !contentType.includes("multipart/form-data")
   ) {
-    const corsHeaders = getCorsHeaders(request);
-    // Track request and get remaining attempts even on validation errors
-    const rateLimitInfo = await trackRequestAndGetRemaining(request);
-    const responseBody: AuthResponseBody = {
-      code: "UNSUPPORTED_CONTENT_TYPE",
-      message: "Unsupported content type",
-      remainingAttempts: rateLimitInfo?.remaining,
-    };
-    return new Response(JSON.stringify(responseBody), {
-      status: 415,
-      statusText: "Unsupported content type",
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
-    });
+    return jsonResponse(
+      { code: "UNSUPPORTED_CONTENT_TYPE", message: "Unsupported content type" },
+      415
+    );
   }
 
   return null;
 }
 
-/**
- * Add CORS headers and remaining attempts to response body
- * Note: Security headers are handled globally in start.ts middleware
- */
-async function addCorsHeadersAndRateLimitInfo(
-  response: Response,
-  request: Request
-): Promise<Response> {
-  const corsHeaders = getCorsHeaders(request);
-
-  // Track request and get remaining attempts
-  const rateLimitInfo = await trackRequestAndGetRemaining(request);
-
-  // Check if response is JSON
-  const contentType = response.headers.get("content-type") || "";
-  const isJSON = contentType.includes("application/json");
-
-  // Only modify JSON responses
-  if (isJSON) {
-    try {
-      const text = await response.clone().text();
-      if (text) {
-        const responseBody: AuthResponseBody = JSON.parse(text);
-
-        // Add remainingAttempts to response body
-        responseBody.remainingAttempts = rateLimitInfo?.remaining;
-
-        // Create new response with CORS headers and updated body
-        const newHeaders = new Headers(response.headers);
-        Object.entries(corsHeaders).forEach(([key, value]) => {
-          newHeaders.set(key, value);
-        });
-
-        return new Response(JSON.stringify(responseBody), {
-          status: response.status,
-          statusText: response.statusText,
-          headers: newHeaders,
-        });
-      }
-    } catch (error) {
-      // If parsing fails, fall through to non-JSON handling
-    }
-  }
-
-  // For non-JSON responses, just add CORS headers
-  const newHeaders = new Headers(response.headers);
-  Object.entries(corsHeaders).forEach(([key, value]) => {
-    newHeaders.set(key, value);
-  });
-
-  // Return original response with CORS headers (can't modify non-JSON body)
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: newHeaders,
-  });
-}
-
 export const Route = createFileRoute("/api/auth/$")({
   server: {
     handlers: {
-      // Handle CORS preflight requests
-      OPTIONS: async ({ request }: { request: Request }) => {
-        // Check if origin is allowed
-        const allowedOrigin = getAllowedOrigin(request);
-
-        if (!allowedOrigin && request.headers.get("origin")) {
-          // Origin not allowed (security headers handled globally in start.ts)
-          return createCorsErrorResponse();
-        }
-
-        // Return preflight response with CORS headers
-        // Security headers are handled globally in start.ts
-        const corsHeaders = getCorsPreflightHeaders(request);
-        return new Response(null, {
-          status: 204, // No Content
-          headers: corsHeaders,
-        });
-      },
       GET: async ({ request }: { request: Request }) => {
-        // Security: Validate request size (prevent DoS)
         const sizeValidationResponse = await validateRequestSize(request);
         if (sizeValidationResponse) {
           return sizeValidationResponse;
@@ -227,43 +137,25 @@ export const Route = createFileRoute("/api/auth/$")({
         try {
           const response = await auth.handler(request);
 
-          // Customize rate limit error message
           if (response.status === 429) {
-            return await customizeRateLimitResponse(response, request);
+            return customizeRateLimitResponse(response, request);
           }
 
-          // Add CORS headers and remaining attempts to ALL responses (success, errors, etc.)
-          // This ensures clients always know how many attempts remain
-          return await addCorsHeadersAndRateLimitInfo(response, request);
+          return response;
         } catch (error) {
-          // Security: Don't leak internal error details
           console.error("Auth handler error:", error);
-          const corsHeaders = getCorsHeaders(request);
-          // Track request and get remaining attempts even on errors
-          const rateLimitInfo = await trackRequestAndGetRemaining(request);
-          const responseBody: AuthResponseBody = {
-            code: "INTERNAL_ERROR",
-            message: "Internal server error",
-            remainingAttempts: rateLimitInfo?.remaining,
-          };
-
-          return new Response(JSON.stringify(responseBody), {
-            status: 500,
-            headers: {
-              "Content-Type": "application/json",
-              ...corsHeaders,
-            },
-          });
+          return jsonResponse(
+            { code: "INTERNAL_ERROR", message: "Internal server error" },
+            500
+          );
         }
       },
       POST: async ({ request }: { request: Request }) => {
-        // Security: Validate request size (prevent DoS)
         const sizeValidationResponse = await validateRequestSize(request);
         if (sizeValidationResponse) {
           return sizeValidationResponse;
         }
 
-        // Security: Validate Content-Type for POST requests
         const contentTypeValidationResponse =
           await validateContentType(request);
         if (contentTypeValidationResponse) {
@@ -278,13 +170,11 @@ export const Route = createFileRoute("/api/auth/$")({
           const body = await request.clone().json();
           const errors: { code: string; message: string }[] = [];
 
-          // Validate request against the SignupSchema
           const schemaResult = safeParse(SignupSchema, body, {
             abortEarly: false,
           });
 
           if (!schemaResult.success) {
-            // Collect all schema validation errors
             schemaResult.issues.forEach((issue) => {
               const fieldPath =
                 issue.path?.map((p) => p.key).join(".") || "unknown";
@@ -295,10 +185,9 @@ export const Route = createFileRoute("/api/auth/$")({
             });
           }
 
-          // Additional validation: check username against blacklist
           const username = body?.username;
           if (username && typeof username === "string") {
-            const blacklistError = validateUsernameAgainstBlacklist(username);
+            const blacklistError = await validateUsernameAgainstBlacklist(username);
             if (blacklistError) {
               errors.push({
                 code: "INAPPROPRIATE_USERNAME",
@@ -307,32 +196,24 @@ export const Route = createFileRoute("/api/auth/$")({
             }
           }
 
-          // If there are validation errors, return error response with remainingAttempts
           if (errors.length > 0) {
-            const corsHeaders = getCorsHeaders(request);
-            const responseBody: AuthResponseBody = {
-              code:
-                errors.length > 1
-                  ? "MULTIPLE_VALIDATION_ERRORS"
-                  : errors[0].code,
-              message:
-                errors.length > 1
-                  ? errors.map((e) => e.message).join(". ")
-                  : errors[0].message,
-            };
-
-            return new Response(JSON.stringify(responseBody), {
-              status: 400,
-              headers: {
-                "Content-Type": "application/json",
-                ...corsHeaders,
+            return jsonResponse(
+              {
+                code:
+                  errors.length > 1
+                    ? "MULTIPLE_VALIDATION_ERRORS"
+                    : errors[0].code,
+                message:
+                  errors.length > 1
+                    ? errors.map((e) => e.message).join(". ")
+                    : errors[0].message,
               },
-            });
+              400
+            );
           }
         }
 
         try {
-          // Store email from request body if it's a signup request (needed for verification email)
           let signupEmail: string | null = null;
           if (isSignupRequest) {
             try {
@@ -346,21 +227,50 @@ export const Route = createFileRoute("/api/auth/$")({
           const response = await auth.handler(request);
 
           if (response.status === 429) {
-            return await customizeRateLimitResponse(response, request);
+            return customizeRateLimitResponse(response, request);
+          }
+
+          // Security: Prevent account enumeration via distinct signup error codes.
+          // better-auth returns different codes for duplicate email vs duplicate username,
+          // allowing attackers to probe which accounts exist. Normalize both into a
+          // single generic code.
+          if (
+            isSignupRequest &&
+            response.status >= 400 &&
+            response.status < 500
+          ) {
+            const cloned = response.clone();
+            try {
+              const body = await cloned.json();
+              const enumerationCodes = new Set([
+                "USER_ALREADY_EXISTS",
+                "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL",
+                "USERNAME_IS_ALREADY_TAKEN",
+              ]);
+              if (body?.code && enumerationCodes.has(body.code)) {
+                return jsonResponse(
+                  {
+                    code: "ACCOUNT_ALREADY_EXISTS",
+                    message:
+                      "An account with this email or username already exists.",
+                  },
+                  409
+                );
+              }
+            } catch {
+              // If we can't parse the body, fall through and return the original response
+            }
           }
 
           // If signup was successful, send verification email and create settings
           if (isSignupRequest && response.status === 200 && signupEmail) {
-            // Get theme from cookie (same key as used in theme.ts)
             const storageKey = "_preferred-theme";
             const cookieHeader = request.headers.get("cookie") || "";
             const cookieMatch = cookieHeader.match(
               new RegExp(`(?:^|; )${storageKey}=([^;]*)`)
             );
-            const themeFromCookie = cookieMatch?.[1] || "light"; // Default to "light" if no cookie
+            const themeFromCookie = cookieMatch?.[1] || "light";
 
-            // Create settings for the new user asynchronously (don't block the response)
-            // Find user by email and create settings with theme preference
             prismaClient.user
               .findUnique({
                 where: { email: signupEmail },
@@ -385,40 +295,74 @@ export const Route = createFileRoute("/api/auth/$")({
                   `Failed to create settings for user ${signupEmail}:`,
                   error
                 );
-                // Don't throw - signup was successful, settings failure shouldn't break it
               });
 
-            // Send verification email asynchronously (don't block the response)
-            // Fire and forget - if it fails, log it but don't fail the signup
             sendVerificationEmail(signupEmail).catch((error) => {
               console.error(
                 `Failed to send verification email to ${signupEmail}:`,
                 error
               );
-              // Don't throw - signup was successful, email failure shouldn't break it
             });
+
+            // Check for invite token and auto-convert to lifetime premium
+            const inviteMatch = cookieHeader.match(
+              /(?:^|; )_invite-token=([^;]*)/
+            );
+            const inviteToken = inviteMatch?.[1];
+
+            if (inviteToken) {
+              prismaClient.user
+                .findUnique({
+                  where: { email: signupEmail },
+                  select: { id: true },
+                })
+                .then(async (user) => {
+                  if (!user) return;
+
+                  const invite = await prismaClient.invite.findUnique({
+                    where: { token: inviteToken },
+                  });
+
+                  if (!invite || invite.consumed) return;
+
+                  // Atomically claim the invite before granting premium. The
+                  // updateMany guard on `consumed: false` means only one of two
+                  // concurrent signups presenting the same token wins the claim
+                  // (count === 1); the loser is a no-op, preventing a single
+                  // invite from granting lifetime premium more than once.
+                  await prismaClient.$transaction(async (tx) => {
+                    const claim = await tx.invite.updateMany({
+                      where: { id: invite.id, consumed: false },
+                      data: { consumed: true, consumedBy: user.id },
+                    });
+                    if (claim.count === 0) return;
+
+                    await tx.user.update({
+                      where: { id: user.id },
+                      data: { isPremium: true, premiumGranted: true },
+                    });
+
+                    console.log(
+                      `Invite token consumed: user ${user.id} granted lifetime premium`
+                    );
+                  });
+                })
+                .catch((error) => {
+                  console.error(
+                    `Failed to process invite token for ${signupEmail}:`,
+                    error
+                  );
+                });
+            }
           }
 
-          return await addCorsHeadersAndRateLimitInfo(response, request);
+          return response;
         } catch (error) {
-          // Security: Don't leak internal error details
           console.error("Auth handler error:", error);
-          const corsHeaders = getCorsHeaders(request);
-          // Track request and get remaining attempts even on errors
-          const rateLimitInfo = await trackRequestAndGetRemaining(request);
-          const responseBody: AuthResponseBody = {
-            code: "INTERNAL_ERROR",
-            message: "Internal server error",
-            remainingAttempts: rateLimitInfo?.remaining,
-          };
-
-          return new Response(JSON.stringify(responseBody), {
-            status: 500,
-            headers: {
-              "Content-Type": "application/json",
-              ...corsHeaders,
-            },
-          });
+          return jsonResponse(
+            { code: "INTERNAL_ERROR", message: "Internal server error" },
+            500
+          );
         }
       },
     },

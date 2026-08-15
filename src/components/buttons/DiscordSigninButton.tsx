@@ -3,7 +3,7 @@ import { signIn } from "~/utils/auth/auth-client";
 
 export default function DiscordSigninButton() {
   return (
-    <AuthButton onClick={() => signIn.social({ provider: "discord" })}>
+    <AuthButton aria-label="Sign in with Discord" onClick={() => signIn.social({ provider: "discord" })}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"

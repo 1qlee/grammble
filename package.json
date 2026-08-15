@@ -13,6 +13,7 @@
     "db:studio": "prisma studio",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
+    "test": "vitest",
     "test:rate-limit": "node test-rate-limit.js",
     "test:rate-limit:clear": "node test-rate-limit.js --clear",
     "test:rate-limit:endpoints": "node test-rate-limit.js endpoints"
@@ -39,10 +40,12 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "redaxios": "^0.5.1",
+    "stripe": "^21.0.1",
     "superjson": "^2.2.6",
     "tailwind-merge": "^2.6.0",
     "unique-username-generator": "^1.5.1",
-    "valibot": "^1.2.0"
+    "valibot": "^1.2.0",
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.15",
@@ -55,10 +58,13 @@
     "dotenv": "^17.2.3",
     "postcss": "^8.5.1",
     "prettier": "^3.8.0",
+    "prettier-plugin-tailwindcss": "^0.7.3",
     "prisma": "^7.2.0",
+    "rollup-plugin-visualizer": "^7.0.1",
     "tailwindcss": "^4.1.15",
     "typescript": "^5.7.2",
     "vite": "^7.1.7",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.1.5"
   }
 }

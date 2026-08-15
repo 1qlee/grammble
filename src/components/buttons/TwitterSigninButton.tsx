@@ -3,7 +3,7 @@ import { signIn } from "~/utils/auth/auth-client";
 
 export default function TwitterSigninButton() {
   return (
-    <AuthButton onClick={() => signIn.social({ provider: "twitter" })}>
+    <AuthButton aria-label="Sign in with X" onClick={() => signIn.social({ provider: "twitter" })}>
       <svg
         viewBox="0 0 24 24"
         aria-hidden="true"

@@ -1,12 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { t } from "~/trpc/init";
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import { appRouter } from "~/trpc/router";
+import { createTRPCContext } from "~/trpc/init";
+
+const handler = ({ request }: { request: Request }) =>
+  fetchRequestHandler({
+    router: appRouter,
+    req: request,
+    endpoint: "/api/trpc",
+    createContext: createTRPCContext,
+  });
 
 export const Route = createFileRoute("/api/trpc/$")({
   server: {
     handlers: {
-      GET: async ({ request }: { request: Request }) => {
-        return request.json();
-      },
+      GET: handler,
+      POST: handler,
     },
   },
 });

@@ -40,5 +40,5 @@ export const KeyboardRows: Key[][] = [
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
   ["spacer", "A", "S", "D", "F", "G", "H", "J", "K", "L", "spacer"],
   ["spacer", "Z", "X", "C", "V", "B", "N", "M", "Backspace"],
-  ["Blank", "Gram", "Enter"],
+  ["Enter", "Gram", "Blank"],
 ];
