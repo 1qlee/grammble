@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import clsx from "clsx";
 import { animate } from "animejs";
 import { useGameStore, type LetterFeedback } from "~/stores/game-store";
-import { FEEDBACK_CLASSES } from "./feedback-classes";
+import { FEEDBACK_CLASSES, noteBorderClass } from "./feedback-classes";
 import { useAnimeMount } from "~/hooks/useAnimeMount";
 import { AntsOutline } from "./AntsOutline";
 import { CHAR_IN, CHAR_OUT, TILE_SLOT_PUNCH } from "./tileAnimations.constants";
@@ -19,9 +19,10 @@ interface Props {
   movable?: boolean;
   active?: boolean;
   revealDelay?: number;
-  // Recap note highlight: "hit" rings the tile as belonging to the hovered/tapped score note, "dim"
-  // fades it as context. Undefined leaves the tile at its normal appearance.
-  note?: "hit" | "dim";
+  // Recap note highlight: "hit" rings the tile as belonging to the hovered/tapped score note,
+  // "origin" rings it with a heavier, darker border as the source the note points back to (an
+  // overwritten green), "dim" fades it as context. Undefined leaves the tile at its normal appearance.
+  note?: "hit" | "origin" | "dim";
 }
 
 interface TileCharProps {
@@ -142,9 +143,13 @@ export function GuessTile({
         movable &&
           "cursor-pointer hover:border-2 hover:border-zinc-300 dark:hover:border-zinc-600",
         active && "border-zinc-400 dark:border-zinc-100",
-        note && "transition-[opacity,outline-color] duration-200",
-        note === "hit" &&
-          "relative z-10 outline outline-2 outline-offset-1 outline-zinc-900 dark:outline-zinc-100",
+        // The highlight is a BORDER (see noteBorderClass): a darker shade of the tile's own feedback
+        // color, with `origin` an even darker shade of the same hue. A border stays within the tile's
+        // box (border-box) and frames the .tile-char fill; utilities win over `.tile-blank`'s border
+        // via the utilities layer order.
+        note && "transition-[border-color,opacity] duration-200",
+        note === "hit" && noteBorderClass(feedback, "hit"),
+        note === "origin" && noteBorderClass(feedback, "origin"),
         note === "dim" && "opacity-30",
       )}
     >

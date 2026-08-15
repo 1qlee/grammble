@@ -52,9 +52,15 @@ export function RecapBoard({
         const revealed = !!guesses[i] && !!feedback[i];
         // While a note is active every row reacts: this row's matching cells stay lit, every other
         // tile on the board dims. A row with no matching cell gets an empty list, dimming all of it.
-        const rowCols = highlight
-          ? highlight.filter((cell) => cell.row === i).map((cell) => cell.col)
+        const rowCells = highlight
+          ? highlight.filter((cell) => cell.row === i)
           : [];
+        const rowCols = rowCells.map((cell) => cell.col);
+        // Cells the note points BACK to on an earlier row (an overwritten green's origin) get a
+        // heavier border to set them apart from the note's own guess-row tiles.
+        const originCols = rowCells
+          .filter((cell) => cell.origin)
+          .map((cell) => cell.col);
         return (
           <GuessRow
             key={i}
@@ -69,6 +75,7 @@ export function RecapBoard({
             animateIn={i === newestIdx}
             padded={false}
             highlightCols={highlight ? rowCols : undefined}
+            originCols={highlight ? originCols : undefined}
           />
         );
       })}

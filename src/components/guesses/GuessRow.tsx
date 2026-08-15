@@ -86,6 +86,9 @@ interface Props {
   // provided, those tiles are emphasised and every other tile in the row is dimmed. Undefined (the
   // default, and always so on the live board) leaves every tile at its normal appearance.
   highlightCols?: number[];
+  // Subset of highlightCols that are the note's ORIGIN cells (e.g. the locked green a later guess
+  // overwrote): rendered with a heavier, darker border so they read as the source, not the mistake.
+  originCols?: number[];
 }
 
 export function GuessRow({
@@ -100,6 +103,7 @@ export function GuessRow({
   animateIn = false,
   padded = true,
   highlightCols,
+  originCols,
 }: Props) {
   const setGuess = useGameStore((s) => s.setGuess);
   const status = useGameStore((s) => s.status);
@@ -171,11 +175,13 @@ export function GuessRow({
   // A recap note is active for this row when `highlightCols` is provided: matched columns read as
   // "hit", every other tile dims. Undefined leaves the row untouched (the live board's normal state).
   const noteActive = highlightCols !== undefined;
-  const noteFor = (colIndex: number): "hit" | "dim" | undefined =>
+  const noteFor = (colIndex: number): "hit" | "origin" | "dim" | undefined =>
     noteActive
-      ? highlightCols!.includes(colIndex)
-        ? "hit"
-        : "dim"
+      ? originCols?.includes(colIndex)
+        ? "origin"
+        : highlightCols!.includes(colIndex)
+          ? "hit"
+          : "dim"
       : undefined;
   const gramNote = noteActive
     ? highlightCols!.includes(gramStart) ||

@@ -25,8 +25,9 @@ const base = { guesses: GUESSES, feedback: FEEDBACK, won: true, wordLength: 6 };
 describe("direct short-guess penalty", () => {
   it("charges a short non-opener guess even when it tested new letters", () => {
     const d = decomposeScore(base);
-    // One letter short at the neglect weight (PT * 0.06 = 48 * 0.06 ~= 2.9), applied as a negative.
-    expect(on(d, "shortGuess", 1)).toBeCloseTo(-2.9, 1);
+    // One letter short at the breadth-mirror weight (PT * 0.04 = 48 * 0.04 = 1.92), applied as a
+    // negative: the missing slot forgoes exactly the breadth a full-length slot could have gathered.
+    expect(on(d, "shortGuess", 1)).toBeCloseTo(-1.92, 1);
   });
 
   it("does not charge the opener (its length is graded into the frame)", () => {

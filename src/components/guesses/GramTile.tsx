@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { useGameStore, type LetterFeedback } from "~/stores/game-store";
 import { useAnimeMount } from "~/hooks/useAnimeMount";
 import { GramFace } from "./GramFace";
+import { noteBorderClass } from "./feedback-classes";
 import { AntsOutline } from "./AntsOutline";
 import { CHAR_IN, CHAR_OUT } from "./tileAnimations.constants";
 
@@ -15,9 +16,10 @@ interface Props {
   rightIndex: number;
   editable: boolean;
   revealDelay?: number;
-  // Recap note highlight, mirroring GuessTile: "hit" rings the gram as part of the hovered/tapped
-  // note, "dim" fades it as context. Undefined leaves it at its normal appearance.
-  note?: "hit" | "dim";
+  // Recap note highlight, mirroring GuessTile: "hit" frames the gram as part of the hovered/tapped
+  // note (a darker shade of its feedback color), "origin" an even darker shade as the source a note
+  // points back to, "dim" fades it as context. Undefined leaves it at its normal appearance.
+  note?: "hit" | "origin" | "dim";
 }
 
 interface GramCharProps {
@@ -117,9 +119,9 @@ export function GramTile({
       className={clsx(
         "tile-wide",
         !show && "pointer-events-none",
-        note && "transition-[opacity,outline-color] duration-200",
-        note === "hit" &&
-          "z-10 outline outline-2 outline-offset-1 outline-zinc-900 dark:outline-zinc-100",
+        note && "transition-[border-color,opacity] duration-200",
+        note === "hit" && noteBorderClass(feedback, "hit"),
+        note === "origin" && noteBorderClass(feedback, "origin"),
         note === "dim" && "opacity-30",
       )}
       style={{

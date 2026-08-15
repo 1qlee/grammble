@@ -17,10 +17,13 @@ import type { LetterFeedback } from "./types";
 // prior-guess knowledge (a green is a deduction only if the letter was yellow on an earlier guess, a
 // letter is "new" only if untested before, and so on).
 
-// A single board tile: a column in a guess row.
+// A single board tile: a column in a guess row. `origin` marks a cell that is the SOURCE a note
+// points back to on an earlier row (the locked green a later guess overwrote), so the board can give
+// it a distinct, heavier border to set it apart from the note's own guess-row tiles.
 export interface NoteCell {
   row: number;
   col: number;
+  origin?: boolean;
 }
 
 const isGramTile = (t: LetterFeedback | undefined): boolean =>
@@ -168,18 +171,29 @@ function newTestedCols(
   return cols;
 }
 
-// Wasted non-gram tiles in `gi`: a letter re-tried on a known-wrong position (a locked green's slot,
-// a known-absent letter, or a known wrong-position pairing). Mirrors wastedByGuess.
-function wastedCols(
+// Wasted non-gram tiles in `gi`, split to match wastedByGuess's two kinds: `dead` re-tests known-BAD
+// info (a known-absent letter, or a letter on a position already ruled out for it), while `overwrite`
+// discards known-GOOD info (a different letter played on a slot already locked green). The two are
+// labeled as separate notes ("Re-tested dead letters" vs "Overwrote a locked-in letter").
+//
+// Both are full cell lists: the re-testing / overwriting tile in row `gi`, PAIRED with the earlier
+// tile that established the info being ignored (tagged `origin`, so it gets a darker border) -- for a
+// dead letter, where it last showed gray (or the slot last ruled out); for an overwrite, the most
+// recent prior guess that showed the green played over.
+function wastedCells(
   guesses: string[],
   feedback: LetterFeedback[][],
   gi: number
-): number[] {
-  if (gi < 1) return [];
+): { dead: NoteCell[]; overwrite: NoteCell[] } {
+  if (gi < 1) return { dead: [], overwrite: [] };
   const knownGreen = new Map<number, string>();
-  const absentLetters = new Set<string>();
-  const knownWrongPos = new Set<string>();
-  const cols: number[] = [];
+  const greenRow = new Map<number, number>();
+  // Where each known-absent letter last showed gray, and where each ruled-out letter@position last
+  // showed yellow: the origin tile the "re-tested dead letters" note points back to.
+  const absentCell = new Map<string, NoteCell>();
+  const wrongPosCell = new Map<string, NoteCell>();
+  const dead: NoteCell[] = [];
+  const overwrite: NoteCell[] = [];
   for (let i = 0; i <= gi; i++) {
     const word = guesses[i] ?? "";
     const row = feedback[i] ?? [];
@@ -187,12 +201,18 @@ function wastedCols(
       for (let p = 0; p < word.length; p++) {
         if (isSkippable(row[p])) continue;
         const c = word[p];
-        if (
-          (knownGreen.has(p) && knownGreen.get(p) !== c) ||
-          absentLetters.has(c) ||
-          knownWrongPos.has(`${c}@${p}`)
-        ) {
-          cols.push(p);
+        if (knownGreen.has(p) && knownGreen.get(p) !== c) {
+          overwrite.push({ row: gi, col: p });
+          const orow = greenRow.get(p);
+          if (orow !== undefined)
+            overwrite.push({ row: orow, col: p, origin: true });
+        }
+        // A ruled-out position is the more specific evidence, so prefer its tile as the origin;
+        // otherwise fall back to where the letter last showed gray.
+        const origin = wrongPosCell.get(`${c}@${p}`) ?? absentCell.get(c);
+        if (origin) {
+          dead.push({ row: gi, col: p });
+          dead.push({ ...origin, origin: true });
         }
       }
     }
@@ -202,8 +222,9 @@ function wastedCols(
       if (isSkippable(tile)) continue;
       if (tile === "correct") {
         knownGreen.set(p, c);
+        greenRow.set(p, i);
       } else if (tile === "misplaced") {
-        knownWrongPos.add(`${c}@${p}`);
+        wrongPosCell.set(`${c}@${p}`, { row: i, col: p });
       } else {
         const presentElsewhere = word
           .split("")
@@ -211,9 +232,42 @@ function wastedCols(
             (ch, q) =>
               ch === c && (row[q] === "correct" || row[q] === "misplaced")
           );
-        if (!presentElsewhere) absentLetters.add(c);
+        if (!presentElsewhere) absentCell.set(c, { row: i, col: p });
       }
     }
+  }
+  return { dead, overwrite };
+}
+
+// Greens on row `gi` that were ALREADY locked green on an earlier guess -- the frame CARRIED into this
+// guess, as opposed to a green freshly placed here. The score's heldGreen counts every green on the
+// row in its "green mass", but the note's label is "held your locked letters": a letter placed green
+// for the FIRST time on `gi` (a deduction or a cold placement, each already highlighted by its own
+// note) is NOT a held letter, and showing it here would contradict that note on the very same tile. A
+// letter counts as held once it has shown green on any earlier guess. Tracked by letter, not position,
+// so the exclusion of a letter's first green is total and can never overlap deduction/coldPlacement.
+function heldGreenCols(
+  guesses: string[],
+  feedback: LetterFeedback[][],
+  gi: number
+): number[] {
+  const wasGreen = new Set<string>();
+  for (let i = 0; i < gi; i++) {
+    const word = guesses[i] ?? "";
+    const row = feedback[i] ?? [];
+    for (let p = 0; p < word.length; p++) {
+      if (row[p] === "correct" || row[p] === "gramCorrect") wasGreen.add(word[p]);
+    }
+  }
+  const word = guesses[gi] ?? "";
+  const row = feedback[gi] ?? [];
+  const cols: number[] = [];
+  for (let p = 0; p < word.length; p++) {
+    if (
+      (row[p] === "correct" || row[p] === "gramCorrect") &&
+      wasGreen.has(word[p])
+    )
+      cols.push(p);
   }
   return cols;
 }
@@ -316,11 +370,11 @@ export function noteTiles(
     case "breadth":
       return onGuessRow(newTestedCols(guesses, feedback, gi, won));
     case "waste":
-      return onGuessRow(wastedCols(guesses, feedback, gi));
+      return wastedCells(guesses, feedback, gi).dead;
+    case "wasteGreen":
+      return wastedCells(guesses, feedback, gi).overwrite;
     case "heldGreen":
-      return onGuessRow(
-        colsWhere(feedback, gi, (t) => t === "correct" || t === "gramCorrect")
-      );
+      return onGuessRow(heldGreenCols(guesses, feedback, gi));
     case "foundGram":
       return onGuessRow(colsWhere(feedback, gi, (t) => t === "gramCorrect"));
     case "gramDeduction":

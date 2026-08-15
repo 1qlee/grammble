@@ -4,6 +4,7 @@ import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { SigninSchema } from "./SigninForm.types";
 import { useAppForm } from "~/utils/form/form";
 import { signIn } from "~/utils/auth/auth-client";
+import { queryClient } from "~/utils/query-client";
 import { withMinimumDelay } from "~/utils/helpers";
 import { emailValidator } from "./SignupForm.types";
 import * as v from "valibot";
@@ -97,6 +98,10 @@ export default function SigninForm({ checkoutIntent }: Props) {
         // the root beforeLoad re-resolves user + game state under the new
         // session before navigating; otherwise the board shows stale anonymous
         // state until a hard refresh.
+        // Also drop the TanStack Query cache: keys like ["gameRecap", mode,
+        // date] and ["userStats", mode] are not user-scoped, so a direct
+        // account switch would otherwise resolve to the prior user's data.
+        queryClient.clear();
         await router.invalidate();
         navigate({ to: "/dashboard" });
       }

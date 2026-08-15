@@ -368,7 +368,11 @@ export function useGameRecap(enabled: boolean): {
       ...openingLines
         .filter((l) => l.key !== "rounding")
         .map((l) => ({
-          label: frameLineLabel(l.key, { points: l.points, max: l.max }),
+          label: frameLineLabel(l.key, {
+            points: l.points,
+            max: l.max,
+            exact: l.exact,
+          }),
           points: l.points,
           max: l.max,
           key: l.key,

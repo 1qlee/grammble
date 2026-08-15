@@ -104,6 +104,10 @@ export interface FrameLine {
   // is possible (openerGram/openerLetters/openerLength). Omitted for fixed or penalty lines, where an
   // "out of" ceiling is not meaningful. Lets the recap render "+3/10" style caps.
   max?: number;
+  // openerGram only: the opener placed the gram in its CORRECT position (gramCorrect), so it earns full
+  // marks outright rather than the prior-likelihood grade. Lets the recap swap "likely spot" -> "correct
+  // place". Absent/false means the gram bet was graded on prior likelihood.
+  exact?: boolean;
 }
 
 export interface ScoreBreakdown {

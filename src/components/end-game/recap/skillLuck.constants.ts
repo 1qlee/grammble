@@ -15,6 +15,7 @@ export const CONTRIBUTION_LABELS: Record<string, string> = {
   foundGram: "Locked the gram in place",
   heldGreen: "Held your locked letters",
   waste: "Re-tested dead letters",
+  wasteGreen: "Overwrote a locked-in letter",
   shortGuess: "Used a word shorter than the answer",
   gramStagnation: "Re-tried a ruled-out gram spot",
   neglect: "Left a known letter unused",
@@ -121,11 +122,19 @@ const OPENER_LENGTH_PARTIAL = "Length of your opener";
 // "Used the full word". Every other key maps straight through FRAME_LABELS.
 export function frameLineLabel(
   key: string,
-  opts: { guessCount?: number; points?: number; max?: number } = {}
+  opts: {
+    guessCount?: number;
+    points?: number;
+    max?: number;
+    exact?: boolean;
+  } = {}
 ): string {
-  const { guessCount, points, max } = opts;
+  const { guessCount, points, max, exact } = opts;
   if (key === "speedBonus" && guessCount != null)
     return `Fast finish (${guessCount} ${guessCount === 1 ? "guess" : "guesses"})`;
+  // The opener landed the gram in its true position: full marks, so the line reads the achievement
+  // ("correct place") rather than the prior-likelihood grade ("likely spot").
+  if (key === "openerGram" && exact) return "Gram in the correct place";
   if (key === "openerLength" && points != null && max != null && points < max)
     return OPENER_LENGTH_PARTIAL;
   return FRAME_LABELS[key] ?? key;

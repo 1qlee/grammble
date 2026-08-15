@@ -399,6 +399,7 @@ export function OverviewScorePanel({
           guessCount,
           points: l.points,
           max: l.max,
+          exact: l.exact,
         }),
         points: l.points,
         max: l.max,
