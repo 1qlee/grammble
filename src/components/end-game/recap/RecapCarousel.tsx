@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import clsx from "clsx";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type {
@@ -12,6 +18,7 @@ import type {
   RecapSlide,
 } from "./useGameRecap";
 import type { NoteCell } from "~/utils/game/note-tiles";
+import { OPENER_MAX } from "./skillLuck.constants";
 import { OverviewScorePanel } from "./OverviewScorePanel";
 import { FortunePanel } from "./FortunePanel";
 import { RecapBoard } from "./RecapBoard";
@@ -26,20 +33,31 @@ function signed(n: number): string {
   return n > 0 ? `+${n}` : `${n}`;
 }
 
-// The padded, bordered panel every recap section sits in, matching the overview slide's score and
-// fortune cards, so a section reads as one card whichever slide it lives on.
-function SectionCard({ children }: { children: React.ReactNode }) {
+// Per-section color identity. Each recap section carries a tone so it reads as a purposeful block:
+// the score is green (achievement), the gram-placement odds amber, the still-valid field dark. The
+// neutral default matches the overview slide's score/fortune cards.
+type SectionTone = "default" | "green" | "amber";
+
+const SECTION_TONE: Record<SectionTone, string> = {
+  default: "border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950",
+  green: "border-green-200 bg-green-50 dark:border-green-900/60 dark:bg-green-950/40",
+  amber: "border-amber-200 bg-amber-50 dark:border-amber-900/60 dark:bg-amber-950/40",
+};
+
+// The padded, bordered panel every recap section sits in. `tone` tints the surface to the section's
+// identity (see SECTION_TONE); children set their own text colors where the tint demands contrast.
+function SectionCard({
+  children,
+  tone = "default",
+}: {
+  children: React.ReactNode;
+  tone?: SectionTone;
+}) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+    <div className={clsx("rounded-lg border p-4", SECTION_TONE[tone])}>
       {children}
     </div>
   );
-}
-
-function deltaTone(n: number): string {
-  if (n > 0) return "text-green-600 dark:text-green-400";
-  if (n < 0) return "text-amber-600 dark:text-amber-400";
-  return "text-zinc-500 dark:text-zinc-400";
 }
 
 // The running score for a slide, ticking from its value on the previous slide up (or down) by this
@@ -51,6 +69,8 @@ function ScoreSection({
   before,
   after,
   notes,
+  gradeScore,
+  gradeMax,
   onTilesChange,
 }: {
   label: string;
@@ -58,26 +78,47 @@ function ScoreSection({
   before: number;
   after: number;
   notes: NoteItem[];
+  // The section's own graded value out of a fixed maximum (the opener grade out of OPENER_MAX), shown
+  // as a "{score} / {max}" indicator. Absent on slides with no fixed ceiling (later guesses).
+  gradeScore?: number;
+  gradeMax?: number;
   // Called with the board cells of the note the player is hovering or has tapped (null when none), so
   // the parent slide can highlight the matching tiles on its recap board.
   onTilesChange?: (tiles: NoteCell[] | null) => void;
 }) {
   const delta = Math.round(after) - Math.round(before);
+  const hasGrade = gradeScore != null && gradeMax != null;
   return (
-    <SectionCard>
+    <SectionCard tone="green">
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <span className="section-label">{label}</span>
-          <span className="flex items-baseline gap-2 leading-none">
+          <div className="flex items-center justify-between gap-2">
+            <span className="section-label text-green-700 dark:text-green-400">
+              {label}
+            </span>
+            {hasGrade && (
+              <span className="text-sm font-bold tabular-nums text-green-700 dark:text-green-400">
+                {Math.round(gradeScore)}
+                <span className="text-green-600/60 dark:text-green-400/60">
+                  {" "}
+                  / {gradeMax}
+                </span>
+              </span>
+            )}
+          </div>
+          <span className="flex items-center gap-2 leading-none">
             <Odometer
               value={after}
               from={before}
               duration={700}
-              className="text-5xl font-extrabold tabular-nums"
+              className="text-5xl font-extrabold tabular-nums text-green-900 dark:text-green-100"
             />
             {delta !== 0 && (
               <span
-                className={`text-base font-bold tabular-nums ${deltaTone(delta)}`}
+                className={clsx(
+                  "rounded-md px-2 py-0.5 text-sm font-bold tabular-nums text-white",
+                  delta > 0 ? "bg-green-600" : "bg-amber-500"
+                )}
               >
                 {signed(delta)}
               </span>
@@ -138,19 +179,33 @@ function ScoreNotes({
   const [sticky, setSticky] = useState<number | null>(null);
   const active = hovered ?? sticky;
 
+  // Display order: all point gains first (descending value), then all penalties (most negative
+  // first, so -4 sits above -3). A no-op/percent line is grouped with the gains. Ordering only, the
+  // point math is untouched.
+  const ordered = useMemo(() => {
+    return [...notes].sort((a, b) => {
+      const aPos = a.points >= 0;
+      const bPos = b.points >= 0;
+      if (aPos !== bPos) return aPos ? -1 : 1;
+      return aPos ? b.points - a.points : a.points - b.points;
+    });
+  }, [notes]);
+
   const emit = onTilesChange;
   useEffect(() => {
     if (!emit) return;
-    const note = active != null ? notes[active] : undefined;
+    const note = active != null ? ordered[active] : undefined;
     emit(note && note.tiles.length > 0 ? note.tiles : null);
-  }, [active, notes, emit]);
+  }, [active, ordered, emit]);
 
-  if (notes.length === 0) return null;
+  if (ordered.length === 0) return null;
   return (
     <div className="flex flex-col gap-2">
-      <span className="section-label">{label}</span>
-      <ul className="flex flex-col gap-1">
-        {notes.map((note, i) => {
+      <span className="section-label text-green-700 dark:text-green-400">
+        {label}
+      </span>
+      <ul className="flex flex-col gap-1.5">
+        {ordered.map((note, i) => {
           const interactive = note.tiles.length > 0;
           const toggleSticky = () => setSticky((s) => (s === i ? null : i));
           return (
@@ -158,7 +213,7 @@ function ScoreNotes({
               key={i}
               // Keyboard focus mirrors mouse hover: focusing an item previews its tile highlight,
               // Enter/Space toggles the sticky selection just like a tap. Non-interactive notes
-              // (no tiles) stay plain text and out of the tab order.
+              // (no tiles) stay plain cards and out of the tab order.
               role={interactive ? "button" : undefined}
               tabIndex={interactive ? 0 : undefined}
               aria-pressed={interactive ? sticky === i : undefined}
@@ -188,32 +243,28 @@ function ScoreNotes({
                   : undefined
               }
               className={clsx(
-                "-mx-1.5 flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-sm leading-snug transition-colors",
+                "flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm leading-snug transition",
+                // Base and selected fills are mutually exclusive so the selected wash isn't overridden
+                // by the base `bg-white` (both are plain utilities; class order wouldn't decide it).
+                active === i
+                  ? "border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-950/40"
+                  : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900",
                 interactive &&
-                  "cursor-pointer border border-zinc-200 dark:border-zinc-800",
-                active === i && "bg-zinc-100 dark:bg-zinc-800"
+                  "cursor-pointer active:scale-[0.98] active:border-green-400 active:bg-green-100 dark:active:border-green-700 dark:active:bg-green-900/50"
               )}
             >
-              <span className={deltaTone(note.points)}>{note.label}</span>
-              <span className="shrink-0 tabular-nums">
-                {note.percent != null ? (
-                  // A graded-opener line reads as its criterion percentage, not a raw point delta.
-                  <span className={`font-bold ${deltaTone(note.points)}`}>
-                    {note.percent}
-                  </span>
-                ) : (
-                  <>
-                    <span className={`font-bold ${deltaTone(note.points)}`}>
-                      {signed(note.points)}
-                    </span>
-                    {note.max != null && (
-                      <span className="text-zinc-400 dark:text-zinc-500">
-                        {" "}
-                        / {note.max}
-                      </span>
-                    )}
-                  </>
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                {note.label}
+              </span>
+              <span
+                className={clsx(
+                  "inline-block shrink-0 rounded-md px-2 py-0.5 text-sm font-bold tabular-nums",
+                  note.points >= 0
+                    ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                    : "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
                 )}
+              >
+                {signed(note.points)}
               </span>
             </li>
           );
@@ -330,7 +381,13 @@ function GramBarRow({
   const topFill = colorBlindMode
     ? "bg-[#f5793a] dark:bg-[#f5793a]"
     : "bg-green-300 dark:bg-green-600";
-  const fill = isTop ? topFill : "bg-zinc-300 dark:bg-zinc-700";
+  // Non-top placements that still hold some share read amber (matching the section's tint); a
+  // zero-share slot keeps the empty track.
+  const fill = isTop
+    ? topFill
+    : bar.fraction > 0
+      ? "bg-amber-300 dark:bg-amber-500"
+      : "bg-zinc-300 dark:bg-zinc-700";
   return (
     <div className="flex items-center gap-2 text-xs">
       <GramTileRow
@@ -344,7 +401,14 @@ function GramBarRow({
           style={{ width: `${bar.pct}%` }}
         />
       </span>
-      <span className="text-accent w-9 shrink-0 text-right tabular-nums">
+      <span
+        className={clsx(
+          "w-9 shrink-0 text-right tabular-nums",
+          isTop
+            ? "text-green-700 dark:text-green-400"
+            : "text-amber-700 dark:text-amber-500"
+        )}
+      >
         {Math.round(bar.fraction * 100)}%
       </span>
     </div>
@@ -372,11 +436,15 @@ function GramBody({ slide }: { slide: GramSlide }) {
         before={slide.scoreBefore}
         after={slide.scoreAfter}
         notes={slide.notes}
+        gradeScore={slide.opening}
+        gradeMax={OPENER_MAX}
         onTilesChange={setTiles}
       />
-      <SectionCard>
+      <SectionCard tone="amber">
         <div className="flex flex-col gap-2">
-          <p className="section-label">Likely gram positions</p>
+          <p className="section-label text-amber-700 dark:text-amber-400">
+            Likely gram positions
+          </p>
           <div className="flex flex-col gap-1.5">
             {slide.bars.map((bar, i) => (
               <GramBarRow
@@ -404,14 +472,31 @@ function GramBody({ slide }: { slide: GramSlide }) {
 
 // One survivor word rendered as a chip with its gram substring highlighted against the muted rest,
 // so the player can see where the day's gram sits inside every still-valid word.
-function WordChip({ word, gram }: { word: string; gram: string }) {
+function WordChip({
+  word,
+  gram,
+  isAnswer = false,
+}: {
+  word: string;
+  gram: string;
+  // The answer chip reads with a green tinted surface so it stands apart from the other survivors as
+  // "the word you landed on".
+  isAnswer?: boolean;
+}) {
   const upper = word.toUpperCase();
   const g = gram.toUpperCase();
   const idx = g ? upper.indexOf(g) : -1;
   const rest = "text-zinc-900 dark:text-zinc-100";
   const gramColor = "font-bold text-green-600 dark:text-green-400";
   return (
-    <span className="rounded border border-zinc-300 bg-white px-1.5 py-0.5 text-xs font-medium dark:border-zinc-600 dark:bg-zinc-900">
+    <span
+      className={clsx(
+        "rounded border px-1.5 py-0.5 text-xs font-medium",
+        isAnswer
+          ? "border-green-400 bg-green-100 dark:border-green-600 dark:bg-green-900/50"
+          : "border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-900"
+      )}
+    >
       {idx < 0 ? (
         <span className={rest}>{upper}</span>
       ) : (
@@ -475,7 +560,9 @@ function RemainingWords({
             <span className="text-3xl font-extrabold tabular-nums">
               {after.toLocaleString()}
             </span>
-            <span className="text-sm">{single ? "word left" : "words remain"}</span>
+            <span className="text-sm">
+              {single ? "word left" : "words remain"}
+            </span>
           </div>
           {single && (
             <p className="text-accent text-xs">
@@ -554,97 +641,122 @@ function RemainingWords({
   );
 }
 
-// The finish read for a won game: how many words the winning guess chose from, a line on whether the
-// answer was deduced or a fortunate pick (finish luck), and the other words that were still standing.
-function finishNote(solvedWith: number, finishBits: number): string {
-  if (solvedWith <= 1)
-    return "There was only one viable answer based on the state of the board.";
-  if (finishBits >= 1.5)
-    return `You found it among ${solvedWith} words that still fit, a fortunate finish.`;
-  if (finishBits >= 0.5)
-    return `${solvedWith} words still fit, so landing the answer took a sharp read.`;
-  return `${solvedWith} words still fit, and you picked the answer out of them.`;
-}
-
-function FinishSection({ finish }: { finish: FinishInfo }) {
+// The finish read for a won game: how many words the winning guess chose from, and the other words
+// that were still standing. Rendered as the tinted top block of the merged finish/path card.
+function FinishBlock({ finish }: { finish: FinishInfo }) {
   const gram = useGameStore((s) => s.gram);
   const singular = finish.solvedWith === 1;
   return (
-    <SectionCard>
-      <div className="flex flex-col gap-3">
-        <span className="section-label">The finish</span>
-        <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-extrabold tabular-nums">
-            {finish.solvedWith.toLocaleString()}
+    <div className="flex flex-col gap-3 bg-green-50 p-4 dark:bg-green-950/30">
+      <span className="section-label text-green-700 dark:text-green-400">
+        The finish
+      </span>
+      <div className="flex items-baseline gap-2">
+        <span className="text-3xl font-extrabold tabular-nums text-green-900 dark:text-green-100">
+          {finish.solvedWith.toLocaleString()}
+        </span>
+        <span className="text-sm text-green-800 dark:text-green-200">
+          {singular ? "word could fit" : "words still fit"}
+        </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {/* The answer sits first, tinted, so it is clear it is one of the words that still fit. */}
+        <WordChip
+          word={finish.answer}
+          gram={gram}
+          isAnswer
+        />
+        {finish.alternatives.map((word) => (
+          <WordChip
+            key={word}
+            word={word}
+            gram={gram}
+          />
+        ))}
+        {finish.moreAlternatives > 0 && (
+          <span className="text-xs text-green-700/70 dark:text-green-300/70">
+            +{finish.moreAlternatives} more
           </span>
-          <span className="text-sm">
-            {singular ? "word could fit" : "words still fit"}
-          </span>
-        </div>
-        <p className="text-accent text-sm leading-snug">
-          {finishNote(finish.solvedWith, finish.finishBits)}
-        </p>
-        {finish.alternatives.length > 0 && (
-          <div className="flex flex-col gap-1.5">
-            <span className="section-label">Others still in play</span>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {finish.alternatives.map((word) => (
-                <WordChip
-                  key={word}
-                  word={word}
-                  gram={gram}
-                />
-              ))}
-              {finish.moreAlternatives > 0 && (
-                <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                  +{finish.moreAlternatives} more
-                </span>
-              )}
-            </div>
-          </div>
         )}
       </div>
-    </SectionCard>
+    </div>
   );
 }
 
-// The whole-game narrowing path on the final slide: each guess and how far it cut the field of
-// possible answers. A guess that left the count unchanged (and above one) failed to narrow, flagged
-// amber in the row and called out beneath.
-function PathSection({ path }: { path: PathStep[] }) {
+// The whole-game narrowing path on the final slide as a vertical timeline: each guess sits on a
+// connected rail (the winning step's node filled green), with how far it cut the field of possible
+// answers on the right. A guess that left the count unchanged (and above one) failed to narrow,
+// flagged amber. Rendered as the lower block of the merged finish/path card.
+function PathBlock({ path }: { path: PathStep[] }) {
   return (
-    <SectionCard>
-      <div className="flex flex-col gap-2">
-        <span className="section-label">Your path</span>
-        <ul className="flex flex-col gap-1.5">
-          {path.map((step, i) => {
-            const didStall = step.before === step.after && step.after > 1;
-            return (
-              <li
-                key={i}
-                className="flex items-center justify-between gap-3 text-sm"
-              >
-                <span className="flex items-center gap-2">
-                  <span className="text-accent w-4 text-xs">
-                    {i + 1}
-                  </span>
-                  <span className="uppercase">{step.guess}</span>
-                </span>
+    <div className="flex flex-col gap-3 p-4">
+      <span className="section-label">Your path</span>
+      <ul className="flex flex-col">
+        {path.map((step, i) => {
+          const didStall = step.before === step.after && step.after > 1;
+          const isFirst = i === 0;
+          const isLast = i === path.length - 1;
+          return (
+            <li
+              key={i}
+              className="flex items-stretch gap-3"
+            >
+              {/* Timeline rail: a centered connector running through each step's node. */}
+              <div className="relative flex w-3 shrink-0 flex-col items-center">
+                {!isFirst && (
+                  <span className="absolute left-1/2 top-0 h-1/2 w-0.5 -translate-x-1/2 bg-green-300 dark:bg-green-700" />
+                )}
+                {!isLast && (
+                  <span className="absolute left-1/2 bottom-0 h-1/2 w-0.5 -translate-x-1/2 bg-green-300 dark:bg-green-700" />
+                )}
                 <span
-                  className={`text-xs tabular-nums ${didStall
-                    ? "text-amber-600 dark:text-amber-400"
-                    : "text-accent"
-                    }`}
+                  className={clsx(
+                    "relative z-10 my-auto h-3 w-3 rounded-full border-2",
+                    isLast
+                      ? "border-green-500 bg-green-500 dark:border-green-500 dark:bg-green-500"
+                      : "border-green-400 bg-white dark:border-green-600 dark:bg-zinc-900"
+                  )}
+                />
+              </div>
+              <div className="flex flex-1 items-center justify-between gap-3 py-2 text-sm">
+                <span className="uppercase">{step.guess}</span>
+                <span
+                  className={clsx(
+                    "text-xs tabular-nums",
+                    didStall ? "text-amber-600 dark:text-amber-400" : "text-accent"
+                  )}
                 >
                   {step.before.toLocaleString()} &rarr;{" "}
-                  {step.after.toLocaleString()}
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                    {step.after.toLocaleString()}
+                  </span>
                 </span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </SectionCard>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+// The merged finish/path card: on a win the tinted finish read sits atop the narrowing-path timeline,
+// split by a divider, in one bordered card. On a loss (no finish) only the path shows.
+function FinishPathSection({
+  finish,
+  path,
+}: {
+  finish?: FinishInfo;
+  path?: PathStep[];
+}) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-green-200 bg-white dark:border-green-900/60 dark:bg-zinc-900">
+      {finish && <FinishBlock finish={finish} />}
+      {finish && path && (
+        <div className="h-px bg-green-200 dark:bg-green-900/60" />
+      )}
+      {path && <PathBlock path={path} />}
+    </div>
   );
 }
 
@@ -674,8 +786,12 @@ function GuessBody({ slide }: { slide: GuessSlide }) {
           otherWords={slide.otherWords}
         />
       )}
-      {slide.finish && <FinishSection finish={slide.finish} />}
-      {slide.path && <PathSection path={slide.path} />}
+      {(slide.finish || slide.path) && (
+        <FinishPathSection
+          finish={slide.finish}
+          path={slide.path}
+        />
+      )}
     </div>
   );
 }

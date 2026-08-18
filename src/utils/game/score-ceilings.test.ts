@@ -106,4 +106,120 @@ describe("score ceiling invariants (behavioral)", () => {
     // Deduction now tops breadth through real scoring (breadth was demoted to 0.12), not just arithmetic.
     expect(total(d, "deduction")).toBeGreaterThan(T.PT * T.BREADTH_WEIGHT);
   });
+
+  // gram AB, 6-letter win. The gram is bet wrong (pos 0, pos 1) then locked correct for the FIRST time
+  // on the winning guess. The heldGreen/foundGram loop stops at lastNonWin (= n - 2), so without the
+  // win-lock credit the final placement would earn nothing; it now earns a flat gram-family unit
+  // (PT * GRAM_DEDUCTION_WEIGHT) under foundGram. A gram found on a MIDDLE guess must NOT get it.
+  it("locking the gram correct on the winning guess earns a flat gram-family foundGram credit", () => {
+    const winLock = decomposeScore({
+      guesses: ["ABMNOP", "MABNOP", "XYABZW"],
+      feedback: [
+        ["gramMisplaced", "gramMisplaced", "absent", "absent", "absent", "absent"],
+        ["absent", "gramMisplaced", "gramMisplaced", "absent", "absent", "absent"],
+        ["correct", "correct", "gramCorrect", "gramCorrect", "correct", "correct"],
+      ],
+      won: true,
+      wordLength: 6,
+    });
+    expect(total(winLock, "foundGram")).toBeCloseTo(T.PT * T.GRAM_DEDUCTION_WEIGHT, 1);
+
+    // Found on a middle guess: the win-lock credit does not apply (only the averaged mid-game credit).
+    const midFound = decomposeScore({
+      guesses: ["ABMNOP", "XYABZW", "XYABZW"],
+      feedback: [
+        ["gramMisplaced", "gramMisplaced", "absent", "absent", "absent", "absent"],
+        ["correct", "correct", "gramCorrect", "gramCorrect", "absent", "absent"],
+        ["correct", "correct", "gramCorrect", "gramCorrect", "correct", "correct"],
+      ],
+      won: true,
+      wordLength: 6,
+    });
+    expect(total(midFound, "foundGram")).not.toBeCloseTo(T.PT * T.GRAM_DEDUCTION_WEIGHT, 1);
+  });
+
+  // gram EN, 6-letter win. heldGreen credits ONLY greens carried from an earlier guess. Middle guess
+  // ENABCD places C green for the FIRST time (a cold placement) -- that fresh green must not read as
+  // "held", so heldGreen stays 0. The second run carries C's green into the next middle guess, so
+  // heldGreen fires. Guards the score/label/note agreement (mirrors heldGreenCols in note-tiles).
+  it("heldGreen credits carried greens only, never a green first placed this turn", () => {
+    const fresh = decomposeScore({
+      guesses: ["ENABCD", "ENDIVE"],
+      feedback: [
+        ["gramCorrect", "gramCorrect", "absent", "absent", "correct", "absent"],
+        ["gramCorrect", "gramCorrect", "correct", "correct", "correct", "correct"],
+      ],
+      won: true,
+      wordLength: 6,
+    });
+    expect(total(fresh, "heldGreen")).toBe(0);
+
+    const carried = decomposeScore({
+      guesses: ["ENABCD", "ENABGH", "ENDIVE"],
+      feedback: [
+        ["gramCorrect", "gramCorrect", "absent", "absent", "correct", "absent"],
+        ["gramCorrect", "gramCorrect", "absent", "absent", "correct", "absent"],
+        ["gramCorrect", "gramCorrect", "correct", "correct", "correct", "correct"],
+      ],
+      won: true,
+      wordLength: 6,
+    });
+    expect(total(carried, "heldGreen")).toBeGreaterThan(0);
+  });
+
+  // gram EN, 6-letter win with a DUPLICATE letter (two Es) in the answer. Placement credit is
+  // per-INSTANCE: a second copy of a letter locked green must earn its own credit, not be swallowed by
+  // the first. Two unclued Es (never seen yellow) are BOTH cold; when only one E was seen yellow
+  // earlier, the first E is a deduction and the second unclued E is still a fresh cold placement.
+  const perLetter = T.PT * T.COLD_PLACEMENT_WEIGHT;
+  it("credits each instance of a duplicate letter placed green, not just the first", () => {
+    // ENEEBB: both Es (cols 2,3) and both Bs (cols 4,5) locked with no prior yellow -> 4 cold.
+    const bothCold = decomposeScore({
+      guesses: ["ENXXXX", "ENYYYY", "ENEEBB"],
+      feedback: [
+        ["gramCorrect", "gramCorrect", "absent", "absent", "absent", "absent"],
+        ["gramCorrect", "gramCorrect", "absent", "absent", "absent", "absent"],
+        ["gramCorrect", "gramCorrect", "correct", "correct", "correct", "correct"],
+      ],
+      won: true,
+      wordLength: 6,
+    });
+    expect(total(bothCold, "coldPlacement")).toBeCloseTo(4 * perLetter, 1);
+
+    // One E seen yellow on guess 1 (col 3). On the win the first E is a deduction; the second E has no
+    // clue of its own, so it is cold alongside the two Bs -> 1 deduction + 3 cold.
+    const oneClued = decomposeScore({
+      guesses: ["ENXEXX", "ENYYYY", "ENEEBB"],
+      feedback: [
+        ["gramCorrect", "gramCorrect", "absent", "misplaced", "absent", "absent"],
+        ["gramCorrect", "gramCorrect", "absent", "absent", "absent", "absent"],
+        ["gramCorrect", "gramCorrect", "correct", "correct", "correct", "correct"],
+      ],
+      won: true,
+      wordLength: 6,
+    });
+    expect(total(oneClued, "deduction")).toBeCloseTo(perLetter, 1);
+    expect(total(oneClued, "coldPlacement")).toBeCloseTo(3 * perLetter, 1);
+  });
+
+  // gram EN, 6-letter win. Guess 1 (ENABCD) leaves A,B,C,D gray; guess 2 (ENABGH) replays A and B in
+  // their EXACT gray tiles (cols 2 and 3), then guess 3 wins. Each same-spot repeat folds a flat
+  // SAME_POS_WASTE_PENALTY INTO the "waste" line (no separate key), on top of the per-tile dead-letter
+  // weight -- so the one waste line is deepened by both, not split.
+  it("same-spot dead repeats deepen the waste line by a flat penalty each (no separate key)", () => {
+    const guesses = ["ENABCD", "ENABGH", "ENMOPQ"];
+    const feedback: LetterFeedback[][] = [
+      ["gramCorrect", "gramCorrect", "absent", "absent", "absent", "absent"],
+      ["gramCorrect", "gramCorrect", "absent", "absent", "absent", "absent"],
+      ["gramCorrect", "gramCorrect", "correct", "correct", "correct", "correct"],
+    ];
+    const d = decomposeScore({ guesses, feedback, won: true, wordLength: 6 });
+    // Two dead letters (A,B) at the per-tile weight PLUS two flat same-spot penalties, all under "waste".
+    expect(total(d, "waste")).toBeCloseTo(
+      -(2 * T.PT * T.WASTE_WEIGHT + 2 * T.SAME_POS_WASTE_PENALTY),
+      1
+    );
+    // No separate same-spot line exists.
+    expect(total(d, "wasteSamePos")).toBe(0);
+  });
 });

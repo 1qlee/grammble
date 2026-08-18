@@ -31,11 +31,11 @@ const NOTE_BORDER_CLASSES: Record<
   },
   misplaced: {
     hit: "border-yellow-600 dark:border-yellow-400",
-    origin: "border-yellow-800 dark:border-yellow-200",
+    origin: "border-yellow-600 dark:border-yellow-400",
   },
   gramMisplaced: {
     hit: "border-yellow-600 dark:border-yellow-400",
-    origin: "border-yellow-800 dark:border-yellow-200",
+    origin: "border-yellow-600 dark:border-yellow-400",
   },
   absent: {
     hit: "border-zinc-600 dark:border-zinc-400",

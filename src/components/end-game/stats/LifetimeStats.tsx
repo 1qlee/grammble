@@ -39,19 +39,6 @@ export function LifetimeStats({
       { label: "Avg score", value: current.avgScore, from: previous?.avgScore },
       { label: "Best score", value: current.bestScore, from: previous?.bestScore },
     ];
-  // TEMP DEBUG: remove after diagnosing missing stat color coding.
-  console.log("[LifetimeStats] color debug", {
-    current,
-    previous,
-    streakUp,
-    streakDown,
-    deltas: rows.map((r) => ({
-      label: r.label,
-      value: r.value,
-      from: r.from,
-      delta: r.value - (r.from ?? 0),
-    })),
-  });
   return (
     <div className="endgame-section">
       <p className="section-label mb-2">

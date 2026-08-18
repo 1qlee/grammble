@@ -11,8 +11,8 @@
 }
 
 @font-face {
-  font-family: "Jost";
-  src: url("/fonts/Jost-Variable.woff2") format("woff2");
+  font-family: "Outfit";
+  src: url("/fonts/Outfit-Variable.woff2") format("woff2");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -30,7 +30,7 @@
 }
 
 @theme {
-  --font-sans: "Jost", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-weight-bold: 600;
 }
 
