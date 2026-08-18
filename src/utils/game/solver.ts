@@ -35,7 +35,7 @@ const ANSWER_FREQ_FLOOR = 3.0;
 let freqCache: Record<string, number> | null = null;
 async function getFrequencies(): Promise<Record<string, number>> {
   if (freqCache) return freqCache;
-  const data = await import("../../../scripts/word-frequencies.json");
+  const data = await import("../../assets/word-frequencies.json");
   freqCache = data.default as Record<string, number>;
   return freqCache;
 }

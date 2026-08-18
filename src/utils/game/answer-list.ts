@@ -10,15 +10,15 @@ const cache: Partial<Record<GameMode, string[]>> = {};
 async function loadList(mode: GameMode): Promise<string[]> {
   switch (mode) {
     case "SIX": {
-      const data = await import("../../../scripts/final-6-word-list.json");
+      const data = await import("../../assets/final-6-word-list.json");
       return data.default as string[];
     }
     case "SEVEN": {
-      const data = await import("../../../scripts/final-7-word-list.json");
+      const data = await import("../../assets/final-7-word-list.json");
       return data.default as string[];
     }
     case "EIGHT": {
-      const data = await import("../../../scripts/final-8-word-list.json");
+      const data = await import("../../assets/final-8-word-list.json");
       return data.default as string[];
     }
   }

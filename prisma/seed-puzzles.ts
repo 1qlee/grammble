@@ -28,17 +28,18 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 // --- Load data ---
-const scriptsDir = resolve(import.meta.dirname, "../scripts");
+const assetsDir = resolve(import.meta.dirname, "../src/assets");
+const dataDir = resolve(import.meta.dirname, "./data");
 
 const answerPools: Record<GameMode, string[]> = {
   SIX: JSON.parse(
-    readFileSync(resolve(scriptsDir, "final-6-word-list.json"), "utf-8"),
+    readFileSync(resolve(assetsDir, "final-6-word-list.json"), "utf-8"),
   ),
   SEVEN: JSON.parse(
-    readFileSync(resolve(scriptsDir, "final-7-word-list.json"), "utf-8"),
+    readFileSync(resolve(assetsDir, "final-7-word-list.json"), "utf-8"),
   ),
   EIGHT: JSON.parse(
-    readFileSync(resolve(scriptsDir, "final-8-word-list.json"), "utf-8"),
+    readFileSync(resolve(assetsDir, "final-8-word-list.json"), "utf-8"),
   ),
 };
 
@@ -46,7 +47,7 @@ type Difficulty = "EASY" | "MEDIUM" | "HARD";
 type ModeEntry = { count: number; difficulty: Difficulty };
 // gram -> per-mode entry (a mode key is present only when the gram is valid there).
 const gramScores: Record<string, Partial<Record<ModeKey, ModeEntry>>> =
-  JSON.parse(readFileSync(resolve(scriptsDir, "gram-scores.json"), "utf-8"));
+  JSON.parse(readFileSync(resolve(dataDir, "gram-scores.json"), "utf-8"));
 
 // --- Seeded PRNG (mulberry32) ---
 function mulberry32(seed: number) {

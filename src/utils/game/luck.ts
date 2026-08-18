@@ -37,8 +37,8 @@ function consistent(
   }
 }
 
-// Per-mode fortune tier boundaries, in luck bits, from a Monte Carlo over each mode's real lists
-// (see _luck_probe.ts). The four cutoffs are the pooled distribution's [p10, p30, p70, p90]; a
+// Per-mode fortune tier boundaries, in luck bits, from a Monte Carlo over each mode's real lists.
+// The four cutoffs are the pooled distribution's [p10, p30, p70, p90]; a
 // game's total bits fall into one of five tiers: below p10 very-unlucky, below p30 unlucky, up to
 // p70 average, up to p90 lucky, above very-lucky. Bits do NOT scale uniformly with pool size -- a
 // larger answer pool partitions finer and yields a TIGHTER distribution (EIGHT's p90 is below SIX's)

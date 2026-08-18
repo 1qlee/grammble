@@ -9,7 +9,7 @@ JSON this writes.
     pip install wordfreq
     python3 prisma/generate-word-frequencies.py
 
-Output: scripts/word-frequencies.json  ->  { "WORD": zipf, ... }
+Output: src/assets/word-frequencies.json  ->  { "WORD": zipf, ... }
 Zipf scale (0-8): ~7 = "the", ~5 = "house", ~4 = "salmon", ~3 = uncommon,
 < 2.5 = rare. generate-gram-scores.ts treats words below its FREQ_THRESHOLD, and
 regular plurals, as non-viable guesses.
@@ -26,7 +26,7 @@ GUESS_FILES = [
     os.path.join(ROOT, "src/assets/seven-guess-list.json"),
     os.path.join(ROOT, "src/assets/eight-guess-list.json"),
 ]
-OUT = os.path.join(ROOT, "scripts/word-frequencies.json")
+OUT = os.path.join(ROOT, "src/assets/word-frequencies.json")
 
 words = set()
 for path in GUESS_FILES:

@@ -24,7 +24,7 @@ already dropped by the frequency threshold, so listing them here is noise.
     python3 -c "import nltk; nltk.download('names')"
     python3 prisma/generate-proper-nouns.py
 
-Output: scripts/proper-nouns.json  ->  ["SYDNEY", "RODNEY", ...]  (sorted, upper)
+Output: prisma/data/proper-nouns.json  ->  ["SYDNEY", "RODNEY", ...]  (sorted, upper)
 Regenerate whenever the guess lists change, then re-run generate-gram-scores.ts.
 """
 
@@ -44,12 +44,12 @@ GUESS_FILES = [
     os.path.join(ROOT, "src/assets/eight-guess-list.json"),
 ]
 ANSWER_FILES = [
-    os.path.join(ROOT, "scripts/final-6-word-list.json"),
-    os.path.join(ROOT, "scripts/final-7-word-list.json"),
-    os.path.join(ROOT, "scripts/final-8-word-list.json"),
+    os.path.join(ROOT, "src/assets/final-6-word-list.json"),
+    os.path.join(ROOT, "src/assets/final-7-word-list.json"),
+    os.path.join(ROOT, "src/assets/final-8-word-list.json"),
 ]
-FREQ_FILE = os.path.join(ROOT, "scripts/word-frequencies.json")
-OUT = os.path.join(ROOT, "scripts/proper-nouns.json")
+FREQ_FILE = os.path.join(ROOT, "src/assets/word-frequencies.json")
+OUT = os.path.join(ROOT, "prisma/data/proper-nouns.json")
 
 name_set = set(n.upper() for n in names.words())
 freq = json.load(open(FREQ_FILE))

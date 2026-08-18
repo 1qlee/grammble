@@ -18,11 +18,11 @@ import { resolve } from "path";
 //      but are not vocabulary a player reaches for. Without this filter a gram
 //      like DN scrapes past the supply floor on names (SYDNEY/SIDNEY/RODNEY)
 //      while only KIDNEY / KIDNAP are real words. The excluded set is precomputed
-//      in scripts/proper-nouns.json (generate-proper-nouns.py).
+//      in prisma/data/proper-nouns.json (generate-proper-nouns.py).
 //
 // A gram is valid for a mode when its viable count in that mode >= MIN_SUPPLY.
 // Difficulty is the tercile of viable supply WITHIN that mode's own distribution.
-// Frequencies come from scripts/word-frequencies.json (generate-word-frequencies.py).
+// Frequencies come from src/assets/word-frequencies.json (generate-word-frequencies.py).
 
 const GRAM_LENGTH = 2;
 const MODES = [6, 7, 8] as const;
@@ -43,13 +43,13 @@ const MIN_SUPPLY = 7;
 // supply there -- a genuine improvement, not a one-word squeak over the line.
 const STRONG_SUPPLY = 15;
 
-const scriptsDir = resolve(import.meta.dirname, "../scripts");
 const assetsDir = resolve(import.meta.dirname, "../src/assets");
+const dataDir = resolve(import.meta.dirname, "./data");
 
 const answerFiles: Record<Mode, string> = {
-  6: resolve(scriptsDir, "final-6-word-list.json"),
-  7: resolve(scriptsDir, "final-7-word-list.json"),
-  8: resolve(scriptsDir, "final-8-word-list.json"),
+  6: resolve(assetsDir, "final-6-word-list.json"),
+  7: resolve(assetsDir, "final-7-word-list.json"),
+  8: resolve(assetsDir, "final-8-word-list.json"),
 };
 const guessFiles: Record<Mode, string> = {
   6: resolve(assetsDir, "six-guess-list.json"),
@@ -63,12 +63,10 @@ const loadUpper = (file: string): string[] =>
   );
 
 const frequencies: Record<string, number> = JSON.parse(
-  readFileSync(resolve(scriptsDir, "word-frequencies.json"), "utf-8"),
+  readFileSync(resolve(assetsDir, "word-frequencies.json"), "utf-8"),
 );
-const dictionary = new Set(loadUpper(resolve(scriptsDir, "whitelist.json")));
-const properNouns = new Set(
-  loadUpper(resolve(scriptsDir, "proper-nouns.json")),
-);
+const dictionary = new Set(loadUpper(resolve(dataDir, "whitelist.json")));
+const properNouns = new Set(loadUpper(resolve(dataDir, "proper-nouns.json")));
 
 const answerWords: Record<Mode, string[]> = {
   6: loadUpper(answerFiles[6]),
@@ -177,7 +175,7 @@ for (const mode of MODES) {
 }
 
 writeFileSync(
-  resolve(scriptsDir, "gram-scores.json"),
+  resolve(dataDir, "gram-scores.json"),
   JSON.stringify(gramScores, null, 2),
 );
 
@@ -192,4 +190,4 @@ console.log(`Answer words with no valid gram in their mode: ${uncovered.length}`
 if (uncovered.length > 0 && uncovered.length <= 20) {
   console.log(`  Uncovered: ${uncovered.join(", ")}`);
 }
-console.log(`Wrote gram-scores.json to ${scriptsDir}`);
+console.log(`Wrote gram-scores.json to ${dataDir}`);

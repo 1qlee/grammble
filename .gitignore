@@ -15,7 +15,14 @@ dev.db
 /build/
 /api/
 /server/build
-/public/build# Sentry Config File
+/public/build
+dist
+
+# One-off word-list generation pipeline (raw dictionaries + generator scripts).
+# The load-bearing outputs live in src/assets (runtime) and prisma/data (seed).
+scripts/
+
+# Sentry Config File
 .env.sentry-build-plugin
 /test-results/
 /playwright-report/
