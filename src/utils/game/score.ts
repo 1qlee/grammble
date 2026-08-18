@@ -253,6 +253,13 @@ function gradeOpener(
 // clean anchor and can be forced by a thin board, whereas re-testing dead info is always avoidable).
 const WASTE_WEIGHT = 0.06;
 
+// Extra flat penalty (2026-08-17) layered ON TOP of the dead-letter waste above when a letter is
+// replayed in the EXACT tile where it already came back gray -- a more blatant repeat than re-testing a
+// dead letter in a fresh slot, so it takes an additional fixed nudge. PT-INDEPENDENT (a flat point, like
+// STUCK_BUFF_CAP): the same-spot repeat is a fixed unforced error, not a term that should scale with the
+// skill weight. Charged per offending tile.
+const SAME_POS_WASTE_PENALTY = 1;
+
 // Premium for converting a yellow into a correctly placed green: you had to deduce
 // the position, which is skill, not luck. A letter handed to you as a green earns
 // no premium; placing a letter you only knew as a yellow does. This is what lets a
@@ -428,6 +435,7 @@ export const SCORE_TUNING = {
   NEGLECT_CAP,
   SHORT_GUESS_WEIGHT,
   WASTE_WEIGHT,
+  SAME_POS_WASTE_PENALTY,
   GRAM_STAGNATION_WEIGHT,
   HELD_GREEN_WEIGHT,
 } as const;
@@ -472,59 +480,69 @@ function shortfallByGuess(guesses: string[], wordLength: number): number[] {
 // skill deltas sum exactly to the whole-game sum. Kept separate from the scalars (which
 // computePuzzleScore relies on) so the tuned score is never touched.
 
+// Classify every FRESH green (a "correct" tile placed at a position not already locked on an earlier
+// guess) as either a DEDUCTION (a prior yellow instance of that letter was available to reason from)
+// or a COLD placement (no prior instance -- an unclued lock). deductionsByGuess and
+// coldPlacementsByGuess are thin views over this single walk, so they stay mutually exclusive by
+// construction.
+//
+// Duplicate letters are handled PER INSTANCE. The answer can hold a letter more than once (e.g. two
+// Es), and the player may have had a yellow clue for only some of them. `knownPresent[c]` is how many
+// instances of c were confirmed present ENTERING the guess -- the max non-absent (yellow or green)
+// count of c in any single earlier guess, since K non-absent tiles of c in one guess prove at least K
+// instances in the answer. Each fresh green consumes one known instance as a deduction; greens beyond
+// the confirmed count are cold. So a second E locked green with only one E ever seen yellow is one
+// deduction PLUS one cold placement, not a single credit swallowing the duplicate (the old
+// `counted`-by-letter walk credited each letter at most once, dropping the extra instance entirely).
+//
+// Knowledge is folded in AFTER crediting, so a letter first sighted this turn never reclassifies a
+// green placed on the same guess. Positions locked on an earlier guess are skipped, so re-showing a
+// held green never re-credits. Gram tiles are excluded (gramCorrect is not "correct") -- where the
+// gram sits is scored by gramDeduction, not as a letter placement.
+function classifyGreenPlacements(
+  guesses: string[],
+  feedback: LetterFeedback[][]
+): { deductions: number[]; cold: number[] } {
+  const knownPresent = new Map<string, number>();
+  const assignedGreens = new Map<string, number>();
+  const lockedPos = new Set<number>();
+  const deductions = guesses.map(() => 0);
+  const cold = guesses.map(() => 0);
+  for (let i = 0; i < guesses.length; i++) {
+    const word = guesses[i] ?? "";
+    const row = feedback[i] ?? [];
+    for (let p = 0; p < word.length; p++) {
+      if (row[p] !== "correct" || lockedPos.has(p)) continue;
+      const c = word[p];
+      const seen = assignedGreens.get(c) ?? 0;
+      if (seen < (knownPresent.get(c) ?? 0)) deductions[i]++;
+      else cold[i]++;
+      assignedGreens.set(c, seen + 1);
+    }
+    const nonAbsent = new Map<string, number>();
+    for (let p = 0; p < word.length; p++) {
+      if (row[p] === "misplaced" || row[p] === "correct")
+        nonAbsent.set(word[p], (nonAbsent.get(word[p]) ?? 0) + 1);
+      if (row[p] === "correct") lockedPos.add(p);
+    }
+    for (const [c, cnt] of nonAbsent)
+      knownPresent.set(c, Math.max(knownPresent.get(c) ?? 0, cnt));
+  }
+  return { deductions, cold };
+}
+
 function deductionsByGuess(
   guesses: string[],
   feedback: LetterFeedback[][]
 ): number[] {
-  const everYellow = new Set<string>();
-  const counted = new Set<string>();
-  const out = guesses.map(() => 0);
-  for (let i = 0; i < guesses.length; i++) {
-    const word = guesses[i];
-    const row = feedback[i] ?? [];
-    for (let p = 0; p < word.length; p++) {
-      const c = word[p];
-      if (row[p] === "correct" && everYellow.has(c) && !counted.has(c)) {
-        out[i]++;
-        counted.add(c);
-      }
-    }
-    for (let p = 0; p < word.length; p++) {
-      if (row[p] === "misplaced") everYellow.add(word[p]);
-    }
-  }
-  return out;
+  return classifyGreenPlacements(guesses, feedback).deductions;
 }
 
-// Cold placements per guess: a letter placed green (correct) that had NEVER shown up as a yellow
-// before -- a fresh position locked with no prior misplaced clue to deduce from. This is the mirror
-// image of deductionsByGuess (same walk, inverted everYellow test), and the two are mutually exclusive
-// per letter: a green is a deduction exactly when the letter was yellow first, and cold otherwise.
-// Gram tiles are excluded (gramCorrect is not "correct" here) -- where the gram sits is scored by
-// gramDeduction, not as a letter placement. Each distinct letter is counted at most once (its first
-// green), so re-placing an already-locked letter earns nothing.
 function coldPlacementsByGuess(
   guesses: string[],
   feedback: LetterFeedback[][]
 ): number[] {
-  const everYellow = new Set<string>();
-  const counted = new Set<string>();
-  const out = guesses.map(() => 0);
-  for (let i = 0; i < guesses.length; i++) {
-    const word = guesses[i];
-    const row = feedback[i] ?? [];
-    for (let p = 0; p < word.length; p++) {
-      const c = word[p];
-      if (row[p] === "correct" && !everYellow.has(c) && !counted.has(c)) {
-        out[i]++;
-        counted.add(c);
-      }
-    }
-    for (let p = 0; p < word.length; p++) {
-      if (row[p] === "misplaced") everYellow.add(word[p]);
-    }
-  }
-  return out;
+  return classifyGreenPlacements(guesses, feedback).cold;
 }
 
 function gramDeductionsByGuess(
@@ -677,15 +695,23 @@ function newTestedByGuess(
 // on a position already ruled out for it), while `overwrite` throws away information known to be GOOD
 // (a different letter played on a slot already locked green). Both cost the same, but they are opposite
 // mistakes, so they must not share one line of copy.
+//
+// `sameDeadPos` is an EXTRA charge layered on top of `dead`: replaying a letter in the exact tile where
+// it already came back gray (dead at that position) is a more blatant repeat than re-testing a dead
+// letter somewhere new, so it takes an additional flat nudge (SAME_POS_WASTE_PENALTY). Tracked by
+// letter@position over every prior gray tile, independent of whether the letter is fully absent (a
+// letter green elsewhere but gray here is still dead in THIS slot).
 function wastedByGuess(
   guesses: string[],
   feedback: LetterFeedback[][]
-): { dead: number[]; overwrite: number[] } {
+): { dead: number[]; overwrite: number[]; sameDeadPos: number[] } {
   const knownGreen = new Map<number, string>();
   const absentLetters = new Set<string>();
   const knownWrongPos = new Set<string>();
+  const grayAtPos = new Set<string>();
   const dead = guesses.map(() => 0);
   const overwrite = guesses.map(() => 0);
+  const sameDeadPos = guesses.map(() => 0);
 
   for (let i = 0; i < guesses.length; i++) {
     const word = guesses[i];
@@ -700,6 +726,7 @@ function wastedByGuess(
         if (knownGreen.has(p) && knownGreen.get(p) !== c) overwrite[i]++;
         if (absentLetters.has(c)) dead[i]++;
         if (knownWrongPos.has(`${c}@${p}`)) dead[i]++;
+        if (grayAtPos.has(`${c}@${p}`)) sameDeadPos[i]++;
       }
     }
 
@@ -714,6 +741,7 @@ function wastedByGuess(
       } else if (isYellow(tile)) {
         knownWrongPos.add(`${c}@${p}`);
       } else {
+        grayAtPos.add(`${c}@${p}`);
         const presentElsewhere = word
           .split("")
           .some((ch, q) => ch === c && (isGreen(row[q]) || isYellow(row[q])));
@@ -722,7 +750,7 @@ function wastedByGuess(
     }
   }
 
-  return { dead, overwrite };
+  return { dead, overwrite, sameDeadPos };
 }
 
 /**
@@ -909,10 +937,11 @@ function accumulateScore(params: ScoreParams): ScoreBreakdown {
   // Wasted counts per guess, split into re-tested BAD info (dead) and discarded GOOD info (overwrite);
   // computed here so the stuck-strong breadth buff below can require a fully clean guess. Their
   // penalties are applied later, in the waste block, as two separately labeled lines.
-  const { dead: wasteDead, overwrite: wasteOverwrite } = wastedByGuess(
-    guesses,
-    feedback
-  );
+  const {
+    dead: wasteDead,
+    overwrite: wasteOverwrite,
+    sameDeadPos: wasteSameDeadPos,
+  } = wastedByGuess(guesses, feedback);
   // New wrong letter-positions ruled out per guess; credited below (position triangulation).
   const positionRuledOut = positionRuledOutByGuess(guesses, feedback);
   // A won game's post-opener guess that kept probing sharply while genuinely stuck -- introduced a new
@@ -930,6 +959,7 @@ function accumulateScore(params: ScoreParams): ScoreBreakdown {
     newTested[i] > 0 &&
     wasteDead[i] === 0 &&
     wasteOverwrite[i] === 0 &&
+    wasteSameDeadPos[i] === 0 &&
     (params.poolByGuess[i] ?? Infinity) <= STUCK_POOL;
   let stuckBudget = STUCK_BUFF_CAP;
   let cumTested = 0;
@@ -1013,9 +1043,18 @@ function accumulateScore(params: ScoreParams): ScoreBreakdown {
   // Re-testing known-BAD info (dead letters / ruled-out positions) and discarding known-GOOD info
   // (a letter played over a locked green) are opposite mistakes at the same weight, so they are two
   // separate ledger lines rather than one mislabeled "dead letters" line.
+  //
+  // The "Re-tested dead letters" (waste) charge folds in an unlabeled extra: replaying a letter in the
+  // EXACT tile it already showed gray in adds a flat SAME_POS_WASTE_PENALTY per tile ON TOP of the
+  // per-tile dead-letter weight. It is deliberately NOT its own line -- it silently deepens the waste
+  // number. Both are added in ONE add("waste") call per guess so the recap shows a single line (two
+  // separate add()s of the same key would render as two). A tile gray-here but green-elsewhere is not in
+  // wasteDead, so on such a guess the same-spot penalty can stand alone under the waste key.
   wasteDead.forEach((w, i) => {
-    if (w <= 0) return;
-    add("waste", -PT * WASTE_WEIGHT * w, i);
+    const penalty =
+      PT * WASTE_WEIGHT * w + SAME_POS_WASTE_PENALTY * wasteSameDeadPos[i];
+    if (penalty <= 0) return;
+    add("waste", -penalty, i);
   });
   wasteOverwrite.forEach((w, i) => {
     if (w <= 0) return;
@@ -1037,25 +1076,54 @@ function accumulateScore(params: ScoreParams): ScoreBreakdown {
     add("shortGuess", -PT * SHORT_GUESS_WEIGHT * short, i);
   });
 
-  // heldGreen (skill): the average green frame carried across the middle guesses (1..lastNonWin).
-  // The guess that first drops the gram into its correct spot (all gram tiles green) reads as
-  // FINDING the gram, not holding it -- the lock is new that turn. Everywhere else the frame is
-  // genuinely being carried. A gram first placed on the opener (index 0) is graded into the base, so
-  // its later middle guesses correctly hold it and never trip this.
+  // heldGreen (skill): the average CARRIED green frame across the middle guesses (1..lastNonWin) --
+  // only greens whose letter was already locked on an earlier guess count, never a green first placed
+  // this turn (that is deduction/cold placement, paid there). The guess that first drops the gram into
+  // its correct spot (all gram tiles green) reads as FINDING the gram, not holding it -- the lock is
+  // new that turn, so it credits every green it shows. A gram first placed on the opener (index 0) is
+  // graded into the base, so its later middle guesses correctly hold it and never trip this.
   const gramFoundFirst = feedback.findIndex(
     (row) => row.filter((t) => t === "gramCorrect").length === GRAM_LENGTH
   );
   if (lastNonWin >= 1) {
+    // A green counts as HELD only if its letter has already shown green on an earlier guess; a green
+    // placed for the first time on this guess is a deduction/cold placement, credited there, and must
+    // NOT feed heldGreen or the line contradicts its own note (heldGreenCols in note-tiles excludes
+    // first-greens too). foundGram is the exception: that guess is defined by locking the gram tiles
+    // fresh, so it credits every green it shows. Tracked by letter, seeded with the opener's greens.
+    const greenLetters = new Set<string>();
+    const seedRow = feedback[0] ?? [];
+    const seedWord = guesses[0] ?? "";
+    for (let p = 0; p < seedWord.length; p++)
+      if (isGreen(seedRow[p])) greenLetters.add(seedWord[p]);
     for (let i = 1; i <= lastNonWin; i++) {
       const row = feedback[i] ?? [];
+      const word = guesses[i] ?? "";
+      const isFound = i === gramFoundFirst;
       let greens = 0;
-      for (let p = 0; p < row.length; p++) if (isGreen(row[p])) greens++;
+      for (let p = 0; p < row.length; p++)
+        if (isGreen(row[p]) && (isFound || greenLetters.has(word[p]))) greens++;
       add(
-        i === gramFoundFirst ? "foundGram" : "heldGreen",
+        isFound ? "foundGram" : "heldGreen",
         (PT * HELD_GREEN_WEIGHT * (greens / wordLength)) / lastNonWin,
         i
       );
+      // Record this guess's greens AFTER scoring, so its own first-greens are held only from next turn.
+      for (let p = 0; p < word.length; p++)
+        if (isGreen(row[p])) greenLetters.add(word[p]);
     }
+  }
+
+  // Locking the gram in its correct spot for the FIRST time ON the winning guess is otherwise
+  // unrewarded: the heldGreen/foundGram loop above only runs through lastNonWin (n - 2 on a win), so a
+  // gram first placed correctly on the final guess falls outside it, and gramDeduction pays only the
+  // wrong spots ELIMINATED before it, never the correct placement itself. Letter greens on the winning
+  // guess ARE already paid (deduction/coldPlacement fire on every guess), so this closes that
+  // asymmetry -- the final gram lock earns a flat gram-family credit (PT * GRAM_DEDUCTION_WEIGHT, at
+  // parity with one elimination), surfaced under the same "Found the gram's position" line. Guarded to
+  // FIRST placement on the win: a gram already locked on an earlier guess was merely held into the win.
+  if (won && gramFoundFirst === n - 1) {
+    add("foundGram", PT * GRAM_DEDUCTION_WEIGHT, n - 1);
   }
 
   // Luck no longer touches the score. The uncertainty drag, gram-lock relief, coverage and endgame

@@ -6,13 +6,13 @@ import type { LuckTier } from "~/utils/game/recap";
 // is skill now: luck no longer feeds the score (see LUCK_TIER_LABELS for the separate fortune
 // readout).
 export const CONTRIBUTION_LABELS: Record<string, string> = {
-  breadth: "Tested a wide range of letters",
+  breadth: "Tested a range of letters",
   stuckEffort: "Probed for clues with few words left",
   deduction: "Placed letters you had deduced",
   coldPlacement: "Placed a new letter correctly",
   gramDeduction: "Ruled out wrong gram spots",
   positionDeduction: "Ruled out a wrong letter spot",
-  foundGram: "Locked the gram in place",
+  foundGram: "Found the gram's position",
   heldGreen: "Held your locked letters",
   waste: "Re-tested dead letters",
   wasteGreen: "Overwrote a locked-in letter",

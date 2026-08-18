@@ -35,33 +35,39 @@ const isSkippable = (t: LetterFeedback | undefined): boolean =>
 // Non-gram green (correct) placements in `gi`, split by whether the letter had shown up yellow on an
 // earlier guess (deduction) or never had (coldPlacement). Mirrors deductionsByGuess /
 // coldPlacementsByGuess: each distinct letter is attributed once, at its first green.
+// Mirrors score.ts classifyGreenPlacements PER INSTANCE (see that helper for the model): each fresh
+// green consumes one confirmed-present instance of its letter as a deduction, and greens beyond the
+// known count are cold. A letter appearing green twice with only one prior yellow yields one deduction
+// col and one cold col -- the old `counted`-by-letter walk highlighted only one of the two.
 function placementCols(
   guesses: string[],
   feedback: LetterFeedback[][],
   gi: number,
   wantDeduction: boolean
 ): number[] {
-  const everYellow = new Set<string>();
-  const counted = new Set<string>();
+  const knownPresent = new Map<string, number>();
+  const assignedGreens = new Map<string, number>();
+  const lockedPos = new Set<number>();
   const cols: number[] = [];
   for (let i = 0; i <= gi; i++) {
     const word = guesses[i] ?? "";
     const row = feedback[i] ?? [];
     for (let p = 0; p < word.length; p++) {
+      if (row[p] !== "correct" || lockedPos.has(p)) continue;
       const c = word[p];
-      if (row[p] === "correct" && !counted.has(c)) {
-        const isDeduction = everYellow.has(c);
-        if (isDeduction === wantDeduction) {
-          counted.add(c);
-          if (i === gi) cols.push(p);
-        } else {
-          counted.add(c);
-        }
-      }
+      const seen = assignedGreens.get(c) ?? 0;
+      const isDeduction = seen < (knownPresent.get(c) ?? 0);
+      if (isDeduction === wantDeduction && i === gi) cols.push(p);
+      assignedGreens.set(c, seen + 1);
     }
+    const nonAbsent = new Map<string, number>();
     for (let p = 0; p < word.length; p++) {
-      if (row[p] === "misplaced") everYellow.add(word[p]);
+      if (row[p] === "misplaced" || row[p] === "correct")
+        nonAbsent.set(word[p], (nonAbsent.get(word[p]) ?? 0) + 1);
+      if (row[p] === "correct") lockedPos.add(p);
     }
+    for (const [c, cnt] of nonAbsent)
+      knownPresent.set(c, Math.max(knownPresent.get(c) ?? 0, cnt));
   }
   return cols;
 }
@@ -71,42 +77,47 @@ function placementCols(
 // reads as a deduction (the prior clue and the lock it earned) rather than an indistinguishable
 // green, and spans the originating row like neglect does.
 //
-// This must mirror score.ts deductionsByGuess EXACTLY, including its `counted` semantics: a letter is
-// added to `counted` only when it is actually credited as a deduction (it was yellow before this
-// green). A green placed with no prior yellow (a cold placement) is deliberately NOT consumed, so a
-// letter locked green early, later seen yellow in another slot, and re-placed green still counts as a
-// deduction on that later guess -- matching the score. (An earlier version added every green to
-// `counted`, which swallowed exactly this case and left the note with no tiles to highlight.)
+// This must mirror score.ts classifyGreenPlacements EXACTLY, PER INSTANCE: each fresh green consumes
+// one confirmed-present instance of its letter as a deduction, and greens beyond the known count are
+// cold (not highlighted here). A letter locked green early, later seen yellow in another slot, and
+// re-placed green still counts as a deduction on that later guess. Duplicate letters are paired
+// individually: two E greens deduced against a prior E yellow each highlight, sharing the one yellow
+// origin. (The old `counted`-by-letter walk credited each letter once, leaving a duplicate's second
+// instance with no tiles.)
 function deductionCells(
   guesses: string[],
   feedback: LetterFeedback[][],
   gi: number
 ): NoteCell[] {
   const firstYellow = new Map<string, NoteCell>();
-  const everYellow = new Set<string>();
-  const counted = new Set<string>();
+  const knownPresent = new Map<string, number>();
+  const assignedGreens = new Map<string, number>();
+  const lockedPos = new Set<number>();
   const cells: NoteCell[] = [];
   for (let i = 0; i <= gi; i++) {
     const word = guesses[i] ?? "";
     const row = feedback[i] ?? [];
     for (let p = 0; p < word.length; p++) {
+      if (row[p] !== "correct" || lockedPos.has(p)) continue;
       const c = word[p];
-      if (row[p] === "correct" && everYellow.has(c) && !counted.has(c)) {
-        counted.add(c);
-        if (i === gi) {
-          cells.push({ row: gi, col: p });
-          const origin = firstYellow.get(c);
-          if (origin) cells.push(origin);
-        }
+      const seen = assignedGreens.get(c) ?? 0;
+      if (seen < (knownPresent.get(c) ?? 0) && i === gi) {
+        cells.push({ row: gi, col: p });
+        const origin = firstYellow.get(c);
+        if (origin) cells.push(origin);
       }
+      assignedGreens.set(c, seen + 1);
     }
+    const nonAbsent = new Map<string, number>();
     for (let p = 0; p < word.length; p++) {
-      if (row[p] === "misplaced") {
-        everYellow.add(word[p]);
-        if (!firstYellow.has(word[p]))
-          firstYellow.set(word[p], { row: i, col: p });
-      }
+      if (row[p] === "misplaced" && !firstYellow.has(word[p]))
+        firstYellow.set(word[p], { row: i, col: p });
+      if (row[p] === "misplaced" || row[p] === "correct")
+        nonAbsent.set(word[p], (nonAbsent.get(word[p]) ?? 0) + 1);
+      if (row[p] === "correct") lockedPos.add(p);
     }
+    for (const [c, cnt] of nonAbsent)
+      knownPresent.set(c, Math.max(knownPresent.get(c) ?? 0, cnt));
   }
   return cells;
 }
@@ -116,12 +127,18 @@ function deductionCells(
 // positionRuledOutByGuess (knowledge read ENTERING each guess, folded in AFTER), so the highlight
 // lands on the exact tiles that earned "Ruled out a wrong letter spot" -- never a letter's first
 // yellow (its discovery, credited by breadth) nor a green (a deduction).
+//
+// Each ruled-out tile in row `gi` is PAIRED with that same letter's earliest yellow appearance on an
+// earlier row (tagged `origin`, so it gets a heavier border): the prior sighting is what made this a
+// KNOWN letter whose new wrong slot the guess ruled out, so highlighting it makes the deduction read
+// as "you already knew this E was in the word, and here you learned it's not in this spot either".
 function positionRuledOutCells(
   guesses: string[],
   feedback: LetterFeedback[][],
   gi: number
 ): NoteCell[] {
   const everYellow = new Set<string>();
+  const firstYellow = new Map<string, NoteCell>();
   const knownWrongPos = new Set<string>();
   const cells: NoteCell[] = [];
   for (let i = 0; i <= gi; i++) {
@@ -130,12 +147,17 @@ function positionRuledOutCells(
     for (let p = 0; p < word.length; p++) {
       if (row[p] !== "misplaced") continue;
       const c = word[p];
-      if (i === gi && everYellow.has(c) && !knownWrongPos.has(`${c}@${p}`))
+      if (i === gi && everYellow.has(c) && !knownWrongPos.has(`${c}@${p}`)) {
         cells.push({ row: gi, col: p });
+        const origin = firstYellow.get(c);
+        if (origin) cells.push(origin);
+      }
     }
     for (let p = 0; p < word.length; p++) {
       if (row[p] === "misplaced") {
         everYellow.add(word[p]);
+        if (!firstYellow.has(word[p]))
+          firstYellow.set(word[p], { row: i, col: p, origin: true });
         knownWrongPos.add(`${word[p]}@${p}`);
       }
     }

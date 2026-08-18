@@ -15,8 +15,18 @@ export function useStatsRecorder(opts: {
   puzzleNumber: number;
   mode: GameMode;
   isArchive?: boolean;
+  // Authoritative pre-game lifetime stats for this mode, loaded with the route.
+  // Used as the optimistic-fold baseline so the fold reconciles against the real
+  // lifetime totals even before the end-game dialog has seeded the query cache.
+  initialStats?: Stats;
 }) {
-  const { isAuthed, puzzleNumber, mode, isArchive = false } = opts;
+  const {
+    isAuthed,
+    puzzleNumber,
+    mode,
+    isArchive = false,
+    initialStats,
+  } = opts;
   const status = useGameStore((s) => s.status);
   const guesses = useGameStore((s) => s.guesses);
   const score = useGameStore((s) => s.score);
@@ -58,7 +68,12 @@ export function useStatsRecorder(opts: {
         const guessCount =
           status === "WON" ? guesses.filter((g) => g.length > 0).length : 0;
         queryClient.setQueryData<Stats>(["userStats", mode], (prev) =>
-          applyArchiveToStats(prev ?? EMPTY_STATS, status, guessCount, score),
+          applyArchiveToStats(
+            prev ?? initialStats ?? EMPTY_STATS,
+            status,
+            guessCount,
+            score,
+          ),
         );
         queryClient.invalidateQueries({ queryKey: ["userStats", mode] });
       }
@@ -90,7 +105,7 @@ export function useStatsRecorder(opts: {
       if (score !== null) {
         queryClient.setQueryData<Stats>(["userStats", mode], (prev) =>
           applyTerminalToStats(
-            prev ?? EMPTY_STATS,
+            prev ?? initialStats ?? EMPTY_STATS,
             status,
             guessCount,
             puzzleNumber,
@@ -114,5 +129,5 @@ export function useStatsRecorder(opts: {
     useStatsStore
       .getState()
       .applyTerminal(status, guessCount, puzzleNumber, score);
-  }, [status, puzzleNumber, isAuthed, guesses, score, mode, isArchive, queryClient]);
+  }, [status, puzzleNumber, isAuthed, guesses, score, mode, isArchive, initialStats, queryClient]);
 }

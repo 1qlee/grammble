@@ -111,6 +111,9 @@ export interface GramSlide {
 export interface FinishInfo {
   solvedWith: number;
   finishBits: number;
+  // The answer itself (the winning guess). It is one of the `solvedWith` words that still fit, so the
+  // finish read surfaces it alongside the alternatives to reconcile the count.
+  answer: string;
   alternatives: string[];
   moreAlternatives: number;
 }
@@ -435,6 +438,7 @@ export function useGameRecap(enabled: boolean): {
         finish = {
           solvedWith: narrowing.solvedWith,
           finishBits: luck.perGuess.find((g) => g.isWin)?.bits ?? luck.finishBits,
+          answer,
           alternatives,
           moreAlternatives: Math.max(
             0,

@@ -51,6 +51,7 @@ export default function GameBoard({
     puzzleNumber: data.puzzleNumber,
     mode: data.mode,
     isArchive,
+    initialStats: data.stats,
   });
   const storeStatus = useGameStore((s) => s.status);
   const storeHasData = useGameStore((s) => s.guesses.length > 0);
