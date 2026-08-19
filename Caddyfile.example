@@ -45,9 +45,12 @@ grammble.com {
 		#   style-src  'unsafe-inline'  -> required by Tailwind's inline styles and
 		#     the inline styles Anime.js writes to elements.
 		#   img-src data: blob:         -> canvas-generated share images.
+		#   connect-src *.sentry.io      -> browser error/trace reporting (only
+		#     needed once VITE_SENTRY_DSN is set; drop it if you never enable
+		#     client-side Sentry, or swap for your GlitchTip host if self-hosting).
 		# If a real third-party embed is added later (e.g. Stripe.js, analytics),
 		# widen the matching directive here rather than in app code.
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.sentry.io; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
 
 		# Do not advertise the server software.
 		-Server

@@ -4,6 +4,7 @@ import { defineConfig } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import viteReact from "@vitejs/plugin-react";
 import { visualizer } from "rollup-plugin-visualizer";
+import { sentryTanstackStart } from "@sentry/tanstackstart-react/vite";
 
 // Opt-in HTTPS for dev (set HTTPS=true) using locally-trusted mkcert certs, so
 // secure-context features (clipboard image writes) work when testing on LAN
@@ -44,6 +45,16 @@ export default defineConfig({
             return env.name === "client";
           },
         }
+      : null,
+    // Source-map upload to Sentry. Only engages when SENTRY_AUTH_TOKEN is
+    // present (CI/release builds), so local and unconfigured builds are
+    // untouched. Must be the last plugin.
+    process.env.SENTRY_AUTH_TOKEN
+      ? sentryTanstackStart({
+          org: process.env.SENTRY_ORG,
+          project: process.env.SENTRY_PROJECT,
+          authToken: process.env.SENTRY_AUTH_TOKEN,
+        })
       : null,
   ].filter(Boolean),
 });
