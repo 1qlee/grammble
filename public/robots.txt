@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Auth and account flows carry no indexable content.
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /signin
+Disallow: /signup
+Disallow: /logout
+Disallow: /verify-email
+
+Sitemap: https://grammble.com/sitemap.xml

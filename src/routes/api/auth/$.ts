@@ -5,6 +5,7 @@ import { safeParse } from "valibot";
 import { validateUsernameAgainstBlacklist } from "~/utils/auth/username-validation";
 import { sendVerificationEmail } from "~/utils/email/email-server";
 import { prismaClient } from "~/utils/db/prisma";
+import { devLog } from "~/utils/log";
 
 type AuthResponseBody = Record<string, unknown> & {
   code: string;
@@ -342,7 +343,7 @@ export const Route = createFileRoute("/api/auth/$")({
                       data: { isPremium: true, premiumGranted: true },
                     });
 
-                    console.log(
+                    devLog(
                       `Invite token consumed: user ${user.id} granted lifetime premium`
                     );
                   });

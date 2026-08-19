@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { SubscriptionStatus } from "~/prisma-generated/enums";
+import { devLog } from "~/utils/log";
 
 /** Handles both Unix timestamps (old API) and ISO strings (new API). */
 function toDate(value: unknown): Date {
@@ -42,7 +43,7 @@ export const Route = createFileRoute("/api/stripe/webhook")({
           );
         }
 
-        console.log("[Stripe Webhook] Received event:", event.type);
+        devLog("[Stripe Webhook] Received event:", event.type);
 
         try {
           switch (event.type) {
@@ -52,7 +53,7 @@ export const Route = createFileRoute("/api/stripe/webhook")({
               const stripeCustomerId = session.customer as string;
               const stripeSubscriptionId = session.subscription as string;
 
-              console.log("[Stripe Webhook] checkout.session.completed:", {
+              devLog("[Stripe Webhook] checkout.session.completed:", {
                 userId,
                 stripeCustomerId,
                 stripeSubscriptionId,

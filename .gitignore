@@ -18,9 +18,11 @@ dev.db
 /public/build
 dist
 
-# One-off word-list generation pipeline (raw dictionaries + generator scripts).
-# The load-bearing outputs live in src/assets (runtime) and prisma/data (seed).
-scripts/
+# One-off word-list generation pipeline. Keep the generator scripts in git;
+# ignore the bulky raw dictionaries + intermediate JSON (regenerable; the
+# load-bearing outputs now live in src/assets (runtime) and prisma/data (seed)).
+scripts/*
+!scripts/*.js
 
 # Sentry Config File
 .env.sentry-build-plugin

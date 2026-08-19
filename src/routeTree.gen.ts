@@ -21,6 +21,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SixDateRouteImport } from './routes/six_.$date'
 import { Route as SevenDateRouteImport } from './routes/seven_.$date'
 import { Route as EightDateRouteImport } from './routes/eight_.$date'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc/$'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
@@ -85,6 +86,11 @@ const EightDateRoute = EightDateRouteImport.update({
   path: '/eight/$date',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/six': typeof SixRoute
   '/verify-email': typeof VerifyEmailRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/api/health': typeof ApiHealthRoute
   '/eight/$date': typeof EightDateRoute
   '/seven/$date': typeof SevenDateRoute
   '/six/$date': typeof SixDateRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/six': typeof SixRoute
   '/verify-email': typeof VerifyEmailRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/api/health': typeof ApiHealthRoute
   '/eight/$date': typeof EightDateRoute
   '/seven/$date': typeof SevenDateRoute
   '/six/$date': typeof SixDateRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/six': typeof SixRoute
   '/verify-email': typeof VerifyEmailRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/api/health': typeof ApiHealthRoute
   '/eight_/$date': typeof EightDateRoute
   '/seven_/$date': typeof SevenDateRoute
   '/six_/$date': typeof SixDateRoute
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/six'
     | '/verify-email'
     | '/dashboard'
+    | '/api/health'
     | '/eight/$date'
     | '/seven/$date'
     | '/six/$date'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/six'
     | '/verify-email'
     | '/dashboard'
+    | '/api/health'
     | '/eight/$date'
     | '/seven/$date'
     | '/six/$date'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/six'
     | '/verify-email'
     | '/_authed/dashboard'
+    | '/api/health'
     | '/eight_/$date'
     | '/seven_/$date'
     | '/six_/$date'
@@ -224,6 +236,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SixRoute: typeof SixRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   EightDateRoute: typeof EightDateRoute
   SevenDateRoute: typeof SevenDateRoute
   SixDateRoute: typeof SixDateRoute
@@ -318,6 +331,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EightDateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authed/dashboard': {
       id: '/_authed/dashboard'
       path: '/dashboard'
@@ -370,6 +390,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SixRoute: SixRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  ApiHealthRoute: ApiHealthRoute,
   EightDateRoute: EightDateRoute,
   SevenDateRoute: SevenDateRoute,
   SixDateRoute: SixDateRoute,

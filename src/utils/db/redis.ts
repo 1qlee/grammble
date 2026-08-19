@@ -1,4 +1,5 @@
 import Redis from "ioredis";
+import { devLog } from "../log";
 
 // Initialize Redis client for Better Auth secondaryStorage
 const redisUrl =
@@ -18,5 +19,5 @@ redis.on("error", (err) => {
 });
 
 redis.on("connect", () => {
-  console.log("Connected to Redis");
+  devLog("Connected to Redis");
 });

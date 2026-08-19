@@ -1,6 +1,7 @@
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 import crypto from "node:crypto";
 import { prismaClient } from "../db/prisma";
+import { devLog } from "../log";
 
 // Server-only email sending. This module statically imports the AWS SDK, Prisma
 // and node:crypto, so it must never be imported by client-reachable code. The
@@ -67,7 +68,7 @@ export async function sendEmail({
 
   try {
     const response = await sesClient.send(command);
-    console.log("Email sent successfully:", response.MessageId);
+    devLog("Email sent successfully:", response.MessageId);
     return { success: true, messageId: response.MessageId };
   } catch (error: any) {
     console.error("Failed to send email:", error);
