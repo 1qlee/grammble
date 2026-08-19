@@ -261,34 +261,29 @@ function wastedCells(
   return { dead, overwrite };
 }
 
-// Greens on row `gi` that were ALREADY locked green on an earlier guess -- the frame CARRIED into this
-// guess, as opposed to a green freshly placed here. The score's heldGreen counts every green on the
-// row in its "green mass", but the note's label is "held your locked letters": a letter placed green
-// for the FIRST time on `gi` (a deduction or a cold placement, each already highlighted by its own
-// note) is NOT a held letter, and showing it here would contradict that note on the very same tile. A
-// letter counts as held once it has shown green on any earlier guess. Tracked by letter, not position,
-// so the exclusion of a letter's first green is total and can never overlap deduction/coldPlacement.
+// Greens on row `gi` at a POSITION that was ALREADY locked green on an earlier guess -- the exact lock
+// CARRIED into this guess, as opposed to a green freshly placed here. The note's label is "held your
+// locked letters": a green placed for the FIRST time on `gi` (a deduction or cold placement, each
+// highlighted by its own note) is NOT held, and showing it here would contradict that note on the very
+// same tile. Tracked by POSITION, not letter (mirrors score.ts heldGreen): a slot green before and
+// still green is held, but a SECOND instance of a letter placed at a fresh slot -- one E held while the
+// other E, previously yellow, is now placed correctly elsewhere -- is a deduction, never held.
 function heldGreenCols(
   guesses: string[],
   feedback: LetterFeedback[][],
   gi: number
 ): number[] {
-  const wasGreen = new Set<string>();
+  const greenPos = new Set<number>();
   for (let i = 0; i < gi; i++) {
-    const word = guesses[i] ?? "";
     const row = feedback[i] ?? [];
-    for (let p = 0; p < word.length; p++) {
-      if (row[p] === "correct" || row[p] === "gramCorrect") wasGreen.add(word[p]);
+    for (let p = 0; p < row.length; p++) {
+      if (row[p] === "correct" || row[p] === "gramCorrect") greenPos.add(p);
     }
   }
-  const word = guesses[gi] ?? "";
   const row = feedback[gi] ?? [];
   const cols: number[] = [];
-  for (let p = 0; p < word.length; p++) {
-    if (
-      (row[p] === "correct" || row[p] === "gramCorrect") &&
-      wasGreen.has(word[p])
-    )
+  for (let p = 0; p < row.length; p++) {
+    if ((row[p] === "correct" || row[p] === "gramCorrect") && greenPos.has(p))
       cols.push(p);
   }
   return cols;

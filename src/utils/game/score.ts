@@ -1077,7 +1077,7 @@ function accumulateScore(params: ScoreParams): ScoreBreakdown {
   });
 
   // heldGreen (skill): the average CARRIED green frame across the middle guesses (1..lastNonWin) --
-  // only greens whose letter was already locked on an earlier guess count, never a green first placed
+  // only greens at a POSITION already locked on an earlier guess count, never a green first placed
   // this turn (that is deduction/cold placement, paid there). The guess that first drops the gram into
   // its correct spot (all gram tiles green) reads as FINDING the gram, not holding it -- the lock is
   // new that turn, so it credits every green it shows. A gram first placed on the opener (index 0) is
@@ -1086,31 +1086,33 @@ function accumulateScore(params: ScoreParams): ScoreBreakdown {
     (row) => row.filter((t) => t === "gramCorrect").length === GRAM_LENGTH
   );
   if (lastNonWin >= 1) {
-    // A green counts as HELD only if its letter has already shown green on an earlier guess; a green
-    // placed for the first time on this guess is a deduction/cold placement, credited there, and must
-    // NOT feed heldGreen or the line contradicts its own note (heldGreenCols in note-tiles excludes
-    // first-greens too). foundGram is the exception: that guess is defined by locking the gram tiles
-    // fresh, so it credits every green it shows. Tracked by letter, seeded with the opener's greens.
-    const greenLetters = new Set<string>();
+    // A green counts as HELD only if the SAME POSITION has already shown green on an earlier guess --
+    // the player carried that exact lock forward. A green placed at a NEW position this turn is a
+    // deduction/cold placement, credited there, and must NOT feed heldGreen or the line contradicts its
+    // own note. Tracking by position (not letter) is what distinguishes carrying a locked letter from
+    // placing a SECOND instance of that letter for the first time: e.g. one E already green at its slot
+    // while the other E, previously yellow, is now placed at a fresh slot -- that second E is a
+    // deduction, not held. foundGram is the exception: that guess is defined by locking the gram tiles
+    // fresh, so it credits every green it shows. Seeded with the opener's green positions.
+    const greenPos = new Set<number>();
     const seedRow = feedback[0] ?? [];
-    const seedWord = guesses[0] ?? "";
-    for (let p = 0; p < seedWord.length; p++)
-      if (isGreen(seedRow[p])) greenLetters.add(seedWord[p]);
+    for (let p = 0; p < seedRow.length; p++)
+      if (isGreen(seedRow[p])) greenPos.add(p);
     for (let i = 1; i <= lastNonWin; i++) {
       const row = feedback[i] ?? [];
-      const word = guesses[i] ?? "";
       const isFound = i === gramFoundFirst;
       let greens = 0;
       for (let p = 0; p < row.length; p++)
-        if (isGreen(row[p]) && (isFound || greenLetters.has(word[p]))) greens++;
+        if (isGreen(row[p]) && (isFound || greenPos.has(p))) greens++;
       add(
         isFound ? "foundGram" : "heldGreen",
         (PT * HELD_GREEN_WEIGHT * (greens / wordLength)) / lastNonWin,
         i
       );
-      // Record this guess's greens AFTER scoring, so its own first-greens are held only from next turn.
-      for (let p = 0; p < word.length; p++)
-        if (isGreen(row[p])) greenLetters.add(word[p]);
+      // Record this guess's green positions AFTER scoring, so a slot first locked this turn is held
+      // only from the next turn on.
+      for (let p = 0; p < row.length; p++)
+        if (isGreen(row[p])) greenPos.add(p);
     }
   }
 

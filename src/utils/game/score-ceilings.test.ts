@@ -167,6 +167,34 @@ describe("score ceiling invariants (behavioral)", () => {
     expect(total(carried, "heldGreen")).toBeGreaterThan(0);
   });
 
+  // gram XY, 6-letter win with a DUPLICATE letter (two Es). "Held your locked letters" is per POSITION:
+  // one E is locked green at col 2 and carried, while the OTHER E -- previously yellow (col 5 on guess
+  // 1) -- is placed correctly for the first time at col 3 on the MIDDLE guess. That second E is a
+  // deduction, not held: heldGreen must count only the carried cols (X, Y, E@2), never the fresh E@3,
+  // and the deduction line must own col 3. Guards the score/note agreement (a by-letter walk wrongly
+  // counted the fresh E as held because the letter E was already green somewhere).
+  it("heldGreen counts a carried position, not a second instance freshly placed", () => {
+    const args = {
+      guesses: ["XYEZZE", "XYEEZZ", "XYEENN"],
+      feedback: [
+        ["gramCorrect", "gramCorrect", "correct", "absent", "absent", "misplaced"],
+        ["gramCorrect", "gramCorrect", "correct", "correct", "absent", "absent"],
+        ["gramCorrect", "gramCorrect", "correct", "correct", "correct", "correct"],
+      ] as LetterFeedback[][],
+      won: true,
+      wordLength: 6,
+    };
+    const d = decomposeScore(args);
+    // Held mass on the middle guess = 3 carried greens (X, Y, E@2) / 6, averaged over lastNonWin (1).
+    // The fresh E@3 is excluded, so this is strictly less than the 4-green (by-letter) count would give.
+    expect(total(d, "heldGreen")).toBeCloseTo(
+      (T.PT * T.HELD_GREEN_WEIGHT * (3 / 6)) / 1,
+      1
+    );
+    // The fresh E@3 (yellow -> green) is a deduction, credited once at the per-letter rate.
+    expect(total(d, "deduction")).toBeCloseTo(T.PT * T.DEDUCTION_WEIGHT, 1);
+  });
+
   // gram EN, 6-letter win with a DUPLICATE letter (two Es) in the answer. Placement credit is
   // per-INSTANCE: a second copy of a letter locked green must earn its own credit, not be swallowed by
   // the first. Two unclued Es (never seen yellow) are BOTH cold; when only one E was seen yellow
