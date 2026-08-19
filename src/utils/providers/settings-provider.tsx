@@ -1,5 +1,4 @@
 import { useRouter } from "@tanstack/react-router";
-import { engine } from "animejs";
 import {
   createContext,
   type PropsWithChildren,
@@ -83,7 +82,9 @@ export function SettingsProvider({
   // whenever it changes. The head script sets the [data-reduce-motion]
   // attribute pre-paint (covering CSS animations); this handles JS tweens.
   useEffect(() => {
-    engine.speed = reduceMotion ? REDUCED_MOTION_SPEED : 1;
+    import("animejs").then(({ engine }) => {
+      engine.speed = reduceMotion ? REDUCED_MOTION_SPEED : 1;
+    });
   }, [reduceMotion]);
 
   // Persist a preference to the server, then refresh route context so a

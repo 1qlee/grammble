@@ -1,5 +1,4 @@
 import { createRouter } from "@tanstack/react-router";
-import * as Sentry from "@sentry/tanstackstart-react";
 import { routeTree } from "./routeTree.gen";
 import { DefaultCatchBoundary } from "./components/DefaultCatchBoundary";
 import { NotFound } from "./components/NotFound";
@@ -17,11 +16,14 @@ export function getRouter() {
   // is set at build time, so unconfigured builds ship with no Sentry client.
   const dsn = import.meta.env.VITE_SENTRY_DSN;
   if (!router.isServer && dsn) {
-    Sentry.init({
-      dsn,
-      environment: import.meta.env.MODE,
-      integrations: [Sentry.tanstackRouterBrowserTracingIntegration(router)],
-      tracesSampleRate: import.meta.env.PROD ? 0.2 : 1.0,
+    // Loaded async so the ~367 kB Sentry client stays out of the main chunk.
+    import("@sentry/tanstackstart-react").then((Sentry) => {
+      Sentry.init({
+        dsn,
+        environment: import.meta.env.MODE,
+        integrations: [Sentry.tanstackRouterBrowserTracingIntegration(router)],
+        tracesSampleRate: import.meta.env.PROD ? 0.2 : 1.0,
+      });
     });
   }
 

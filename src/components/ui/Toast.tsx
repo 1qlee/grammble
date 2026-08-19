@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
 import { Transition } from "@headlessui/react";
-import { animate } from "animejs";
 import { X } from "lucide-react";
 import { useGameStore } from "~/stores/game-store";
 
@@ -27,15 +26,19 @@ export default function Toast() {
 
   const shakeIfError = (t: typeof toast) => {
     if ((t?.type === "error" || t?.shake) && shakeRef.current) {
-      animate(shakeRef.current, {
-        x: [
-          { to: -8, duration: 60 },
-          { to: 8, duration: 60 },
-          { to: -6, duration: 60 },
-          { to: 6, duration: 60 },
-          { to: 0, duration: 60 },
-        ],
-        ease: "inOut(2)",
+      const el = shakeRef.current;
+      // Kept out of the static import graph so animejs stays off the main chunk.
+      import("animejs").then(({ animate }) => {
+        animate(el, {
+          x: [
+            { to: -8, duration: 60 },
+            { to: 8, duration: 60 },
+            { to: -6, duration: 60 },
+            { to: 6, duration: 60 },
+            { to: 0, duration: 60 },
+          ],
+          ease: "inOut(2)",
+        });
       });
     }
   };

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 import type { User as UserType } from "~/prisma-generated/browser";
-import AppDialog from "./AppDialog";
+import AppDialogLazy from "./AppDialogLazy";
 import { useAppDialogStore } from "~/hooks/useAppDialog";
 import { useEndGameDialogStore } from "~/hooks/useEndGameDialog";
 import { useGameStore } from "~/stores/game-store";
@@ -123,7 +123,7 @@ export function Nav({ user }: { user: UserType | undefined }) {
           </Link>
         )}
       </div>
-      <AppDialog
+      <AppDialogLazy
         isOpen={appDialogOpen}
         initialTab={appDialogTab}
         onClose={closeAppDialog}
