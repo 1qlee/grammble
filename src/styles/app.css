@@ -3,14 +3,6 @@
 @source "./src/**/*.{html,js,jsx,ts,tsx}";
 
 @font-face {
-  font-family: "Switzer";
-  src: url("/fonts/Switzer-Variable.woff2") format("woff2");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
   font-family: "Outfit";
   src: url("/fonts/Outfit-Variable.woff2") format("woff2");
   font-weight: 100 900;

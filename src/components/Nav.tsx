@@ -15,6 +15,7 @@ import AppDialog from "./AppDialog";
 import { useAppDialogStore } from "~/hooks/useAppDialog";
 import { useEndGameDialogStore } from "~/hooks/useEndGameDialog";
 import { useGameStore } from "~/stores/game-store";
+import { clearAnonymousStorage } from "~/utils/storage/clear-anonymous-storage";
 
 type NavAccentStyle = CSSProperties & { "--nav-accent": string };
 
@@ -52,9 +53,6 @@ export function Nav({ user }: { user: UserType | undefined }) {
 
   const handleSignOut = async () => {
     const { signOut } = await import("~/utils/auth/auth-client");
-    const { clearAnonymousStorage } = await import(
-      "~/utils/storage/clear-anonymous-storage"
-    );
     await signOut({
       fetchOptions: {
         onSuccess: async () => {
