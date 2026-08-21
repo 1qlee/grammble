@@ -5,7 +5,7 @@ import { PrismaClient } from "../prisma-generated/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 // --- Config ---
-const START_DATE = "2026-08-08"; // First puzzle date (puzzle #1)
+const START_DATE = "2026-08-21"; // First puzzle date (puzzle #1)
 const NUM_DAYS = 365; // How many days to seed
 const SEED = 42; // PRNG seed for reproducible shuffle
 
