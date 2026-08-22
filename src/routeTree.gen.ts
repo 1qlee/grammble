@@ -14,7 +14,9 @@ import { Route as SixRouteImport } from './routes/six'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SevenRouteImport } from './routes/seven'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LogoutRouteImport } from './routes/logout'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as EightRouteImport } from './routes/eight'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
@@ -52,9 +54,19 @@ const SevenRoute = SevenRouteImport.update({
   path: '/seven',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LogoutRoute = LogoutRouteImport.update({
   id: '/logout',
   path: '/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EightRoute = EightRouteImport.update({
@@ -115,7 +127,9 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/eight': typeof EightRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/logout': typeof LogoutRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/seven': typeof SevenRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -133,7 +147,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/eight': typeof EightRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/logout': typeof LogoutRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/seven': typeof SevenRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -153,7 +169,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteWithChildren
   '/eight': typeof EightRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/logout': typeof LogoutRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/seven': typeof SevenRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -173,7 +191,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/eight'
+    | '/forgot-password'
     | '/logout'
+    | '/reset-password'
     | '/seven'
     | '/signin'
     | '/signup'
@@ -191,7 +211,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/eight'
+    | '/forgot-password'
     | '/logout'
+    | '/reset-password'
     | '/seven'
     | '/signin'
     | '/signup'
@@ -210,7 +232,9 @@ export interface FileRouteTypes {
     | '/'
     | '/_authed'
     | '/eight'
+    | '/forgot-password'
     | '/logout'
+    | '/reset-password'
     | '/seven'
     | '/signin'
     | '/signup'
@@ -230,7 +254,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRoute: typeof AuthedRouteWithChildren
   EightRoute: typeof EightRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LogoutRoute: typeof LogoutRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SevenRoute: typeof SevenRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
@@ -282,11 +308,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SevenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/logout': {
       id: '/logout'
       path: '/logout'
       fullPath: '/logout'
       preLoaderRoute: typeof LogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/eight': {
@@ -384,7 +424,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRoute: AuthedRouteWithChildren,
   EightRoute: EightRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LogoutRoute: LogoutRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SevenRoute: SevenRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,

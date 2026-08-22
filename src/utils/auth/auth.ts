@@ -77,6 +77,15 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
+    // Better Auth generates and stores the reset token; we only deliver it.
+    // email-server is dynamically imported so its module-scope SES setup (which
+    // throws when SES_FROM_EMAIL is unset) never runs in dev/test at boot.
+    sendResetPassword: async ({ user, token }) => {
+      const { sendPasswordResetEmail } = await import(
+        "../email/email-server"
+      );
+      await sendPasswordResetEmail(user.email, token);
+    },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days

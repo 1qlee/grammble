@@ -225,7 +225,7 @@ export default function SigninForm({ checkoutIntent }: Props) {
       <SocialSignin />
 
       <div className="flex justify-center my-4 text-sm">
-        <Link to="/signup">Forgot password?</Link>
+        <Link to="/forgot-password">Forgot password?</Link>
       </div>
     </AuthForm>
   );

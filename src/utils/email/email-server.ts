@@ -207,3 +207,63 @@ If you didn't create an account, you can safely ignore this email.
     throw new Error("Failed to send verification email");
   }
 }
+
+/**
+ * Sends a password-reset email. The token is generated and stored by Better
+ * Auth (see auth.ts `sendResetPassword`); this only renders and delivers the
+ * message, building the link to our own /reset-password page.
+ */
+export async function sendPasswordResetEmail(email: string, token: string) {
+  const baseUrl =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : process.env.APP_URL || "http://localhost:3000";
+  const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+
+  const subject = "Reset your password";
+  const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #1a1a1a; color: #fff; padding: 20px; border-radius: 8px 8px 0 0;">
+            <h1 style="margin: 0; font-size: 24px;">Reset your password</h1>
+          </div>
+          <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+            <p style="font-size: 16px; margin-bottom: 20px;">We received a request to reset your Grammble password. Click the button below to choose a new one:</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetUrl}" style="display: inline-block; background-color: #3b82f6; color: #fff; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Reset Password</a>
+            </div>
+            <p style="font-size: 14px; color: #666; margin-top: 30px;">Or copy and paste this link into your browser:</p>
+            <p style="font-size: 12px; color: #999; word-break: break-all; background-color: #fff; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">${resetUrl}</p>
+            <p style="font-size: 14px; color: #666; margin-top: 30px;">This link will expire in 1 hour.</p>
+            <p style="font-size: 14px; color: #666; margin-top: 20px;">If you didn't request a password reset, you can safely ignore this email; your password will not change.</p>
+          </div>
+          <div style="text-align: center; margin-top: 20px; padding: 20px; color: #999; font-size: 12px;">
+            <p>© ${new Date().getFullYear()} Grammble. All rights reserved.</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+  const text = `
+Reset your password
+
+We received a request to reset your Grammble password. Visit the following link to choose a new one:
+
+${resetUrl}
+
+This link will expire in 1 hour.
+
+If you didn't request a password reset, you can safely ignore this email; your password will not change.
+
+© ${new Date().getFullYear()} Grammble. All rights reserved.
+    `.trim();
+
+  await sendEmail({ to: email, subject, html, text });
+
+  return { success: true, message: "Password reset email sent successfully" };
+}
