@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import * as v from "valibot";
 import Alert from "~/components/ui/Alert";
@@ -8,7 +8,7 @@ import Input from "~/components/ui/forms/Input";
 import Field from "~/components/ui/forms/Field";
 import Label from "~/components/ui/forms/Label";
 import Button from "~/components/buttons/Button";
-import { resetPassword } from "~/utils/auth/auth-client";
+import { resetPassword, requestPasswordReset } from "~/utils/auth/auth-client";
 import { passwordValidator } from "~/components/forms/SignupForm.types";
 
 const resetSearchSchema = v.object({
@@ -32,18 +32,7 @@ function ResetPasswordComp() {
   // The emailed link carries the token; without it (or if Better Auth flagged
   // the link invalid on the way in) there is nothing to reset against.
   if (!token || linkError) {
-    return (
-      <div className="card-wrapper bg-default-shadow">
-        <Alert type="error" className="mb-6">
-          <p>
-            This reset link is invalid or has expired. Please request a new one.
-          </p>
-        </Alert>
-        <div className="text-sm">
-          <Link to="/forgot-password">Request a new link</Link>
-        </div>
-      </div>
-    );
+    return <ExpiredLinkNotice />;
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -107,7 +96,12 @@ function ResetPasswordComp() {
       )}
       <form onSubmit={handleSubmit}>
         <Field className="mb-4">
-          <Label htmlFor="password">New password</Label>
+          <Label htmlFor="password">
+            New password{" "}
+            <span className="font-normal text-zinc-500 dark:text-zinc-400">
+              (minimum 8 characters)
+            </span>
+          </Label>
           <Input
             id="password"
             name="password"
@@ -134,6 +128,67 @@ function ResetPasswordComp() {
       <div className="flex justify-center my-4 text-sm">
         <Link to="/signin">Back to sign in</Link>
       </div>
+    </div>
+  );
+}
+
+// Shown when the reset link is missing/expired. If we still have the address
+// that requested the reset (stashed in localStorage by /forgot-password), offer
+// a 1-click resend; otherwise fall back to the request-a-link page.
+function ExpiredLinkNotice() {
+  const [email, setEmail] = useState<string | null>(null);
+  const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
+
+  useEffect(() => {
+    try {
+      setEmail(localStorage.getItem("grammble:reset-email"));
+    } catch {
+      setEmail(null);
+    }
+  }, []);
+
+  const handleResend = async () => {
+    if (!email || state === "sending") return;
+    setState("sending");
+    try {
+      await requestPasswordReset({ email, redirectTo: "/reset-password" });
+    } catch (err) {
+      // Neutral either way (enumeration protection); still show "sent".
+      console.error("Password reset resend failed:", err);
+    }
+    setState("sent");
+  };
+
+  return (
+    <div className="card-wrapper bg-default-shadow">
+      <Alert type="error" className="mb-6">
+        <p>
+          This reset link is invalid or has expired. Please request a new one.
+        </p>
+      </Alert>
+      {state === "sent" ? (
+        <Alert type="success">
+          <p>
+            A new reset link is on its way{email ? ` to ${email}` : ""}. It
+            expires in 1 hour.
+          </p>
+        </Alert>
+      ) : email ? (
+        <div className="text-sm">
+          <button
+            type="button"
+            onClick={handleResend}
+            aria-disabled={state === "sending"}
+            className="underline cursor-pointer"
+          >
+            {state === "sending" ? "Sending..." : "Resend reset link"}
+          </button>
+        </div>
+      ) : (
+        <div className="text-sm">
+          <Link to="/forgot-password">Request a new link</Link>
+        </div>
+      )}
     </div>
   );
 }

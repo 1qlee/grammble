@@ -284,7 +284,12 @@ export default function SignupForm({ checkoutIntent }: Props) {
 
           return (
             <field.Field className="mb-2">
-              <field.Label htmlFor={field.name}>Password</field.Label>
+              <field.Label htmlFor={field.name}>
+                Password{" "}
+                <span className="font-normal text-zinc-500 dark:text-zinc-400">
+                  (minimum 8 characters)
+                </span>
+              </field.Label>
               <field.Input
                 id={field.name}
                 name={field.name}

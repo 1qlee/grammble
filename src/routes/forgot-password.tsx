@@ -37,6 +37,15 @@ function ForgotPasswordComp() {
 
     setState("loading");
     setError(null);
+    // Remember the address so the reset page can offer a 1-click resend if the
+    // emailed link later turns out to be expired. Kept in localStorage (not the
+    // URL) to avoid leaking the email into browser history / server logs. Key
+    // must match the one read in reset-password.tsx.
+    try {
+      localStorage.setItem("grammble:reset-email", email.trim());
+    } catch {
+      // Private-mode / storage-disabled: resend simply falls back to the link.
+    }
     try {
       await requestPasswordReset({
         email: email.trim(),
