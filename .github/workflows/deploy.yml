@@ -46,6 +46,7 @@ jobs:
       - name: Update source, deps, and database on server
         run: |
           ssh -i ~/.ssh/id_ed25519 "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" bash -eu <<'REMOTE'
+            export CI=true
             cd /home/grammble/grammble
             git pull origin main
             pnpm install --frozen-lockfile
