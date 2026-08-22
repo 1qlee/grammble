@@ -12,6 +12,11 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      # Placeholder only: prisma.config.ts resolves DATABASE_URL at load time for
+      # `generate`/`build`, neither of which connects. The real value lives in the
+      # server's .env and is read at runtime, never baked into the bundle.
+      DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
     steps:
       - uses: actions/checkout@v4
 
