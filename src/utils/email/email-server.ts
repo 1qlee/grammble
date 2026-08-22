@@ -209,17 +209,13 @@ If you didn't create an account, you can safely ignore this email.
 }
 
 /**
- * Sends a password-reset email. The token is generated and stored by Better
- * Auth (see auth.ts `sendResetPassword`); this only renders and delivers the
- * message, building the link to our own /reset-password page.
+ * Sends a password-reset email. Better Auth generates the token and the reset
+ * URL (see auth.ts `sendResetPassword`) -- that URL points at Better Auth's own
+ * verify endpoint, which validates the token on click and redirects to our
+ * /reset-password page with either ?token=... (valid) or ?error=... (invalid or
+ * expired). This function only renders and delivers the message.
  */
-export async function sendPasswordResetEmail(email: string, token: string) {
-  const baseUrl =
-    process.env.NODE_ENV === "development"
-      ? "http://localhost:3000"
-      : process.env.APP_URL || "http://localhost:3000";
-  const resetUrl = `${baseUrl}/reset-password?token=${token}`;
-
+export async function sendPasswordResetEmail(email: string, resetUrl: string) {
   const subject = "Reset your password";
   const html = `
       <!DOCTYPE html>

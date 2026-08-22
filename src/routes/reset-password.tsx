@@ -26,7 +26,6 @@ function ResetPasswordComp() {
   const navigate = useNavigate();
 
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
   const [state, setState] = useState<"idle" | "loading" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -37,8 +36,7 @@ function ResetPasswordComp() {
       <div className="card-wrapper bg-default-shadow">
         <Alert type="error" className="mb-6">
           <p>
-            This password reset link is invalid or has expired. Please request a
-            new one.
+            This reset link is invalid or has expired. Please request a new one.
           </p>
         </Alert>
         <div className="text-sm">
@@ -55,10 +53,6 @@ function ResetPasswordComp() {
     const parsed = v.safeParse(passwordValidator, password);
     if (!parsed.success) {
       setError(parsed.issues[0]?.message ?? "Invalid password.");
-      return;
-    }
-    if (password !== confirm) {
-      setError("Passwords do not match.");
       return;
     }
 
@@ -112,7 +106,7 @@ function ResetPasswordComp() {
         </Alert>
       )}
       <form onSubmit={handleSubmit}>
-        <Field className="mb-2">
+        <Field className="mb-4">
           <Label htmlFor="password">New password</Label>
           <Input
             id="password"
@@ -125,23 +119,6 @@ function ResetPasswordComp() {
             onChange={(e) => {
               setError(null);
               setPassword(e.target.value);
-            }}
-            disabled={state === "loading"}
-          />
-        </Field>
-        <Field className="mb-4">
-          <Label htmlFor="confirm">Confirm password</Label>
-          <Input
-            id="confirm"
-            name="confirm"
-            type="password"
-            autoComplete="new-password"
-            placeholder="Re-enter new password"
-            value={confirm}
-            status={error ? "error" : "default"}
-            onChange={(e) => {
-              setError(null);
-              setConfirm(e.target.value);
             }}
             disabled={state === "loading"}
           />
